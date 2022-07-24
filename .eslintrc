@@ -1,0 +1,45 @@
+{
+    "globals": {
+      "React": true,
+      "JSX": true
+    },
+    "root": true,
+    "parser": "@typescript-eslint/parser",
+    "env": { "node": true },
+    "plugins": [
+      "@typescript-eslint",
+      "react"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/eslint-recommended",
+      "plugin:@typescript-eslint/recommended",
+      "plugin:react/recommended"
+    ], 
+    "parserOptions": {
+        "sourceType": "module",
+        "ecmaFeatures": {
+          "jsx": true,
+          "experimentalObjectRestSpread": true
+        }
+    },
+    "rules": {
+      "no-non-null-assertion": "off",
+      "@typescript-eslint/ban-ts-comment": "off",
+      "no-prototype-builtins": "off",
+      "quotes": ["error", "double"],
+      "keyword-spacing": ["error", {
+        "before": true,
+        "after": true
+      }],
+      "key-spacing": ["error", {
+        "beforeColon": false,
+        "afterColon": true
+      }],
+      "space-infix-ops": ["error", {
+        "int32Hint": false
+      }],
+      "react-hooks/rules-of-hooks": "error", // Checks rules of Hooks
+      "react-hooks/exhaustive-deps": "warn" // Checks effect dependencies
+    } 
+  }
