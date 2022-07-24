@@ -5,6 +5,9 @@
 
 Currently runs OpenAI API.
 
+https://user-images.githubusercontent.com/25003283/180654125-44932d61-90eb-4c06-b17e-d7dba545acb9.mov
+
+
 ## TODOs
 
 - [ ] optimise requests
