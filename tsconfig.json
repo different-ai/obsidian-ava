@@ -11,6 +11,7 @@
     "moduleResolution": "node",
     "importHelpers": true,
     "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
     "lib": [
       "DOM",
       "ES5",
@@ -19,7 +20,6 @@
       "ES2020",
     ]
   },
-  "include": [
-    "*.ts"
-  ]
+  "include": ["*.tsx"],
+  "exclude": ["node_modules"]
 }

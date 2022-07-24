@@ -7,16 +7,19 @@ import AvaPlugin from "./main";
 
 
 export interface AvaSettings {
-  openai: OpenAISettings,
+  openai: OpenAISettings;
 }
 type CompletionConfig = Omit<CreateCompletionRequest, "prompt" | "stream" | "echo">;
 export interface OpenAISettings {
-  key: string
-  completionsConfig: CompletionConfig
-  organization?: string
+  automatic: boolean;
+  key: string;
+  completionsConfig: CompletionConfig;
+  organization?: string;
 }
+
 export const DEFAULT_SETTINGS: AvaSettings = {
   openai: {
+    automatic: false,
     key: "",
     completionsConfig: {
       model: "code-davinci-002",
@@ -29,7 +32,7 @@ export const DEFAULT_SETTINGS: AvaSettings = {
 }
 
 interface CustomSettingsProps {
-  plugin: AvaPlugin
+  plugin: AvaPlugin;
 }
 export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
 
@@ -50,6 +53,7 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
   React.useEffect(() => {
     openai.listModels().then((models) => setAvailableModels(
       models.data?.data?.map(m => m.id!) || []));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openAiConfig?.key])
 
   const onSave = async () => {

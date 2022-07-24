@@ -1,13 +1,14 @@
 {
 	"name": "obsidian-ava",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Thinking assistance using language model/multimodal in Obsidian assistant",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"dev-fake": "USE_FAKE_API=true node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "node version-bump.mjs && git add manifest.json versions.json",
+		"lint-fix": "eslint --ext .tsx . --fix"
 	},
 	"keywords": [],
 	"author": "",

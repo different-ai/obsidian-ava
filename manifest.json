@@ -1,7 +1,7 @@
 {
 	"id": "obsidian-ava",
 	"name": "Obsidian ava",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"minAppVersion": "0.12.0",
 	"description": "Thinking assistance using language model/multimodal in Obsidian assistant",
 	"author": "louis030195",
