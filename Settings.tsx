@@ -11,6 +11,7 @@ export interface AvaSettings {
 }
 type CompletionConfig = Omit<CreateCompletionRequest, "prompt" | "stream" | "echo">;
 export interface OpenAISettings {
+  promptLines: number;
   automatic: boolean;
   key: string;
   completionsConfig: CompletionConfig;
@@ -19,6 +20,7 @@ export interface OpenAISettings {
 
 export const DEFAULT_SETTINGS: AvaSettings = {
   openai: {
+    promptLines: 5,
     automatic: false,
     key: "",
     completionsConfig: {
@@ -275,6 +277,25 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
               marks
               min={0}
               max={1}
+              valueLabelDisplay="auto"
+            />
+          </ListItem>
+          <ListItem>
+            <ListItemText primary="Prompt lines"
+              sx={{
+                marginRight: "1rem",
+              }}
+            />
+            <Slider
+              value={openAiConfig?.promptLines || 5}
+              onChange={(e, value) => setOpenAiConfig({
+                ...openAiConfig,
+                promptLines: value as number,
+              })}
+              step={1}
+              marks
+              min={1}
+              max={50}
               valueLabelDisplay="auto"
             />
           </ListItem>
