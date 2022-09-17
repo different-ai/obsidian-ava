@@ -1,0 +1,14 @@
+# typer[all]
+fire
+fastapi
+uvicorn[standard]
+diffusers
+transformers
+einops
+torchvision
+scipy
+ftfy
+openai
+ipykernel
+obsidiantools
+wandb
