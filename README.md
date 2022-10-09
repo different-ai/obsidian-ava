@@ -16,6 +16,7 @@ https://user-images.githubusercontent.com/25003283/180654125-44932d61-90eb-4c06-
 - [ ] optimise requests
 - [ ] optimise UX (copy Github copilot UX/make it customisable, like triggered by a hotkey)
 - [ ] implement DALLE-2 API (once it's available)
+- [x] implement Stable diffusion API (https://beta.dreamstudio.ai)
 - [ ] implement huggingface API / custom API
 - [ ] (low priority) local inference using ONNX (see codebase [here](https://github.com/louis030195/obsidian-search/blob/master/Settings.tsx))
 - [ ] other features than completions using prompt templates (handlebarjs for example)

@@ -1,13 +1,15 @@
-import { Check, Error, ExpandLess, ExpandMore, Settings, Visibility, VisibilityOff } from "@mui/icons-material";
-import { LoadingButton } from "@mui/lab";
-import { Autocomplete, Collapse, FormControl, IconButton, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, OutlinedInputProps, Select, Slider, TextField, Tooltip } from "@mui/material";
-import { Configuration, CreateCompletionRequest, OpenAIApi } from "openai";
+import {Check, Error, ExpandLess, ExpandMore, Settings, Visibility, VisibilityOff} from "@mui/icons-material";
+import {LoadingButton} from "@mui/lab";
+import {Autocomplete, Collapse, Divider, FormControl, IconButton, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, OutlinedInputProps, Select, Slider, TextField, Tooltip} from "@mui/material";
+import CustomDivider from "CustomerDivider";
+import {Configuration, CreateCompletionRequest, OpenAIApi} from "openai";
 import * as React from "react";
 import AvaPlugin from "./main";
 
 
 export interface AvaSettings {
   openai: OpenAISettings;
+  stableDiffusion: StableDiffusionSettings;
 }
 type CompletionConfig = Omit<CreateCompletionRequest, "prompt" | "stream" | "echo">;
 export interface OpenAISettings {
@@ -16,6 +18,9 @@ export interface OpenAISettings {
   key: string;
   completionsConfig: CompletionConfig;
   organization?: string;
+}
+export interface StableDiffusionSettings {
+  key: string;
 }
 
 export const DEFAULT_SETTINGS: AvaSettings = {
@@ -30,17 +35,22 @@ export const DEFAULT_SETTINGS: AvaSettings = {
       temperature: 0.7,
     },
     organization: "",
-  }
-}
+  },
+  stableDiffusion: {
+    key: "",
+  },
+};
 
 interface CustomSettingsProps {
   plugin: AvaPlugin;
 }
-export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
-
+export const CustomSettings = ({plugin}: CustomSettingsProps) => {
   const [isLoading, setIsloading] = React.useState(false);
   const [openAiConfig, setOpenAiConfig] = React.useState<OpenAISettings>(
-    plugin.settings.openai || DEFAULT_SETTINGS.openai,
+      plugin.settings.openai || DEFAULT_SETTINGS.openai,
+  );
+  const [stableDiffusionConfig, setStableDiffusionConfig] = React.useState<StableDiffusionSettings>(
+      plugin.settings.stableDiffusion || DEFAULT_SETTINGS.stableDiffusion,
   );
   const [error, setError] = React.useState<string | undefined>(undefined);
   const [revealKey, setRevealKey] = React.useState(false);
@@ -54,34 +64,35 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
 
   React.useEffect(() => {
     openai.listModels().then((models) => setAvailableModels(
-      models.data?.data?.map(m => m.id!) || []));
+        models.data?.data?.map((m) => m.id!) || []));
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openAiConfig?.key])
+  }, [openAiConfig?.key]);
 
   const onSave = async () => {
     setIsloading(true);
 
 
     await openai.listFiles()
-      .then(() => {
-        plugin.settings.openai = openAiConfig;
-        return plugin.saveSettings();
-      })
-      .catch((e) => {
-        console.error(e);
-        setError("Invalid OpenAI API key");
-      });
+        .then(() => {
+          plugin.settings.openai = openAiConfig;
+          plugin.settings.stableDiffusion = stableDiffusionConfig;
+          return plugin.saveSettings();
+        })
+        .catch((e) => {
+          console.error(e);
+          setError("Invalid OpenAI API key");
+        });
     setIsloading(false);
-  }
+  };
 
   return (
     <List
       sx={{
-        width: "100%",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
+        "width": "100%",
+        "display": "flex",
+        "flexDirection": "column",
+        "justifyContent": "center",
+        "alignItems": "center",
         // all child width are 100%
         "& > *": {
           width: "100%",
@@ -102,6 +113,7 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       <ListItem>
         <ListItemText primary="Settings" />
       </ListItem>
+      <CustomDivider text="OpenAI"/>
       <ListItem>
         <TextField
           variant="standard"
@@ -301,6 +313,38 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           </ListItem>
         </List>
       </Collapse>
+      
+      <CustomDivider text="Stable diffusion"/>
+      <ListItem>
+        <TextField
+          variant="standard"
+          label="Stable diffusion API key"
+          value={stableDiffusionConfig?.key}
+          type={revealKey ? "text" : "password"}
+          color="primary"
+          fullWidth
+          InputProps={
+            {
+              disableUnderline: true,
+              endAdornment: <InputAdornment position="end">
+                <IconButton
+                  onClick={() => setRevealKey(!revealKey)}
+                >
+                  {revealKey ?
+                    <VisibilityOff /> : <Visibility />}
+                </IconButton>
+
+              </InputAdornment>,
+            } as Partial<OutlinedInputProps>}
+          onChange={(e) => {
+            setStableDiffusionConfig({
+              ...stableDiffusionConfig,
+              key: e.target.value,
+            });
+          }}
+        />
+      </ListItem>
+      <Divider />
       <ListItem
         sx={{
           textAlign: "center",
@@ -323,4 +367,4 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       </ListItem>
     </List>
   );
-}
+};
