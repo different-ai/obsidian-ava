@@ -7,6 +7,6 @@ release:
 	echo "Committing '$$VERSION: $$COMMIT'"; \
 	git commit -m "$$VERSION: $$COMMIT"; \
 	git push origin main; \
-	git tag v$$VERSION; \
-	git push origin v$$VERSION
+	git tag $$VERSION; \
+	git push origin $$VERSION
 	echo "Done, check https://github.com/louis030195/obsidian-ava/actions"

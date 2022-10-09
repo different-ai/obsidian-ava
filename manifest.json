@@ -1,9 +1,9 @@
 {
 	"id": "obsidian-ava",
 	"name": "Obsidian ava",
-	"version": "1.0.3",
+	"version": "1.0.4",
 	"minAppVersion": "0.12.0",
-	"description": "Thinking assistance using language model/multimodal in Obsidian assistant",
+	"description": "AI-enhanced reflection in Obsidian",
 	"author": "louis030195",
 	"authorUrl": "https://louis030195.com",
 	"isDesktopOnly": false
