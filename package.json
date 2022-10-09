@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-ava",
-	"version": "1.0.2",
+	"version": "1.0.3",
 	"description": "Thinking assistance using language model/multimodal in Obsidian assistant",
 	"main": "main.js",
 	"scripts": {
