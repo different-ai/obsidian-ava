@@ -3,7 +3,13 @@
 
 ⚠️ Extremely experimental code (but works) ⚠️
 
-Currently runs OpenAI API.
+Currently runs OpenAI API and stable diffusion
+
+
+
+https://user-images.githubusercontent.com/25003283/194750149-b4e98e00-3855-4b22-9803-f41502bba871.mov
+
+
 
 https://user-images.githubusercontent.com/25003283/180654125-44932d61-90eb-4c06-b17e-d7dba545acb9.mov
 
