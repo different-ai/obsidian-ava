@@ -127,6 +127,19 @@ module.exports = descriptionToArt;
 <% tp.user.descriptionToArt() %>
 ```
 
+For example, 
+
+```
+A man confronts a robot in a chess game, he holds his head with his two arms as if he had a headache while the robot stares at him with its red eyes and its grinning face, announcing its dismal plans.
+```
+
+Generate
+
+```
+A man is playing chess against a robot, the robot is winning and the man is getting frustrated, the robot is taunting the man and the man is getting angry, the man is about to lose the game, 8k resolution, post processing, detailed, robot, chess, man, game, losing, frustrated, angry, taunting, red eyes, grinning face, plans, announcement, dismal, 8k
+```
+
+
 
 ## TODOs
 
