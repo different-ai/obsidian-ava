@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-ava",
-	"version": "1.0.4",
+	"version": "1.0.5",
 	"description": "AI-enhanced reflection in Obsidian",
 	"main": "main.js",
 	"scripts": {

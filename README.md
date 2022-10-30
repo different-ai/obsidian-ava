@@ -38,25 +38,16 @@ Create a script with the following content:
 ```js
 const fixGrammar = async () => {
     const msg = window.getSelection().toString();
-    const response = await fetch("https://api.openai.com/v1/completions", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": "Bearer " + app.plugins.plugins["obsidian-ava"].settings.openai.key,
-            "OpenAI-Organization": app.plugins.plugins["obsidian-ava"].settings.openai.organization,
-        },
-        body: JSON.stringify({
-            "model": "text-davinci-002",
-            "prompt": "Correct this to standard English:\n\n" + msg,
-            "temperature": 0,
-            "max_tokens": msg.length + 100,
-            "top_p": 1,
-            "frequency_penalty": 0,
-            "presence_penalty": 0
-        }),
+    const response = await app.plugins.plugins["obsidian-ava"].openai.createCompletion({
+        "model": "text-davinci-002",
+        "prompt": "Correct this to standard English:\n\n" + msg,
+        "temperature": 0,
+        "max_tokens": msg.length + 100,
+        "top_p": 1,
+        "frequency_penalty": 0,
+        "presence_penalty": 0
     })
-    const asJson = await response.json();
-    return asJson.choices[0].text.trim();
+    return response.data.choices[0].text.trim();
 }
 module.exports = fixGrammar;
 ```

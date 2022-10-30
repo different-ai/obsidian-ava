@@ -8,6 +8,7 @@ import {AvaSuggest, StatusBar} from "./suggest";
 import {theme} from "./theme";
 
 
+// eslint-disable-next-line require-jsdoc
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
   statusBarItem: Root;
@@ -18,6 +19,10 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     const suggest = new AvaSuggest(this.app, this, 1000, 3);
+    this.openai = suggest.openai;
+    this.stableDiffusion = {
+      generateAsync : generateAsync,
+    };
     // This adds a simple command that can be triggered anywhere
     this.addCommand({
       id: "ava-autocompletion-enable",
