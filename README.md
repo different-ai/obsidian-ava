@@ -5,13 +5,19 @@
 
 Currently runs OpenAI API and stable diffusion
 
-
+## Stable diffusion
 
 https://user-images.githubusercontent.com/25003283/194750149-b4e98e00-3855-4b22-9803-f41502bba871.mov
 
-
+## GPT3 autocompletion
 
 https://user-images.githubusercontent.com/25003283/180654125-44932d61-90eb-4c06-b17e-d7dba545acb9.mov
+
+## GPT3 custom prompt (such as fixing grammar)
+
+https://user-images.githubusercontent.com/25003283/198877691-74b9e60f-b621-4dfc-bfdc-a141149a1abd.mov
+
+
 
 ## Settings
 
