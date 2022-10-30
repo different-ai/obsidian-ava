@@ -17,13 +17,65 @@ https://user-images.githubusercontent.com/25003283/180654125-44932d61-90eb-4c06-
 
 ![settings](./docs/settings.png)
 
+## Usage
+
+1. Setup your API keys in the settings
+2. Set hotkeys / shortcuts for Ava the commands
+3. To generate an image, write & select your prompt then press the Ava image generation hotkey you set
+4. For GPT3/text, either enable autocompletion when you want or disable it and use [Templater](https://github.com/SilentVoid13/Templater).
+
+### GPT3 + [Templater](https://github.com/SilentVoid13/Templater)
+
+The advantage of using [Templater](https://github.com/SilentVoid13/Templater) is that you can create your favorite prompts and prompt engineering techniques and use them in any note. 
+
+
+#### Grammar fixer
+
+Setup [Templater](https://github.com/SilentVoid13/Templater).
+
+Create a script with the following content:
+
+```js
+const fixGrammar = async () => {
+    const msg = window.getSelection().toString();
+    const response = await fetch("https://api.openai.com/v1/completions", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + app.plugins.plugins["obsidian-ava"].settings.openai.key,
+            "OpenAI-Organization": app.plugins.plugins["obsidian-ava"].settings.openai.organization,
+        },
+        body: JSON.stringify({
+            "model": "text-davinci-002",
+            "prompt": "Correct this to standard English:\n\n" + msg,
+            "temperature": 0,
+            "max_tokens": msg.length + 100,
+            "top_p": 1,
+            "frequency_penalty": 0,
+            "presence_penalty": 0
+        }),
+    })
+    const asJson = await response.json();
+    return asJson.choices[0].text.trim();
+}
+module.exports = fixGrammar;
+```
+
+Then the template:
+
+```md
+<% tp.user.fixGrammar() %>
+```
+
+Now you can select some text and execute the Templater template to the selected text grammar.
+
+
 ## TODOs
 
-- [ ] optimise requests
-- [ ] optimise UX (copy Github copilot UX/make it customisable, like triggered by a hotkey)
+- [x] Provide an example to use GPT3 with [Templater](https://github.com/SilentVoid13/Templater) for endless prompt engineering
+- [ ] optimise autocompletion UX (copy Github copilot UX/make it customisable, like triggered by a hotkey)
 - [ ] implement DALLE-2 API (once it's available)
 - [x] implement Stable diffusion API (https://beta.dreamstudio.ai)
 - [ ] implement huggingface API / custom API
-- [ ] (low priority) local inference using ONNX (see codebase [here](https://github.com/louis030195/obsidian-search/blob/master/Settings.tsx))
-- [ ] other features than completions using prompt templates (handlebarjs for example)
+- [ ] local inference?
 - [ ] [implement seeker somehow, internet augmented assistance](https://louis030195.medium.com/deploy-seeker-search-augmented-conversational-ai-on-kubernetes-in-5-minutes-81a61aa4e749)
