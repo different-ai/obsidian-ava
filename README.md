@@ -9,40 +9,70 @@ Currently runs OpenAI API and stable diffusion
 
 https://user-images.githubusercontent.com/25003283/194750149-b4e98e00-3855-4b22-9803-f41502bba871.mov
 
-## GPT3 autocompletion
-
-https://user-images.githubusercontent.com/25003283/180654125-44932d61-90eb-4c06-b17e-d7dba545acb9.mov
-
 ## GPT3 custom prompt (such as fixing grammar)
 
 https://user-images.githubusercontent.com/25003283/198877691-74b9e60f-b621-4dfc-bfdc-a141149a1abd.mov
 
 
 
-## Settings
+## Installation
+
+1. See https://github.com/louis030195/obsidian-ava/issues/8 for installation
+2. Setup your API keys in the settings
+3. Set hotkeys / shortcuts for Ava the commands
+4. To generate an image, write & select your prompt then press the Ava image generation hotkey you set
+5. For GPT3/text, either enable autocompletion when you want or disable it and use [Templater](https://github.com/SilentVoid13/Templater).
+
+### Settings
 
 ![settings](./docs/settings.png)
 
-## Usage
-
-1. Setup your API keys in the settings
-2. Set hotkeys / shortcuts for Ava the commands
-3. To generate an image, write & select your prompt then press the Ava image generation hotkey you set
-4. For GPT3/text, either enable autocompletion when you want or disable it and use [Templater](https://github.com/SilentVoid13/Templater).
-
-### GPT3 + [Templater](https://github.com/SilentVoid13/Templater)
+## GPT3 + [Templater](https://github.com/SilentVoid13/Templater)
 
 The advantage of using [Templater](https://github.com/SilentVoid13/Templater) is that you can create your favorite prompts and prompt engineering techniques and use them in any note. 
 
 
-#### Grammar fixer
+### Selection completion
 
-Setup [Templater](https://github.com/SilentVoid13/Templater).
+
+Create a script with the following content:
+
+```js
+const completeSelection = async () => {
+    document.body.style.cursor = "wait";
+    const msg = window.getSelection().toString();
+    const response = await app.plugins.plugins["obsidian-ava"].openai.createCompletion({
+        "model": "text-davinci-002",
+        "prompt": msg,
+        "temperature": 0.7,
+        "max_tokens": msg.length + 100,
+        "top_p": 1,
+        "frequency_penalty": 0,
+        "presence_penalty": 0
+    })
+    document.body.style.cursor = "default";
+    return `${msg}${response.data.choices[0].text}`;
+
+}
+module.exports = completeSelection;
+```
+
+Then the template:
+
+```md
+<% tp.user.completeSelection() %>
+```
+
+Now you can select some text and execute the Templater template to the selected text grammar.
+
+
+### Grammar fixer
 
 Create a script with the following content:
 
 ```js
 const fixGrammar = async () => {
+    document.body.style.cursor = "wait";
     const msg = window.getSelection().toString();
     const response = await app.plugins.plugins["obsidian-ava"].openai.createCompletion({
         "model": "text-davinci-002",
@@ -53,6 +83,7 @@ const fixGrammar = async () => {
         "frequency_penalty": 0,
         "presence_penalty": 0
     })
+    document.body.style.cursor = "default";
     return response.data.choices[0].text.trim();
 }
 module.exports = fixGrammar;
@@ -67,7 +98,7 @@ Then the template:
 Now you can select some text and execute the Templater template to the selected text grammar.
 
 
-#### Description to stable diffusion
+### Description to stable diffusion
 
 [Stable diffusion prompts are not very human friendly](https://mpost.io/best-100-stable-diffusion-prompts-the-most-beautiful-ai-text-to-image-prompts/) and usually require a bunch of prompt hacks to get good results.
 
@@ -96,6 +127,7 @@ Description: ${description}
 Prompt:`;
 
 const descriptionToArt = async () => {
+    document.body.style.cursor = "wait";
     const selection = window.getSelection().toString();
     const response = await app.plugins.plugins["obsidian-ava"].openai.createCompletion({
         "model": "text-davinci-002",
@@ -117,8 +149,9 @@ const descriptionToArt = async () => {
         debug: false,
         samples: 1,
       });
-      // append image below
-      return `${window.getSelection().toString()}\n\n![[${images[0].filePath.split("/").pop()}]]\n\n`;
+    document.body.style.cursor = "default";
+    // append image below
+    return `${window.getSelection().toString()}\n\n![[${images[0].filePath.split("/").pop()}]]\n\n`;
 }
 module.exports = descriptionToArt;
 ```
