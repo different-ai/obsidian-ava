@@ -33,75 +33,76 @@ export default class AvaPlugin extends Plugin {
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
 
-    const suggest = new AvaSuggest(this.app, this, 1000, 3);
-    this.openai = suggest.openai;
-    this.stableDiffusion = {
+    this.app.workspace.onLayoutReady(() => {
+      const suggest = new AvaSuggest(this.app, this, 1000, 3);
+      this.openai = suggest.openai;
+      this.stableDiffusion = {
       // @ts-ignore
-      generateAsync: generateAsync,
-    };
-    // This adds a simple command that can be triggered anywhere
-    this.addCommand({
-      id: "ava-autocompletion-enable",
-      name: "Disable/enable automatic completion",
-      hotkeys: [{modifiers: ["Shift"], key: "tab"}],
-      callback: () => {
-        suggest.setAutomaticSuggestion(!this.settings.openai.automatic);
-      },
-    });
-    this.addCommand({
-      id: "ava-generate-image",
-      name: "Generate an image based on selected text",
-      editorCallback: async (editor: Editor) => {
-        if (!this.settings.stableDiffusion.key) {
-          new Notice(
-              "You need to set a key for Stable Diffusion in the settings",
-              3000);
-          return;
-        }
-        if (!window.getSelection().toString()) return;
+        generateAsync: generateAsync,
+      };
+      // This adds a simple command that can be triggered anywhere
+      this.addCommand({
+        id: "ava-autocompletion-enable",
+        name: "Disable/enable automatic completion",
+        callback: () => {
+          suggest.setAutomaticSuggestion(!this.settings.openai.automatic);
+        },
+      });
+      this.addCommand({
+        id: "ava-generate-image",
+        name: "Generate an image based on selected text",
+        editorCallback: async (editor: Editor) => {
+          if (!this.settings.stableDiffusion.key) {
+            new Notice(
+                "You need to set a key for Stable Diffusion in the settings",
+                3000);
+            return;
+          }
+          if (!window.getSelection().toString()) return;
 
-        const outDir = (this.app.vault.adapter as any).basePath + "/" +
-        this.app.workspace.getActiveFile().parent.path;
-        this.statusBarItem.render(
-            <StatusBar
-              status="loading"
-            />
-        );
-        try {
-          const {images} = await generateAsync({
-            prompt: window.getSelection().toString(),
-            apiKey: this.settings.stableDiffusion.key,
-            outDir: outDir,
-            debug: false,
-            samples: 1,
-          });
-          // append image below
-          editor.replaceSelection(
-              // eslint-disable-next-line max-len
-              `${window.getSelection().toString()}\n\n![[${images[0].filePath.split("/").pop()}]]\n\n`
-          );
-
+          const outDir = (this.app.vault.adapter as any).basePath + "/" +
+          this.app.workspace.getActiveFile().parent.path;
           this.statusBarItem.render(
               <StatusBar
-                status="success"
-                statusMessage="Completion successful"
+                status="loading"
               />
           );
-        } catch (e) {
-          this.statusBarItem.render(
-              <StatusBar
-                status="error"
-                statusMessage={"Error while generating image " + e}
-              />
-          );
-        }
-      },
-    });
-    this.registerEditorSuggest(suggest);
+          try {
+            const {images} = await generateAsync({
+              prompt: window.getSelection().toString(),
+              apiKey: this.settings.stableDiffusion.key,
+              outDir: outDir,
+              debug: false,
+              samples: 1,
+            });
+            // append image below
+            editor.replaceSelection(
+                // eslint-disable-next-line max-len
+                `${window.getSelection().toString()}\n\n![[${images[0].filePath.split("/").pop()}]]\n\n`
+            );
 
-    // This adds a settings tab so the user
-    // can configure various aspects of the plugin
-    this.addSettingTab(new AvaSettingTab(this.app, this));
+            this.statusBarItem.render(
+                <StatusBar
+                  status="success"
+                  statusMessage="Completion successful"
+                />
+            );
+          } catch (e) {
+            this.statusBarItem.render(
+                <StatusBar
+                  status="error"
+                  statusMessage={"Error while generating image " + e}
+                />
+            );
+          }
+        },
+      });
+      this.registerEditorSuggest(suggest);
+
+      // This adds a settings tab so the user
+      // can configure various aspects of the plugin
+      this.addSettingTab(new AvaSettingTab(this.app, this));
+    });
   }
 
   // eslint-disable-next-line require-jsdoc

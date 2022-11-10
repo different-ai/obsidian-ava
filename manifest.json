@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-ava",
+	"id": "ava",
 	"name": "Obsidian ava",
-	"version": "1.0.6",
+	"version": "1.0.7",
 	"minAppVersion": "0.12.0",
 	"description": "AI-enhanced reflection in Obsidian",
 	"author": "louis030195",
 	"authorUrl": "https://louis030195.com",
-	"isDesktopOnly": false
+	"isDesktopOnly": true
 }

@@ -1,3 +1,4 @@
+/* eslint-disable require-jsdoc */
 import {Check, Clear, Error, Warning} from "@mui/icons-material";
 import {CircularProgress, Tooltip} from "@mui/material";
 import {
@@ -77,7 +78,8 @@ export class AvaSuggest extends EditorSuggest<Suggestion> {
     );
   }
 
-  constructor(app: App, plugin: AvaPlugin, delayBetweenSelect?: number, promptLineSize?: number, delayBetweenCompletions?: number) {
+  constructor(app: App, plugin: AvaPlugin, delayBetweenSelect?: number,
+      promptLineSize?: number, delayBetweenCompletions?: number) {
     super(app);
     this.plugin = plugin;
     this.setInstructions([{
@@ -116,8 +118,9 @@ export class AvaSuggest extends EditorSuggest<Suggestion> {
   //         ...result,
   //     }).then((s) => this.renderSuggestion(s.last(), <div></div>));
   // }
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  onTrigger(cursor: EditorPosition, editor: Editor, _: TFile): EditorSuggestTriggerInfo | null {
+  onTrigger(
+      cursor: EditorPosition, editor: Editor, _: TFile
+  ): EditorSuggestTriggerInfo | null {
     const prompt = this.getQuery(editor);
 
     const {ch, line} = cursor;
@@ -136,11 +139,14 @@ export class AvaSuggest extends EditorSuggest<Suggestion> {
   }
 
   async getSuggestions(context: EditorSuggestContext): Promise<Suggestion[]> {
-
     if (!context) return [];
     if (!this.automaticSuggestion) return [];
-    if (Date.now() - this.lastSelectSuggestion < this.delayBetweenSelect) return [];
-    if (Date.now() - this.lastCompletion < this.delayBetweenCompletions) return [];
+    if (Date.now() - this.lastSelectSuggestion < this.delayBetweenSelect) {
+      return [];
+    }
+    if (Date.now() - this.lastCompletion < this.delayBetweenCompletions) {
+      return [];
+    }
     const prompt = context?.query || this.getQuery(context.editor);
 
     let text = "";

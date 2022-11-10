@@ -41,7 +41,7 @@ Create a script with the following content:
 const completeSelection = async () => {
     document.body.style.cursor = "wait";
     const msg = window.getSelection().toString();
-    const response = await app.plugins.plugins["obsidian-ava"].openai.createCompletion({
+    const response = await app.plugins.plugins["ava"].openai.createCompletion({
         "model": "text-davinci-002",
         "prompt": msg,
         "temperature": 0.7,
@@ -74,7 +74,7 @@ Create a script with the following content:
 const fixGrammar = async () => {
     document.body.style.cursor = "wait";
     const msg = window.getSelection().toString();
-    const response = await app.plugins.plugins["obsidian-ava"].openai.createCompletion({
+    const response = await app.plugins.plugins["ava"].openai.createCompletion({
         "model": "text-davinci-002",
         "prompt": "Correct this to standard English:\n\n" + msg,
         "temperature": 0,
@@ -129,7 +129,7 @@ Prompt:`;
 const descriptionToArt = async () => {
     document.body.style.cursor = "wait";
     const selection = window.getSelection().toString();
-    const response = await app.plugins.plugins["obsidian-ava"].openai.createCompletion({
+    const response = await app.plugins.plugins["ava"].openai.createCompletion({
         "model": "text-davinci-002",
         "prompt": descriptionToStableDiffusionPrompt(selection),
         "temperature": 0,
@@ -142,9 +142,9 @@ const descriptionToArt = async () => {
     const stableDiffusionPrompt = response.data.choices[0].text.trim();
     console.log("about to call stableDiffusion with prompt: " + stableDiffusionPrompt);
     const outDir = app.vault.adapter.basePath + "/" + app.workspace.getActiveFile().parent.path;
-    const {images} = await app.plugins.plugins["obsidian-ava"].stableDiffusion.generateAsync({
+    const {images} = await app.plugins.plugins["ava"].stableDiffusion.generateAsync({
         prompt: stableDiffusionPrompt,
-        apiKey: app.plugins.plugins["obsidian-ava"].settings.stableDiffusion.key,
+        apiKey: app.plugins.plugins["ava"].settings.stableDiffusion.key,
         outDir: outDir,
         debug: false,
         samples: 1,
