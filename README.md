@@ -1,9 +1,6 @@
 # obsidian-ava
 
-
-⚠️ Extremely experimental code (but works) ⚠️
-
-Currently runs OpenAI API and stable diffusion
+Augment your brain with AI.
 
 ## Stable diffusion
 
