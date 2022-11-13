@@ -7,13 +7,11 @@ Currently runs OpenAI API and stable diffusion
 
 ## Stable diffusion
 
-https://user-images.githubusercontent.com/25003283/194750149-b4e98e00-3855-4b22-9803-f41502bba871.mov
+![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/25003283/201516129-fa109c45-ce3b-4a34-93be-09750c07fc93.gif)
 
-## GPT3 custom prompt (such as fixing grammar)
+## GPT3 custom prompt
 
-https://user-images.githubusercontent.com/25003283/198877691-74b9e60f-b621-4dfc-bfdc-a141149a1abd.mov
-
-
+![ezgif com-gif-maker (2)](https://user-images.githubusercontent.com/25003283/201516098-db39c37f-29c8-4dfa-a999-1e1ac8f08272.gif)
 
 ## Installation
 
