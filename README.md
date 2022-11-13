@@ -17,7 +17,7 @@ https://user-images.githubusercontent.com/25003283/198877691-74b9e60f-b621-4dfc-
 
 ## Installation
 
-1. See https://github.com/louis030195/obsidian-ava/issues/8 for installation
+1. Install Ava from Obsidian's community plugins list
 2. Setup your API keys in the settings
 3. Set hotkeys / shortcuts for Ava the commands
 4. To generate an image, write & select your prompt then press the Ava image generation hotkey you set
