@@ -1,23 +1,18 @@
 # obsidian-ava
 
-
-⚠️ Extremely experimental code (but works) ⚠️
-
-Currently runs OpenAI API and stable diffusion
+Augment your brain with AI.
 
 ## Stable diffusion
 
-https://user-images.githubusercontent.com/25003283/194750149-b4e98e00-3855-4b22-9803-f41502bba871.mov
+![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/25003283/201516129-fa109c45-ce3b-4a34-93be-09750c07fc93.gif)
 
-## GPT3 custom prompt (such as fixing grammar)
+## GPT3 custom prompt
 
-https://user-images.githubusercontent.com/25003283/198877691-74b9e60f-b621-4dfc-bfdc-a141149a1abd.mov
-
-
+![ezgif com-gif-maker (2)](https://user-images.githubusercontent.com/25003283/201516098-db39c37f-29c8-4dfa-a999-1e1ac8f08272.gif)
 
 ## Installation
 
-1. See https://github.com/louis030195/obsidian-ava/issues/8 for installation
+1. Install Ava from Obsidian's community plugins list
 2. Setup your API keys in the settings
 3. Set hotkeys / shortcuts for Ava the commands
 4. To generate an image, write & select your prompt then press the Ava image generation hotkey you set
