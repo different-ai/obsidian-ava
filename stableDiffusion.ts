@@ -35,7 +35,7 @@ export type DraftStabilityOptions = Partial<{
     debug: boolean;
     requestId: string;
     samples: number;
-    engine: "stable-diffusion-v1";
+    engine: "stable-diffusion-512-v2-0";
     host: string;
     seed: number;
     width: number;
@@ -77,7 +77,7 @@ const withDefaults: (
   return {
     ...draft,
     host: draft.host ?? "https://grpc.stability.ai:443",
-    engine: draft.engine ?? "stable-diffusion-v1",
+    engine: draft.engine ?? "stable-diffusion-512-v2-0",
     requestId,
     seed: draft.seed ?? range(0, 4294967295),
     width: draft.width ?? 512,
