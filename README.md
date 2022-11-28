@@ -178,3 +178,9 @@ A man is playing chess against a robot, the robot is winning and the man is gett
 - [ ] implement huggingface API / custom API
 - [ ] local inference?
 - [ ] [implement seeker somehow, internet augmented assistance](https://louis030195.medium.com/deploy-seeker-search-augmented-conversational-ai-on-kubernetes-in-5-minutes-81a61aa4e749)
+
+
+## Releasing
+
+- bump package.json
+- `make release`
