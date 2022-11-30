@@ -1,6 +1,14 @@
-import {Check, Error, ExpandLess, ExpandMore, Settings, Visibility, VisibilityOff} from "@mui/icons-material";
+import {
+  Check, Error, ExpandLess, ExpandMore,
+  Settings, Visibility, VisibilityOff,
+} from "@mui/icons-material";
 import {LoadingButton} from "@mui/lab";
-import {Autocomplete, Collapse, Divider, FormControl, IconButton, InputAdornment, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, OutlinedInputProps, Select, Slider, TextField, Tooltip} from "@mui/material";
+import {
+  Autocomplete, Collapse, Divider, FormControl,
+  IconButton, InputAdornment, InputLabel, List, ListItem,
+  ListItemButton, ListItemIcon, ListItemText, MenuItem, OutlinedInputProps,
+  Select, Slider, TextField, Tooltip,
+} from "@mui/material";
 import CustomDivider from "CustomerDivider";
 import {Configuration, CreateCompletionRequest, OpenAIApi} from "openai";
 import * as React from "react";
@@ -11,7 +19,8 @@ export interface AvaSettings {
   openai: OpenAISettings;
   stableDiffusion: StableDiffusionSettings;
 }
-type CompletionConfig = Omit<CreateCompletionRequest, "prompt" | "stream" | "echo">;
+type CompletionConfig =
+  Omit<CreateCompletionRequest, "prompt" | "stream" | "echo">;
 export interface OpenAISettings {
   promptLines: number;
   automatic: boolean;
@@ -49,7 +58,8 @@ export const CustomSettings = ({plugin}: CustomSettingsProps) => {
   const [openAiConfig, setOpenAiConfig] = React.useState<OpenAISettings>(
       plugin.settings.openai || DEFAULT_SETTINGS.openai,
   );
-  const [stableDiffusionConfig, setStableDiffusionConfig] = React.useState<StableDiffusionSettings>(
+  const [stableDiffusionConfig, setStableDiffusionConfig] =
+  React.useState<StableDiffusionSettings>(
       plugin.settings.stableDiffusion || DEFAULT_SETTINGS.stableDiffusion,
   );
   const [error, setError] = React.useState<string | undefined>(undefined);
@@ -183,7 +193,8 @@ export const CustomSettings = ({plugin}: CustomSettingsProps) => {
                 fullWidth
                 labelId="model"
                 id="demo-simple-select"
-                value={openAiConfig?.completionsConfig?.model || "code-davinci-002"}
+                value={
+                  openAiConfig?.completionsConfig?.model || "text-davinci-003"}
                 label="Model"
                 onChange={(e) => setOpenAiConfig({
                   ...openAiConfig,
@@ -236,7 +247,8 @@ export const CustomSettings = ({plugin}: CustomSettingsProps) => {
                   placeholder="stop"
                   error={
                     openAiConfig.completionsConfig?.stop &&
-                      openAiConfig.completionsConfig!.stop!.length > 3 ? true : false
+                      openAiConfig.completionsConfig!.stop!.length > 3 ?
+                      true : false
                   }
                   helperText={
                     openAiConfig.completionsConfig?.stop &&
@@ -313,7 +325,7 @@ export const CustomSettings = ({plugin}: CustomSettingsProps) => {
           </ListItem>
         </List>
       </Collapse>
-      
+
       <CustomDivider text="Stable diffusion"/>
       <ListItem>
         <TextField
