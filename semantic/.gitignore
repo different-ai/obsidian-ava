@@ -1,0 +1,5 @@
+# user defined evaluation dataset
+evaluation.json
+
+# python garbage
+__pycache__

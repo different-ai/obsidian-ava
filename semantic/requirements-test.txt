@@ -1,0 +1,11 @@
+black
+mypy
+pylint
+pytest-cov
+pytest-xdist
+pytest
+ipykernel
+Flask
+ipywidgets
+plotly
+wandb

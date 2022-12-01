@@ -1,3 +1,9 @@
+semantic/install:
+	virtualenv env; \
+	source env/bin/activate; \
+	pip install -r semantic/requirements.txt
+
+
 release:
 	npm run version
 	@VERSION=$$(cat manifest.json | grep version | cut -d '"' -f 4 | head -n 1); \
@@ -10,3 +16,4 @@ release:
 	git tag $$VERSION; \
 	git push origin $$VERSION
 	echo "Done, check https://github.com/louis030195/obsidian-ava/actions"
+
