@@ -1,16 +1,17 @@
 /* eslint-disable require-jsdoc */
 import { ThemeProvider } from '@mui/material';
+import linkifyHtml from 'linkify-html';
 import {
   App,
   Editor,
   ItemView,
+  MarkdownRenderer,
   Notice,
   Plugin,
   PluginSettingTab,
   WorkspaceLeaf,
 } from 'obsidian';
 import { OpenAIApi } from 'openai';
-import { AvaSidebar } from './AvaSidebar';
 
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
@@ -32,6 +33,7 @@ interface StableDiffusion {
     res: ResponseData;
   };
 }
+export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
 // eslint-disable-next-line require-jsdoc
 export default class AvaPlugin extends Plugin {
@@ -39,6 +41,7 @@ export default class AvaPlugin extends Plugin {
   statusBarItem: Root;
   openai: OpenAIApi;
   stableDiffusion: StableDiffusion;
+  private sidebar: AvaSidebarView;
 
   // eslint-disable-next-line require-jsdoc
   async onload() {
@@ -109,24 +112,22 @@ export default class AvaPlugin extends Plugin {
           const title = this.app.workspace.getActiveFile()?.basename;
 
           new Notice('Generating Wikipedia Links ⏰');
+
+          this.sidebar.setLoading();
           this.statusBarItem.render(<StatusBar status="loading" />);
           const completion = await createWikipediaLinks(
             title,
             editor.getSelection(),
             this.app
           );
+          this.app.workspace.rightSplit.expand();
+          this.sidebar.removeLoading();
+          this.sidebar.updateContent(completion);
+          this.app.workspace.revealLeaf(this.sidebar.leaf);
 
-          console.log(editor.getDoc());
-          const lastLine = editor.lastLine();
-          const lastChar = editor.getLine(editor.lastLine()).length;
-
-          editor.replaceRange(`\n\n ## Related Topics: \n - ${completion}`, {
-            line: lastLine,
-            ch: lastChar,
-          });
           this.statusBarItem.render(<StatusBar status="disabled" />);
 
-          new Notice('Check out the new links at the bottom of the page🔥');
+          new Notice('Generated Wikipedia Links check out your sidebar🔥');
         },
       });
       this.addCommand({
@@ -192,10 +193,18 @@ export default class AvaPlugin extends Plugin {
       });
 
       this.registerEditorSuggest(suggest);
+      this.registerView(VIEW_TYPE_AVA, (leaf: WorkspaceLeaf) => {
+        const sidebar = new AvaSidebarView(leaf, this);
+
+        this.sidebar = sidebar;
+
+        return sidebar;
+      });
 
       // This adds a settings tab so the user
       // can configure various aspects of the plugin
       this.addSettingTab(new AvaSettingTab(this.app, this));
+      this.initLeaf();
     });
   }
   initLeaf(): void {
@@ -238,22 +247,41 @@ class AvaSettingTab extends PluginSettingTab {
   }
 }
 
-export const VIEW_TYPE_AVA = 'ava';
-
 export class AvaSidebarView extends ItemView {
   private readonly plugin: AvaPlugin;
 
-  constructor(leaf: WorkspaceLeaf, completion) {
+  constructor(leaf: WorkspaceLeaf, plugin: AvaPlugin) {
     super(leaf);
-    this.completion = completion;
+    this.plugin = plugin;
   }
 
   getDisplayText(): string {
-    return 'Ava Recommendations';
+    return 'Wikpedia Links';
   }
 
   getViewType(): string {
     return VIEW_TYPE_AVA;
+  }
+  removeLoading = () => {
+    document.getElementById('loading-state')?.remove();
+  };
+
+  setLoading = () => {
+    const loadingEl = document.createElement('div');
+    loadingEl.innerText = 'Loading...';
+    loadingEl.id = 'loading-state';
+    this.contentEl.appendChild(loadingEl);
+  };
+
+  async updateContent(content: string): Promise<void> {
+    const linkified = linkifyHtml(content);
+    await MarkdownRenderer.renderMarkdown(
+      linkified,
+      this.contentEl,
+      '',
+      this.plugin
+    );
+    // this.containerEl.append(linkified);
   }
 
   getIcon(): string {
@@ -261,9 +289,10 @@ export class AvaSidebarView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
-    console.log('hello');
-    const root = createRoot(this.containerEl);
+    const header = document.createElement('h2');
+    header.id = 'header';
+    header.innerText = 'Wikipedia Links';
 
-    root.render(<AvaSidebar content={this.completion} />);
+    this.contentEl.appendChild(header);
   }
 }

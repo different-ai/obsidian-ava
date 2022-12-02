@@ -44,6 +44,8 @@
     "@mui/lab": "^5.0.0-alpha.110",
     "@mui/material": "^5.10.16",
     "google-protobuf": "^3.21.2",
+    "linkify-html": "^4.0.2",
+    "linkifyjs": "^4.0.2",
     "mime": "^3.0.0",
     "node-glob": "^1.2.0",
     "obsidian-vault-parser": "^0.4.1",
