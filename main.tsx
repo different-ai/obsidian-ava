@@ -10,6 +10,7 @@ import {
   WorkspaceLeaf,
 } from 'obsidian';
 import { OpenAIApi } from 'openai';
+import { AvaSidebar } from './AvaSidebar';
 
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
@@ -44,6 +45,10 @@ export default class AvaPlugin extends Plugin {
     await this.loadSettings();
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
+
+    this.registerView(VIEW_TYPE_AVA, (leaf: WorkspaceLeaf) => {
+      return new AvaSidebarView(leaf, '');
+    });
 
     this.app.workspace.onLayoutReady(async () => {
       runSemanticApi(this.app);
@@ -85,7 +90,6 @@ export default class AvaPlugin extends Plugin {
             '',
             this.app
           );
-          console.log(editor.getDoc());
           const lastLine = editor.lastLine();
           const lastChar = editor.getLine(editor.lastLine()).length;
 
@@ -186,11 +190,20 @@ export default class AvaPlugin extends Plugin {
           }
         },
       });
+
       this.registerEditorSuggest(suggest);
 
       // This adds a settings tab so the user
       // can configure various aspects of the plugin
       this.addSettingTab(new AvaSettingTab(this.app, this));
+    });
+  }
+  initLeaf(): void {
+    if (this.app.workspace.getLeavesOfType(VIEW_TYPE_AVA).length) {
+      return;
+    }
+    this.app.workspace.getRightLeaf(false).setViewState({
+      type: VIEW_TYPE_AVA,
     });
   }
 
@@ -230,9 +243,9 @@ export const VIEW_TYPE_AVA = 'ava';
 export class AvaSidebarView extends ItemView {
   private readonly plugin: AvaPlugin;
 
-  constructor(leaf: WorkspaceLeaf, plugin: AvaPlugin) {
+  constructor(leaf: WorkspaceLeaf, completion) {
     super(leaf);
-    this.plugin = plugin;
+    this.completion = completion;
   }
 
   getDisplayText(): string {
@@ -248,8 +261,9 @@ export class AvaSidebarView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
+    console.log('hello');
     const root = createRoot(this.containerEl);
 
-    root.render(<AvaSidebar plugin={this.plugin} />);
+    root.render(<AvaSidebar content={this.completion} />);
   }
 }
