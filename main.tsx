@@ -293,6 +293,23 @@ export class AvaSidebarView extends ItemView {
     header.id = 'header';
     header.innerText = 'Wikipedia Links';
 
+    const emptyState = document.createElement('div');
+    emptyState.id = 'empty-state';
+
+    emptyState.innerHTML = `
+    <div>
+      <p>
+      Your links will appear here
+      </p>
+      <ol>
+      <li>Select some text</li>
+      <li>Press F1</li>
+      <li>Type "Get Wikipedia Suggestions"</li>
+      </ol>
+    </div>
+    `;
+
     this.contentEl.appendChild(header);
+    this.contentEl.appendChild(emptyState);
   }
 }
