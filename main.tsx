@@ -76,10 +76,11 @@ export default class AvaPlugin extends Plugin {
         id: 'get-related-topics',
         name: 'Get Related Topics',
         editorCallback: async (editor: Editor, view: ItemView) => {
+          const title = this.app.workspace.getActiveFile()?.basename;
           new Notice('Generating Related Topics ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           const completion = await createGPT3Links(
-            'test',
+            title,
             editor.getSelection(),
             '',
             this.app
@@ -101,10 +102,12 @@ export default class AvaPlugin extends Plugin {
         id: 'get-wikipedia-suggestions',
         name: 'Get Wikipedia Suggestions',
         editorCallback: async (editor: Editor, view: ItemView) => {
+          const title = this.app.workspace.getActiveFile()?.basename;
+
           new Notice('Generating Wikipedia Links ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           const completion = await createWikipediaLinks(
-            'test',
+            title,
             editor.getSelection(),
             this.app
           );
