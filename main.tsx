@@ -58,7 +58,13 @@ export default class AvaPlugin extends Plugin {
                 3000);
             return;
           }
-          if (!window.getSelection().toString()) return;
+          const selection = editor.getSelection();
+          if (!selection) {
+            new Notice(
+                "You need to select some text to generate an image",
+                3000);
+            return;
+          }
 
           const outDir = (this.app.vault.adapter as any).basePath + "/" +
           this.app.workspace.getActiveFile().parent.path;
@@ -67,18 +73,28 @@ export default class AvaPlugin extends Plugin {
                 status="loading"
               />
           );
+          const onError = (e: any) => this.statusBarItem.render(
+              <StatusBar
+                status="error"
+                statusMessage={"Error while generating image " + e}
+              />
+          );
           try {
             const {images} = await generateAsync({
-              prompt: window.getSelection().toString(),
+              prompt: selection,
               apiKey: this.settings.stableDiffusion.key,
               outDir: outDir,
               debug: false,
               samples: 1,
             });
+            if (images.length === 0) {
+              onError("No image was generated");
+              return;
+            }
             // append image below
             editor.replaceSelection(
                 // eslint-disable-next-line max-len
-                `${window.getSelection().toString()}\n\n![[${images[0].filePath.split("/").pop()}]]\n\n`
+                `${selection}\n\n![[${images[0].filePath.split("/").pop()}]]\n\n`
             );
 
             this.statusBarItem.render(
@@ -88,12 +104,7 @@ export default class AvaPlugin extends Plugin {
                 />
             );
           } catch (e) {
-            this.statusBarItem.render(
-                <StatusBar
-                  status="error"
-                  statusMessage={"Error while generating image " + e}
-                />
-            );
+            onError(e);
           }
         },
       });
