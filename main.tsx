@@ -3,8 +3,12 @@ import {App, Editor, Notice, Plugin, PluginSettingTab} from "obsidian";
 import {OpenAIApi} from "openai";
 import * as React from "react";
 import {createRoot, Root} from "react-dom/client";
-import {DraftStabilityOptions, generateAsync,
-  RequiredStabilityOptions, ResponseData} from "stableDiffusion";
+import {installApi, isApiRunning, killAllApiInstances,
+  runSemanticApi} from "semanticApi";
+import {
+  DraftStabilityOptions, generateAsync,
+  RequiredStabilityOptions, ResponseData,
+} from "stableDiffusion";
 import {AvaSettings, CustomSettings, DEFAULT_SETTINGS} from "./Settings";
 import {AvaSuggest, StatusBar} from "./suggest";
 import {theme} from "./theme";
@@ -33,13 +37,29 @@ export default class AvaPlugin extends Plugin {
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
 
-    this.app.workspace.onLayoutReady(() => {
+    this.app.workspace.onLayoutReady(async () => {
+      const result = await installApi(this.app);
+      result && new Notice("Semantic search API installed");
+      if (result && !isApiRunning()) {
+        runSemanticApi(this.app);
+      }
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
       this.stableDiffusion = {
       // @ts-ignore
         generateAsync: generateAsync,
       };
+      this.addCommand({
+        id: "ava-restart-semantic-api",
+        name: "Restart semantic search API",
+        callback: async () => {
+          new Notice("Restarting semantic search API");
+          await killAllApiInstances();
+          new Notice("Killed all semantic search API instances");
+          runSemanticApi(this.app);
+          new Notice("Semantic search API restarted");
+        },
+      });
       // This adds a simple command that can be triggered anywhere
       this.addCommand({
         id: "ava-autocompletion-enable",

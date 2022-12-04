@@ -21,7 +21,7 @@ nltk.download('all')
 ```
 
 ```bash
-python3 semantic/semantic_search_api.py --port 3000 --model multi-qa-MiniLM-L6-cos-v1
+uvicorn semantic.api:app --port 3000
 ```
 
 #### Fine-tuning
