@@ -5,4 +5,5 @@
         "source.organizeImports": true,
         "source.sortMembers": true
     },
+    "python.formatting.provider": "black",
 }

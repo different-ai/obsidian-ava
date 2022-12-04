@@ -1,4 +1,4 @@
 sentence-transformers
-bottle
+fastapi
 obsidiantools
-cheroot
+uvicorn[standard]
