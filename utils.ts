@@ -1,13 +1,29 @@
-export const semanticLink = async (title, text, tags) => {
+import AvaPlugin from 'main';
+import { App } from 'obsidian';
+
+export interface ISimilarFile {
+  file_name: string;
+  file_path: string;
+}
+
+export const semanticLink = async (
+  title: string,
+  text: string,
+  tags: string
+) => {
   const query = `File:\n${title}\nTags:${tags}\nContent:\n${text}`;
   console.log('Query:', query);
-  const response = await fetch('http://localhost:3000/semantic_search', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({ query: query }),
-  }).then((response) => response.json());
+  const response: { similarities: ISimilarFile[] } = await fetch(
+    'http://localhost:3000/semantic_search',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: query }),
+    }
+  ).then((response) => response.json());
+
   const similarities = response.similarities.filter(
     (similarity) => similarity.file_name !== title
   );
@@ -16,7 +32,7 @@ export const semanticLink = async (title, text, tags) => {
     .join('\n')}`;
 };
 
-export const limitLengthForGPT3 = (markdownFileContent) => {
+export const limitLengthForGPT3 = (markdownFileContent: string) => {
   let text = markdownFileContent;
   const maxWordLength = 300;
   // If text is too long, take the last 300 words
@@ -25,9 +41,12 @@ export const limitLengthForGPT3 = (markdownFileContent) => {
   }
   return text;
 };
-const API_KEY = 'x3';
 
-export const createWikipediaLinks = async (title, text, app) => {
+export const createWikipediaLinks = async (
+  title: string,
+  text: string,
+  plugin: AvaPlugin
+) => {
   const prompt =
     'Title: ' +
     title +
@@ -35,7 +54,7 @@ export const createWikipediaLinks = async (title, text, app) => {
     text +
     '\nWikipedia links of similar topics:\n\n - https://';
   console.log('Prompt:', prompt);
-  const response = await app.plugins.plugins['ava'].openai.createCompletion({
+  const response = await plugin.openai.createCompletion({
     model: 'text-davinci-003',
     prompt: prompt,
     temperature: 0.7,
@@ -48,7 +67,7 @@ export const createWikipediaLinks = async (title, text, app) => {
   return `- ${completion}`;
 };
 
-export const filterTags = (tags) => {
+export const filterTags = (tags: string[]) => {
   const ignoredTags = [
     '#shower-thought',
     '#godel-uncertain',
@@ -61,7 +80,12 @@ export const filterTags = (tags) => {
     .join(',');
 };
 
-export const createGPT3Links = async (title, text, tags, app) => {
+export const createGPT3Links = async (
+  title: string,
+  text: string,
+  tags: string[],
+  plugin: AvaPlugin
+) => {
   const prompt =
     'Title: ' +
     title +
@@ -71,7 +95,7 @@ export const createGPT3Links = async (title, text, tags, app) => {
     '\n' +
     text +
     '\nSimilar topic links:\n- [[';
-  const response = await app.plugins.plugins['ava'].openai.createCompletion({
+  const response = await plugin.openai.createCompletion({
     model: 'text-davinci-003',
     prompt: prompt,
     temperature: 0.7,
