@@ -10,7 +10,7 @@ import typing
 import logging
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from models import Input
+from semantic.models import Input
 from pydantic import BaseSettings
 
 
@@ -108,6 +108,7 @@ def no_batch_embed(
 
 # /semantic_search usage:
 # curl -X POST -H "Content-Type: application/json" -d '{"query": "reinforcement learning"}' http://localhost:3333/semantic_search | jq '.'
+
 
 
 @app.post("/semantic_search")

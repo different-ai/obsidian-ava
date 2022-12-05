@@ -19,18 +19,25 @@ export const getCwd = (app: App): string => {
  * @param {App} app
  * @return {Promise<boolean>} success or failure
  */
-export const installApi = async (app: App): Promise<boolean> => {
+export const installApi = async (app: App) => {
   const cwd = getCwd(app);
   console.log(cwd);
-  // const process = spawn('cd', [`${cwd}/semantic;sh start-api.sh`]);
   const process = spawn(`sh start-api.sh`, {
     shell: true,
     cwd: `${cwd}/semantic`,
   });
   process.stdout.on('data', (data) => {
+    if (data.toString().includes('Started Server')) {
+      new Notice('Semantic search API installed');
+    }
     console.log(data.toString());
   });
+
   process.stderr.on('data', (data) => {
+    // catch already in use error
+    if (data.toString().includes('address already in use')) {
+      new Notice(data.toString());
+    }
     console.error(data.toString());
   });
 };
@@ -55,30 +62,15 @@ export const isApiRunning = (): Promise<boolean> => {
 };
 
 export const runSemanticApi = async (app: App) => {
-  const installed = await installApi(app);
   const running = await isApiRunning();
-  console.log(running);
-  installed && new Notice('Semantic search API installed');
-  if (!installed || running) {
-    console.warn(
-      !installed
-        ? 'Semantic search API not installed'
-        : running
-        ? 'Semantic search API already running'
-        : 'Unknown error'
-    );
+  // if the api is already running, return early
+  if (running) {
+    console.log(running);
+    new Notice('Semantic search API is already running');
     return;
   }
-  const cwd = getCwd(app);
-  const pythonInterpreter = cwd + '/usr/local/bin/python3';
-  // run bash process and store the handle in settings
-  const cmd =
-    // eslint-disable-next-line max-len
-    `${pythonInterpreter} -m uvicorn --app-dir=${cwd} semantic.api:app --port 3333`;
-
-  return exec(cmd, {
-    cwd: cwd,
-  });
+  new Notice('Installing semantic search API - this can take up to 10 min.');
+  installApi(app);
 };
 
 /**

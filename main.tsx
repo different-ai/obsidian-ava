@@ -253,6 +253,9 @@ export default class AvaPlugin extends Plugin {
   async saveSettings() {
     await this.saveData(this.settings);
   }
+  onunload(): void {
+    killAllApiInstances();
+  }
 }
 
 // eslint-disable-next-line require-jsdoc
