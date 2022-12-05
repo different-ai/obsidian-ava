@@ -40,7 +40,7 @@ export const installApi = async (app: App): Promise<boolean> => {
         "C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\*\\Scripts\\virtualenv.exe" :
         "";
   if (pathToCheck === "") {
-    new Notice("Could not determine OS");
+    new Notice("❗️ Could not determine OS ❗️");
     return false;
   }
   try {
@@ -54,7 +54,7 @@ export const installApi = async (app: App): Promise<boolean> => {
   // TODO: what about pip?
   try {
     await promisify(exec)(
-        `${pathToCheck} env && source env/bin/activate && ` +
+        `(${pathToCheck} env || true) && source env/bin/activate && ` +
         "pip install -r semantic/requirements.txt",
         {cwd},
     );
@@ -68,12 +68,15 @@ export const installApi = async (app: App): Promise<boolean> => {
 
 /**
  *
- * Check if the API is running on port 3000
+ * Check if the API process is running
  * @return {Promise<boolean>} true if the API is running
  */
 export const isApiRunning = (): Promise<boolean> => {
   return new Promise((resolve) => {
-    exec("lsof -i :3000", (error, stdout, stderr) => {
+    const cmd =
+      // TODO: does this run on Windows and Linux also? (tested on MacOS)
+      "ps -ef | grep semantic.api:app | grep -v grep | awk '{print $2}'";
+    exec(cmd, (error, stdout, stderr) => {
       if (error) {
         resolve(false);
       }
@@ -82,7 +85,20 @@ export const isApiRunning = (): Promise<boolean> => {
   });
 };
 
-export const runSemanticApi = (app: App) => {
+export const runSemanticApi = async (app: App) => {
+  const installed = await installApi(app);
+  const running = await isApiRunning();
+  installed && new Notice("Semantic search API installed");
+  if (!installed || running) {
+    console.warn(
+      !installed ?
+      "Semantic search API not installed" :
+      running ?
+      "Semantic search API already running" :
+      "Unknown error",
+    );
+    return;
+  }
   const cwd = getCwd(app);
   const pythonInterpreter = cwd + "/env/bin/python3";
   // run bash process and store the handle in settings
@@ -104,7 +120,7 @@ export const killAllApiInstances = async (): Promise<boolean> => {
     await promisify(exec)("pkill -9 -f semantic.api:app");
     return true;
   } catch (e) {
-    console.log(e);
+    console.warn("Did not kill any API instances", e);
     return false;
   }
 };

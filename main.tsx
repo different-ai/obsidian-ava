@@ -38,11 +38,7 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.app.workspace.onLayoutReady(async () => {
-      const result = await installApi(this.app);
-      result && new Notice("Semantic search API installed");
-      if (result && !isApiRunning()) {
-        runSemanticApi(this.app);
-      }
+      runSemanticApi(this.app);
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
       this.stableDiffusion = {
