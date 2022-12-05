@@ -27,18 +27,50 @@ export const installApi = async (app: App) => {
     cwd: `${cwd}/semantic`,
   });
   process.stdout.on('data', (data) => {
+    // whatever happens log the stdout
+    console.info(data.toString());
+
+    if (data.toString().includes('Loading env')) {
+      new Notice(data.toString());
+      return;
+    }
+
+    if (data.toString().includes('Installing Requirements')) {
+      new Notice(data.toString());
+      return;
+    }
+    if (data.toString().includes('Starting API')) {
+      new Notice(data.toString());
+      return;
+    }
+
     if (data.toString().includes('Started Server')) {
       new Notice('Semantic search API installed');
+      return;
     }
-    console.log(data.toString());
   });
 
+  // a lot of the errors are actually stdout
   process.stderr.on('data', (data) => {
+    // whatever happens log the stderr
+    console.info(data.toString());
+
     // catch already in use error
     if (data.toString().includes('address already in use')) {
       new Notice(data.toString());
+      return;
     }
-    console.error(data.toString());
+
+    // this is any log output from the API
+    if (data.toString().includes('ava_semantic_search_api ')) {
+      new Notice(data.toString());
+      return;
+    }
+
+    if (data.toString().includes('Application startup complete')) {
+      new Notice('Semantic API is now ready to use');
+      return;
+    }
   });
 };
 
