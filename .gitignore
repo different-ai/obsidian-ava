@@ -5,6 +5,8 @@
 *.iml
 .idea
 
+
+
 # npm
 node_modules
 
@@ -24,3 +26,5 @@ data.json
 .env
 fine_tune*
 wandb
+
+semantic/env/*

@@ -1,17 +1,16 @@
-import {exec} from "child_process";
-import {App, FileSystemAdapter, Notice} from "obsidian";
-import {promisify} from "util";
-
+import { exec, spawn } from 'child_process';
+import { App, FileSystemAdapter, Notice } from 'obsidian';
+import { promisify } from 'util';
 
 export const getCwd = (app: App): string => {
-  let cwd = "";
+  let cwd = '';
   if (
     // Platform.isMobileApp ||
     app.vault.adapter instanceof FileSystemAdapter
   ) {
     cwd = app.vault.adapter.getBasePath();
   }
-  cwd += "/.obsidian/plugins/obsidian-ava";
+  cwd += '/.obsidian/plugins/obsidian-ava';
   return cwd;
 };
 
@@ -22,48 +21,18 @@ export const getCwd = (app: App): string => {
  */
 export const installApi = async (app: App): Promise<boolean> => {
   const cwd = getCwd(app);
-  // TODO: might check if already installed?
-  // virtualenv env; \
-  // source env/bin/activate; \
-  // pip install -r semantic/requirements.txt
-  // check if the user has virtualenv installed in /opt/homebrew/bin/virtualenv
-  const isLinux = process.platform === "linux";
-  const isMac = process.platform === "darwin";
-  const isWindows = process.platform === "win32";
-  const pathToCheck = isLinux ?
-    "/usr/bin/virtualenv" :
-    isMac ?
-      "/opt/homebrew/bin/virtualenv" :
-      isWindows ?
-        // TODO: fuck windows :D | need someone to test this
-        // eslint-disable-next-line max-len
-        "C:\\Users\\%USERNAME%\\AppData\\Local\\Programs\\Python\\*\\Scripts\\virtualenv.exe" :
-        "";
-  if (pathToCheck === "") {
-    new Notice("❗️ Could not determine OS ❗️");
-    return false;
-  }
-  try {
-    await promisify(exec)(`ls ${pathToCheck}`);
-  } catch (e) {
-    new Notice("❗️ Please install Python' virtualenv" +
-    " in order to use semantic search ❗️");
-    console.log(e);
-    return false;
-  }
-  // TODO: what about pip?
-  try {
-    await promisify(exec)(
-        `(${pathToCheck} env || true) && source env/bin/activate && ` +
-        "pip install -r semantic/requirements.txt",
-        {cwd},
-    );
-  } catch (e) {
-    new Notice("❗️ Error installing semantic search API ❗️");
-    console.error(e);
-    return false;
-  }
-  return true;
+  console.log(cwd);
+  // const process = spawn('cd', [`${cwd}/semantic;sh start-api.sh`]);
+  const process = spawn(`sh start-api.sh`, {
+    shell: true,
+    cwd: `${cwd}/semantic`,
+  });
+  process.stdout.on('data', (data) => {
+    console.log(data.toString());
+  });
+  process.stderr.on('data', (data) => {
+    console.error(data.toString());
+  });
 };
 
 /**
@@ -88,23 +57,24 @@ export const isApiRunning = (): Promise<boolean> => {
 export const runSemanticApi = async (app: App) => {
   const installed = await installApi(app);
   const running = await isApiRunning();
-  installed && new Notice("Semantic search API installed");
+  console.log(running);
+  installed && new Notice('Semantic search API installed');
   if (!installed || running) {
     console.warn(
-      !installed ?
-      "Semantic search API not installed" :
-      running ?
-      "Semantic search API already running" :
-      "Unknown error",
+      !installed
+        ? 'Semantic search API not installed'
+        : running
+        ? 'Semantic search API already running'
+        : 'Unknown error'
     );
     return;
   }
   const cwd = getCwd(app);
-  const pythonInterpreter = cwd + "/env/bin/python3";
+  const pythonInterpreter = cwd + '/usr/local/bin/python3';
   // run bash process and store the handle in settings
   const cmd =
-        // eslint-disable-next-line max-len
-        `${pythonInterpreter} -m uvicorn --app-dir=${cwd} semantic.api:app --port 3000`;
+    // eslint-disable-next-line max-len
+    `${pythonInterpreter} -m uvicorn --app-dir=${cwd} semantic.api:app --port 3333`;
 
   return exec(cmd, {
     cwd: cwd,
@@ -117,10 +87,10 @@ export const runSemanticApi = async (app: App) => {
  */
 export const killAllApiInstances = async (): Promise<boolean> => {
   try {
-    await promisify(exec)("pkill -9 -f semantic.api:app");
+    await promisify(exec)('pkill -9 -f semantic.api:app');
     return true;
   } catch (e) {
-    console.warn("Did not kill any API instances", e);
+    console.warn('Did not kill any API instances', e);
     return false;
   }
 };

@@ -21,7 +21,7 @@ nltk.download('all')
 ```
 
 ```bash
-uvicorn semantic.api:app --port 3000
+uvicorn semantic.api:app --port 3333
 ```
 
 #### Fine-tuning
