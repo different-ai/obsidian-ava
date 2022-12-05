@@ -100,10 +100,10 @@ def no_batch_embed(
 
 
 @app.post("/semantic_search")
-def semantic_search(input: Input, settings: Settings = Depends(get_settings)):
+def semantic_search(input: Input, _: Settings = Depends(get_settings)):
     """"""
     query = input.query
-    top_k = min(5, len(state["corpus"]))
+    top_k = min(input.top_k, len(state["corpus"]))
     query_embedding = no_batch_embed(query)
     cos_scores = util.cos_sim(query_embedding, state["document_embeddings"])[0]
     top_results = torch.topk(cos_scores, k=top_k)
