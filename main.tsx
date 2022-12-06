@@ -53,11 +53,10 @@ export default class AvaPlugin extends Plugin {
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
 
-    this.registerView(VIEW_TYPE_AVA, (leaf: WorkspaceLeaf) => {
-      return new AvaSidebarView(leaf, this);
-    });
-
     this.app.workspace.onLayoutReady(async () => {
+      this.registerView(VIEW_TYPE_AVA, (leaf: WorkspaceLeaf) => {
+        return new AvaSidebarView(leaf, this);
+      });
       // runSemanticApi(this.app);
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
