@@ -54,7 +54,7 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.registerView(VIEW_TYPE_AVA, (leaf: WorkspaceLeaf) => {
-      return new AvaSidebarView(leaf, '');
+      return new AvaSidebarView(leaf, this);
     });
 
     this.app.workspace.onLayoutReady(async () => {
@@ -146,7 +146,7 @@ export default class AvaPlugin extends Plugin {
           const completion = await createWikipediaLinks(
             title,
             editor.getSelection(),
-            this.app
+            this
           );
           this.app.workspace.rightSplit.expand();
           this.sidebar.removeLoading();
