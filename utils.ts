@@ -1,20 +1,19 @@
 import AvaPlugin from 'main';
-import { App } from 'obsidian';
 
 export interface ISimilarFile {
   file_name: string;
   file_path: string;
 }
 
-export const semanticLink = async (
+export const createSemanticLinks = async (
   title: string,
   text: string,
-  tags: string
+  tags: string[]
 ) => {
   const query = `File:\n${title}\nTags:${tags}\nContent:\n${text}`;
   console.log('Query:', query);
   const response: { similarities: ISimilarFile[] } = await fetch(
-    'http://localhost:3000/semantic_search',
+    'http://localhost:3333/semantic_search',
     {
       method: 'POST',
       headers: {
@@ -27,7 +26,8 @@ export const semanticLink = async (
   const similarities = response.similarities.filter(
     (similarity) => similarity.file_name !== title
   );
-  return `\n\nSimilar topic links:\n\n${similarities
+  console.log(similarities);
+  return `${similarities
     .map((similarity) => '[[' + similarity.file_path + ']]')
     .join('\n')}`;
 };

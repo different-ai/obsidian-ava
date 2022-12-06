@@ -25,7 +25,11 @@ import {
 import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import { AvaSuggest, StatusBar } from './suggest';
 import { theme } from './theme';
-import { createGPT3Links, createWikipediaLinks } from './utils';
+import {
+  createGPT3Links,
+  createSemanticLinks,
+  createWikipediaLinks,
+} from './utils';
 
 interface StableDiffusion {
   generateAsync: (opts: DraftStabilityOptions & RequiredStabilityOptions) => {
@@ -50,7 +54,7 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.registerView(VIEW_TYPE_AVA, (leaf: WorkspaceLeaf) => {
-      return new AvaSidebarView(leaf, '');
+      return new AvaSidebarView(leaf, this);
     });
 
     this.app.workspace.onLayoutReady(async () => {
@@ -59,6 +63,7 @@ export default class AvaPlugin extends Plugin {
       this.openai = suggest.openai;
 
       this.stableDiffusion = {
+        // @ts-ignore
         generateAsync: generateAsync,
       };
       this.addCommand({
@@ -81,8 +86,32 @@ export default class AvaPlugin extends Plugin {
         },
       });
       this.addCommand({
-        id: 'get-related-topics',
-        name: 'Get Related Topics',
+        id: 'semantic-related-topics',
+        name: 'Add Related Topics (best)',
+        editorCallback: async (editor: Editor, view: ItemView) => {
+          const title = this.app.workspace.getActiveFile()?.basename;
+          new Notice('Generating Related Topics ⏰');
+          this.statusBarItem.render(<StatusBar status="loading" />);
+          const completion = await createSemanticLinks(
+            title,
+            editor.getSelection(),
+            ['']
+          );
+          const lastLine = editor.lastLine();
+          const lastChar = editor.getLine(editor.lastLine()).length;
+
+          editor.replaceRange(`\n\nSimilar topic links:\n\n- [[${completion}`, {
+            line: lastLine,
+            ch: lastChar,
+          });
+          this.statusBarItem.render(<StatusBar status="disabled" />);
+
+          new Notice('Topics added at bottom of the page🔥');
+        },
+      });
+      this.addCommand({
+        id: 'gpt3-related-topics',
+        name: 'Add Related Topics (gpt3)',
         editorCallback: async (editor: Editor, view: ItemView) => {
           const title = this.app.workspace.getActiveFile()?.basename;
           new Notice('Generating Related Topics ⏰');
@@ -90,8 +119,8 @@ export default class AvaPlugin extends Plugin {
           const completion = await createGPT3Links(
             title,
             editor.getSelection(),
-            '',
-            this.app
+            [''],
+            this
           );
           const lastLine = editor.lastLine();
           const lastChar = editor.getLine(editor.lastLine()).length;
@@ -118,7 +147,7 @@ export default class AvaPlugin extends Plugin {
           const completion = await createWikipediaLinks(
             title,
             editor.getSelection(),
-            this.app
+            this
           );
           this.app.workspace.rightSplit.expand();
           this.sidebar.removeLoading();
@@ -137,7 +166,7 @@ export default class AvaPlugin extends Plugin {
           if (!this.settings.stableDiffusion.key) {
             new Notice(
               'You need to set a key for Stable Diffusion in the settings',
-              3000
+              3333
             );
             return;
           }
@@ -145,7 +174,7 @@ export default class AvaPlugin extends Plugin {
           if (!selection) {
             new Notice(
               'You need to select some text to generate an image',
-              3000
+              3333
             );
             return;
           }
@@ -224,6 +253,9 @@ export default class AvaPlugin extends Plugin {
   // eslint-disable-next-line require-jsdoc
   async saveSettings() {
     await this.saveData(this.settings);
+  }
+  onunload(): void {
+    killAllApiInstances();
   }
 }
 

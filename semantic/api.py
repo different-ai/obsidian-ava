@@ -62,7 +62,7 @@ async def startup_event():
 
     # two level above the current directory
     wkd = Path(os.getcwd()).parent.parent.parent
-    logger.debug(f"Loading vault from {wkd}")
+    logger.info(f"Loading vault from {wkd}")
     vault = otools.Vault(wkd).connect(show_nested_tags=True).gather()
     logger.info(f"Loading model {settings.model}")
     if settings.device == "mps" and (
@@ -86,7 +86,7 @@ async def startup_event():
     document_embeddings = model.encode(
         corpus,
         convert_to_tensor=True,
-        show_progress_bar=settings.log_level == "DEBUG",
+        show_progress_bar=settings.log_level == "INFO",
         device=settings.device,
     )
     logger.info(f"Loaded {len(corpus)} sentences")
@@ -107,7 +107,8 @@ def no_batch_embed(
 
 
 # /semantic_search usage:
-# curl -X POST -H "Content-Type: application/json" -d '{"query": "reinforcement learning"}' http://localhost:3000/semantic_search | jq '.'
+# curl -X POST -H "Content-Type: application/json" -d '{"query": "reinforcement learning"}' http://localhost:3333/semantic_search | jq '.'
+
 
 
 @app.post("/semantic_search")
