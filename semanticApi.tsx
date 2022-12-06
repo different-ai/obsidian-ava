@@ -60,6 +60,10 @@ export const installApi = async (app: App) => {
       new Notice(data.toString());
       return;
     }
+    if (data.toString().includes('Batches')) {
+      new Notice(data.toString());
+      return;
+    }
 
     // this is any log output from the API
     if (data.toString().includes('ava_semantic_search_api ')) {
