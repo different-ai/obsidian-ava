@@ -1,4 +1,4 @@
-/* eslint-disable require-jsdoc */
+t; /* eslint-disable require-jsdoc */
 import { ThemeProvider } from '@mui/material';
 import linkifyHtml from 'linkify-html';
 import {
@@ -29,6 +29,7 @@ import {
   createGPT3Links,
   createSemanticLinks,
   createWikipediaLinks,
+  downloadArtifacts,
 } from './utils';
 
 interface StableDiffusion {
