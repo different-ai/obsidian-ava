@@ -63,7 +63,7 @@ async def startup_event():
     # two level above the current directory
     wkd = Path(os.getcwd()).parent.parent.parent
     logger.debug(f"Loading vault from {wkd}")
-    vault = otools.Vault(wkd).connect().gather()
+    vault = otools.Vault(wkd).connect(show_nested_tags=True).gather()
     logger.info(f"Loading model {settings.model}")
     if settings.device == "mps" and (
         not torch.backends.mps.is_available() or not torch.backends.mps.is_built()

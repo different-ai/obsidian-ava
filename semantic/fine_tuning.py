@@ -141,7 +141,7 @@ def fine_tune(
     wkd = Path(os.getcwd()).parent.parent.parent
     print("Loading vault...")
 
-    vault = otools.Vault(wkd).connect().gather()
+    vault = otools.Vault(wkd).connect(show_nested_tags=True).gather()
 
     if use_wandb:
         import wandb
@@ -163,7 +163,7 @@ def fine_tune(
     #     def job():
     #         # TODO: only ft when enough file content changed
     #         print("Files changed, fine-tuning...")
-    #         vault = otools.Vault(wkd).connect().gather()
+    #         vault = otools.Vault(wkd).connect(show_nested_tags=True).gather()
     #         st_ft(
     #             vault,
     #             use_wandb,
