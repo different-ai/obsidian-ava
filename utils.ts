@@ -117,9 +117,9 @@ export const downloadArtifacts = async (app: App) => {
   const cwd = getCwd(app);
   const version = manifest.version;
   console.log('before');
+  console.log(version);
   const url = `https://github.com/louis030195/obsidian-ava/releases/download/${version}/semantic.zip`;
+  console.log(url);
 
-  const dest = cwd + '/semantic';
-
-  got(url, { isStream: true }).pipe(Extract({ path: dest }));
+  got(url, { isStream: true }).pipe(Extract({ path: cwd }));
 };
