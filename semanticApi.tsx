@@ -10,7 +10,7 @@ export const getCwd = (app: App): string => {
   ) {
     cwd = app.vault.adapter.getBasePath();
   }
-  cwd += '/.obsidian/plugins/obsidian-ava';
+  cwd += '/.obsidian/plugins/ava';
   return cwd;
 };
 
