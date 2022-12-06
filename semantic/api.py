@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     model: str = "multi-qa-MiniLM-L6-cos-v1"
     embed_cache_size: typing.Optional[int] = None
     log_level: str = "INFO"
+    device: str = "cpu"
 
     class Config:
         env_file = ".env"
@@ -40,12 +41,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-state = {
-    "status": "loading"
-}
+state = {"status": "loading"}
 
 # regex to grab the file title from content (File:\n(blabla))
 regex = re.compile(r"File:\n(.*)")
+
 
 @app.on_event("startup")
 async def startup_event():
@@ -65,18 +65,29 @@ async def startup_event():
     logger.debug(f"Loading vault from {wkd}")
     vault = otools.Vault(wkd).connect().gather()
     logger.info(f"Loading model {settings.model}")
-    model = SentenceTransformer(settings.model)
+    if settings.device == "mps" and (
+        not torch.backends.mps.is_available() or not torch.backends.mps.is_built()
+    ):
+        logger.warning(
+            "MPS was requested but is not available, check your setup, falling back to CPU"
+        )
+        settings.device = "cpu"
+    model = SentenceTransformer(settings.model, device=settings.device)
     corpus = []
     document_embeddings = []
     logger.info(
         f"Loading corpus, there are {len(vault.readable_text_index.items())} notes"
     )
+
     for k, v in vault.readable_text_index.items():
-        corpus.append(f"File:\n{k}\nTags:{vault.get_tags(k)}\nContent:\n{v}")
+        corpus.append(f"File:\n{k}\nTags:{vault.get_tags(k, show_nested=True)}\nContent:\n{v}")
     # TODO: refresh corupus embeddings regularly or according to files changed in the vault
     state["status"] = "computing_embeddings"
     document_embeddings = model.encode(
-        corpus, convert_to_tensor=True, show_progress_bar=settings.log_level == "DEBUG"
+        corpus,
+        convert_to_tensor=True,
+        show_progress_bar=settings.log_level == "DEBUG",
+        device=settings.device,
     )
     logger.info(f"Loaded {len(corpus)} sentences")
     state["status"] = "ready"
@@ -117,7 +128,7 @@ def semantic_search(input: Input, _: Settings = Depends(get_settings)):
         file_path = regex.findall(state["corpus"][idx])[0]
         file_name = file_path.split("/")[-1]
         file_text = state["vault"].get_readable_text(file_name)
-        file_tags = state["vault"].get_tags(file_name)
+        file_tags = state["vault"].get_tags(file_name, show_nested=True)
         similarities.append(
             {
                 "score": score.item(),
