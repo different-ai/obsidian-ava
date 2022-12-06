@@ -58,7 +58,7 @@ export default class AvaPlugin extends Plugin {
     });
 
     this.app.workspace.onLayoutReady(async () => {
-      runSemanticApi(this.app);
+      // runSemanticApi(this.app);
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
 
