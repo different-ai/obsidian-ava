@@ -61,10 +61,11 @@ export const installApi = async (app: App) => {
       return;
     }
     if (data.toString().includes('Batches')) {
-      new Notice(data.toString());
+      const pattern = /B.*?\|(.*?)\|/;
+      const match = data.toString().match(pattern);
+      new Notice(`AVA plugin - ${match[0]}`);
       return;
     }
-
     // this is any log output from the API
     if (data.toString().includes('ava_semantic_search_api ')) {
       new Notice(data.toString());
@@ -72,7 +73,7 @@ export const installApi = async (app: App) => {
     }
 
     if (data.toString().includes('Application startup complete')) {
-      new Notice('Semantic API is now ready to use');
+      new Notice('Semantic API is now ready to use 🐒');
       return;
     }
   });
