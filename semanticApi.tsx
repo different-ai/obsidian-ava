@@ -111,10 +111,12 @@ export const runSemanticApi = async (app: App) => {
  */
 export const killAllApiInstances = async (): Promise<boolean> => {
   try {
-    await promisify(exec)('pkill -9 -f semantic.api:app');
+    console.log('Killing all API instances');
+    await promisify(exec)('pkill -9 -f api:app');
+    console.log('Killed all API instances');
     return true;
   } catch (e) {
-    console.warn('Did not kill any API instances', e);
+    console.warn('Could not kill any API instances', e);
     return false;
   }
 };

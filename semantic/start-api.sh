@@ -1,10 +1,19 @@
 #/bin/bash
 #set -x
 
-## install api
+## Create virtual env
+echo "Creating virtual env"
+python3 -m venv env
+
+## Load virtual env
 echo "Loading env"
 source env/bin/activate
 
+## kill existing instance
+echo "Killing existing instance"
+pkill -9 -f api:app
+
+## install api
 echo "Installing Requirements"
 pip3 install -r requirements.txt
 
