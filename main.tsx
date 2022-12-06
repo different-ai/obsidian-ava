@@ -62,6 +62,14 @@ export default class AvaPlugin extends Plugin {
         // @ts-ignore
         generateAsync: generateAsync,
       };
+
+      this.addCommand({
+        id: 'ava-test-download',
+        name: 'Test Download',
+        callback: async () => {
+          downloadArtifacts(this.app);
+        },
+      });
       this.addCommand({
         id: 'ava-restart-semantic-api',
         name: 'Restart semantic search API',

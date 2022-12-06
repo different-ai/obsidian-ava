@@ -4,7 +4,7 @@ on:
   push:
     # Sequence of patterns matched against refs/tags
     tags:
-      - "*" # Push events to matching any tag format, i.e. 1.0, 20.15.10
+      - '*' # Push events to matching any tag format, i.e. 1.0, 20.15.10
 
 env:
   PLUGIN_NAME: ava
@@ -18,16 +18,21 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v1
         with:
-          node-version: "16.x" # You might need to adjust this value to your own version
+          node-version: '16.x' # You might need to adjust this value to your own version
       - name: Build
         id: build
         run: |
           npm i
           npm run build
           mkdir ${{ env.PLUGIN_NAME }}
-          cp -r main.js manifest.json semantic ${{ env.PLUGIN_NAME }}
+          cp -r main.js manifest.json ${{ env.PLUGIN_NAME }}
           zip -r ${{ env.PLUGIN_NAME }}.zip ${{ env.PLUGIN_NAME }}
           echo "::set-output name=tag_name::$(git tag --sort version:refname | tail -n 1)"
+      - name: Create Semantic API artifact
+        id: create_semantic_api_artifact
+        run: |
+          zip -r semantic.zip semantic
+
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -39,6 +44,16 @@ jobs:
           release_name: ${{ github.ref }}
           draft: false
           prerelease: false
+      - name: Upload Semantic API Artifact
+        id: upload_semantic_api_artifact
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./semantic.zip
+          asset_name: semantic.zip
+          asset_content_type: application/zip
       - name: Upload zip file
         id: upload-zip
         uses: actions/upload-release-asset@v1

@@ -20,6 +20,7 @@
     "@types/node": "^18.11.10",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
+    "@types/unzipper": "^0.10.5",
     "@types/uuid4": "^2.0.0",
     "@typescript-eslint/eslint-plugin": "^5.45.0",
     "@typescript-eslint/parser": "^5.45.0",
@@ -43,7 +44,10 @@
     "@mui/icons-material": "^5.10.16",
     "@mui/lab": "^5.0.0-alpha.110",
     "@mui/material": "^5.10.16",
+    "@terascope/fetch-github-release": "^0.8.7",
+    "axios": "^1.2.1",
     "google-protobuf": "^3.21.2",
+    "got": "^12.5.3",
     "linkify-html": "^4.0.2",
     "linkifyjs": "^4.0.2",
     "mime": "^3.0.0",
@@ -53,6 +57,7 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typed-emitter": "^2.1.0",
+    "unzipper": "^0.10.11",
     "uuid4": "^2.0.3"
   }
 }

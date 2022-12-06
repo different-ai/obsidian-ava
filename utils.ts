@@ -1,4 +1,9 @@
+import got from 'got';
 import AvaPlugin from 'main';
+import { App } from 'obsidian';
+import { getCwd } from 'semanticApi';
+import { Extract } from 'unzipper';
+import manifest from './manifest.json';
 
 export interface ISimilarFile {
   file_name: string;
@@ -106,4 +111,15 @@ export const createGPT3Links = async (
   });
   const completion = response.data.choices[0].text.trim();
   return completion;
+};
+
+export const downloadArtifacts = async (app: App) => {
+  const cwd = getCwd(app);
+  const version = manifest.version;
+  console.log('before');
+  const url = `https://github.com/louis030195/obsidian-ava/releases/download/${version}/semantic.zip`;
+
+  const dest = cwd + '/semantic';
+
+  got(url, { isStream: true }).pipe(Extract({ path: dest }));
 };
