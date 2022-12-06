@@ -63,6 +63,7 @@ export default class AvaPlugin extends Plugin {
       this.openai = suggest.openai;
 
       this.stableDiffusion = {
+        // @ts-ignore
         generateAsync: generateAsync,
       };
       this.addCommand({
