@@ -75,7 +75,7 @@ export const installApi = async (appDir: string) => {
     }
 
     if (data.toString().includes('Application startup complete')) {
-      new Notice('🧙 AVA Search - Ready 🚀');
+      new Notice('🧙 AVA Search - Ready 🚀', 5000);
       return;
     }
   });
@@ -116,7 +116,8 @@ export const runSemanticApi = async (app: App) => {
   const obsidianRootDir = getCwd(app);
 
   new Notice(
-    '🧙 AVA Search - Installing in progress, this can take up to 10 min'
+    '🧙 AVA Search - Installing in progress, this can take up to 10 min',
+    2000
   );
 
   if (!hasApiSourceCode(obsidianRootDir)) {
