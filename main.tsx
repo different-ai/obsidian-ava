@@ -209,7 +209,7 @@ ${completion}`;
           );
           this.app.workspace.rightSplit.expand();
           this.sidebar.removeLoading();
-          this.sidebar.updateContent(completion);
+          this.sidebar.updateContent(title, completion);
           this.app.workspace.revealLeaf(this.sidebar.leaf);
 
           this.statusBarItem.render(<StatusBar status="disabled" />);
@@ -363,8 +363,16 @@ export class AvaSidebarView extends ItemView {
     this.contentEl.appendChild(loadingEl);
   };
 
-  async updateContent(content: string): Promise<void> {
+  async updateContent(title: string, content: string): Promise<void> {
+    this.removeLoading();
     const linkified = linkifyHtml(content);
+    await MarkdownRenderer.renderMarkdown(
+      `## [[${title}]]`,
+      this.contentEl,
+      '',
+      this.plugin
+    );
+
     await MarkdownRenderer.renderMarkdown(
       linkified,
       this.contentEl,
