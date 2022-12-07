@@ -198,6 +198,12 @@ ${completion}`;
         editorCallback: async (editor: Editor, view: ItemView) => {
           const title = this.app.workspace.getActiveFile()?.basename;
 
+          // if there's no open ai key stop here and display a message to user
+          if (this.settings.openai.key?.length === 0) {
+            new Notice('You need to set an OpenAI API key in the settings');
+            return;
+          }
+
           new Notice('Generating Wikipedia Links ⏰');
 
           this.sidebar.setLoading();
