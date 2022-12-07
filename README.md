@@ -41,19 +41,22 @@
 This is a bit cumbersome at the moment. You're required to start the API manually thourgh a command. It can take 2 - 10 min to fully load up.
 
 1. <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
-2. 2. Type Start Search API
-![Start Server Gif](https://im2.ezgif.com/tmp/ezgif-2-d2ef5ddcdd.gif)
+2. Type Start Search API
+
+![Start Server Gif](https://user-images.githubusercontent.com/11430621/206311329-bedd24b3-6f2b-4457-afae-ec3246c57fca.gif)
 
 After you're able to automatically generate links based on your page content using
 1. Select some text
 2. Press <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
 3. Type "add related topics"
-![Related Topics Example](https://im2.ezgif.com/tmp/ezgif-2-cd3767184b.gif)
+
+![Related Topics Example](https://user-images.githubusercontent.com/11430621/206310806-c3c1a226-8c79-46d2-b349-ef7b293fd5dd.gif)
 
 ### 🧙 AVA Learn - Get suggestion to further reading on Wikipedia 
 1. <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
 2. Type "wikipedia"
-![wikipedia example](https://im3.ezgif.com/tmp/ezgif-3-573ca1c494.gif)
+
+![wikipedia example](https://user-images.githubusercontent.com/11430621/206311107-7c4a8cc1-390a-4f56-8152-35b412849bd1.gif)
 
 
 ### Extra
