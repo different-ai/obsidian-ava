@@ -69,7 +69,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-manual-download',
         name: 'Manually Download API',
         callback: async () => {
-          downloadApiSourceCode(obsidianRootDir);
+          await downloadApiSourceCode(obsidianRootDir);
         },
       });
       this.addCommand({

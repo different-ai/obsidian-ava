@@ -113,11 +113,14 @@ export const createGPT3Links = async (
 
 export const downloadApiSourceCode = async (dest: string): Promise<boolean> => {
   const version = manifest.version;
-  console.log(version);
   const url = `https://github.com/louis030195/obsidian-ava/releases/download/${version}/semantic.zip`;
   return new Promise((resolve) => {
+    console.log(`Downloading ${url}`);
     got(url, { isStream: true })
-      .pipe(Extract({ path: dest }))
-      .end(resolve);
+      .end(() => {
+        console.log('Unzipped Finished');
+        resolve(true);
+      })
+      .pipe(Extract({ path: dest }));
   });
 };
