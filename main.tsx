@@ -6,6 +6,7 @@ import {
   Editor,
   ItemView,
   MarkdownRenderer,
+  MarkdownView,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -38,6 +39,7 @@ interface StableDiffusion {
     res: ResponseData;
   };
 }
+
 export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
 // eslint-disable-next-line require-jsdoc
@@ -101,26 +103,48 @@ export default class AvaPlugin extends Plugin {
       });
       this.addCommand({
         id: 'semantic-related-topics',
-        name: 'Add Related Topics (best)',
+        name: '🧙 AVA Link - Add Related Topics',
         editorCallback: async (editor: Editor, view: ItemView) => {
           const title = this.app.workspace.getActiveFile()?.basename;
-          new Notice('Generating Related Topics ⏰');
+          new Notice('🧙 AVA Link - Generating Related Topics ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
-          const completion = await createSemanticLinks(
-            title,
-            editor.getSelection(),
-            ['']
-          );
-          const lastLine = editor.lastLine();
-          const lastChar = editor.getLine(editor.lastLine()).length;
+          let completion = '';
+          try {
+            completion = await createSemanticLinks(
+              title,
+              editor.getSelection(),
+              // todo: fetch obsidian tags
+              ['']
+            );
+          } catch (e) {
+            console.error(e);
+            new Notice(
+              '🧙 AVA Link - Error generating related topics. Make sure you started AVA Search API'
+            );
+            this.statusBarItem.render(<StatusBar status="disabled" />);
+            return;
+          }
 
-          editor.replaceRange(`\n\nSimilar topic links:\n\n- [[${completion}`, {
-            line: lastLine,
-            ch: lastChar,
-          });
+          const match = '# Related';
+          const matchLength = match.length;
+          let currentText = editor.getValue();
+          const content = `
+${completion}`;
+
+          // if there is a related section, add to it
+          if (!currentText.includes('# Related')) {
+            currentText = `${currentText}
+# Related`;
+          }
+          const insertPos = currentText.indexOf(match) + matchLength;
+          const newText =
+            currentText.slice(0, insertPos) +
+            content +
+            currentText.slice(insertPos);
+
+          editor.setValue(newText);
           this.statusBarItem.render(<StatusBar status="disabled" />);
-
-          new Notice('Topics added at bottom of the page🔥');
+          new Notice('🧙 AVA Link - Related Topics Added', 2000);
         },
       });
       this.addCommand({
@@ -149,8 +173,28 @@ export default class AvaPlugin extends Plugin {
         },
       });
       this.addCommand({
+        id: 'ava-test-editor',
+        name: 'test',
+        editorCallback: (editor: Editor, view: MarkdownView) => {
+          // const file = this.app.workspace.getActiveFile();
+          const match = '# Related';
+          const matchLength = match.length;
+          const currentText = editor.getValue();
+          const insertPos = currentText.indexOf(match) + matchLength;
+          const content = `
+
+- la bla bla`;
+          const newText =
+            currentText.slice(0, insertPos) +
+            content +
+            currentText.slice(insertPos);
+
+          editor.setValue(newText);
+        },
+      });
+      this.addCommand({
         id: 'get-wikipedia-suggestions',
-        name: 'Get Wikipedia Suggestions',
+        name: '🧙 AVA Learn - Get Wikipedia Suggestions',
         editorCallback: async (editor: Editor, view: ItemView) => {
           const title = this.app.workspace.getActiveFile()?.basename;
 
