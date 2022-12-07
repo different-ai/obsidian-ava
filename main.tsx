@@ -15,7 +15,7 @@ import { OpenAIApi } from 'openai';
 
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { killAllApiInstances, runSemanticApi } from 'semanticApi';
+import { getCwd, killAllApiInstances, runSemanticApi } from 'semanticApi';
 import {
   DraftStabilityOptions,
   generateAsync,
@@ -29,7 +29,7 @@ import {
   createGPT3Links,
   createSemanticLinks,
   createWikipediaLinks,
-  downloadArtifacts,
+  downloadApiSourceCode,
 } from './utils';
 
 interface StableDiffusion {
@@ -53,6 +53,7 @@ export default class AvaPlugin extends Plugin {
     await this.loadSettings();
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
+    const obsidianRootDir = getCwd(this.app);
 
     this.app.workspace.onLayoutReady(async () => {
       // runSemanticApi(this.app);
@@ -65,21 +66,29 @@ export default class AvaPlugin extends Plugin {
       };
 
       this.addCommand({
-        id: 'ava-test-download',
-        name: 'Test Download',
+        id: 'ava-manual-download',
+        name: 'Manually Download API',
         callback: async () => {
-          downloadArtifacts(this.app);
+          downloadApiSourceCode(obsidianRootDir);
         },
       });
       this.addCommand({
-        id: 'ava-restart-semantic-api',
-        name: 'Restart semantic search API',
+        id: 'ava-start-semantic-api',
+        name: 'Start AVA Search API',
         callback: async () => {
-          new Notice('Restarting semantic search API');
-          await killAllApiInstances();
-          new Notice('Killed all semantic search API instances');
+          new Notice('🧙 AVA Search - Starting API');
           runSemanticApi(this.app);
-          new Notice('Semantic search API restarted');
+        },
+      });
+
+      this.addCommand({
+        id: 'ava-restart-semantic-api',
+        name: 'Force Restart AVA Search API',
+        callback: async () => {
+          new Notice('🧙 AVA Search - Shutting Down API');
+          await killAllApiInstances();
+          new Notice('🧙 AVA Search - Starting API');
+          runSemanticApi(this.app);
         },
       });
       // This adds a simple command that can be triggered anywhere

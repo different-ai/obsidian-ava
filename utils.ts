@@ -1,7 +1,5 @@
 import got from 'got';
 import AvaPlugin from 'main';
-import { App } from 'obsidian';
-import { getCwd } from 'semanticApi';
 import { Extract } from 'unzipper';
 import manifest from './manifest.json';
 
@@ -113,13 +111,13 @@ export const createGPT3Links = async (
   return completion;
 };
 
-export const downloadArtifacts = async (app: App) => {
-  const cwd = getCwd(app);
+export const downloadApiSourceCode = async (dest: string): Promise<boolean> => {
   const version = manifest.version;
-  console.log('before');
   console.log(version);
   const url = `https://github.com/louis030195/obsidian-ava/releases/download/${version}/semantic.zip`;
-  console.log(url);
-
-  got(url, { isStream: true }).pipe(Extract({ path: cwd }));
+  return new Promise((resolve) => {
+    got(url, { isStream: true })
+      .pipe(Extract({ path: dest }))
+      .end(resolve);
+  });
 };

@@ -1,6 +1,8 @@
 import { exec, spawn } from 'child_process';
+import fs from 'fs';
 import { App, FileSystemAdapter, Notice } from 'obsidian';
 import { promisify } from 'util';
+import { downloadApiSourceCode } from 'utils';
 
 export const getCwd = (app: App): string => {
   let cwd = '';
@@ -19,33 +21,32 @@ export const getCwd = (app: App): string => {
  * @param {App} app
  * @return {Promise<boolean>} success or failure
  */
-export const installApi = async (app: App) => {
-  const cwd = getCwd(app);
-  console.log(cwd);
+export const installApi = async (appDir: string) => {
   const process = spawn(`sh start-api.sh`, {
     shell: true,
-    cwd: `${cwd}/semantic`,
+    cwd: `${appDir}/semantic`,
   });
   process.stdout.on('data', (data) => {
     // whatever happens log the stdout
     console.info(data.toString());
+    const formattedNotice = `🧙 AVA Search - ${data.toString()}`;
 
     if (data.toString().includes('Loading env')) {
-      new Notice(data.toString());
+      new Notice(formattedNotice);
       return;
     }
 
     if (data.toString().includes('Installing Requirements')) {
-      new Notice(data.toString());
+      new Notice(formattedNotice);
       return;
     }
     if (data.toString().includes('Starting API')) {
-      new Notice(data.toString());
+      new Notice(formattedNotice);
       return;
     }
 
     if (data.toString().includes('Started Server')) {
-      new Notice('Semantic search API installed');
+      new Notice('🧙 AVA Search - Initializing API');
       return;
     }
   });
@@ -54,26 +55,27 @@ export const installApi = async (app: App) => {
   process.stderr.on('data', (data) => {
     // whatever happens log the stderr
     console.info(data.toString());
-
+    const formattedNotice = `🧙 AVA Search - ${data.toString()}`;
     // catch already in use error
     if (data.toString().includes('address already in use')) {
-      new Notice(data.toString());
+      new Notice(formattedNotice);
       return;
     }
+    // print progress bar
     if (data.toString().includes('Batches')) {
       const pattern = /B.*?\|(.*?)\|/;
       const match = data.toString().match(pattern);
-      new Notice(`AVA plugin - ${match[0]}`);
+      new Notice(`🧙 AVA Search - ${match[0]}`);
       return;
     }
     // this is any log output from the API
     if (data.toString().includes('ava_semantic_search_api ')) {
-      new Notice(data.toString());
+      new Notice(formattedNotice);
       return;
     }
 
     if (data.toString().includes('Application startup complete')) {
-      new Notice('Semantic API is now ready to use 🐒');
+      new Notice('🧙 AVA Search - Ready 🚀');
       return;
     }
   });
@@ -98,16 +100,36 @@ export const isApiRunning = (): Promise<boolean> => {
   });
 };
 
+const hasApiSourceCode = (basePath: string) => {
+  const dir = `${basePath}/semantic`;
+  return fs.existsSync(dir);
+};
+
 export const runSemanticApi = async (app: App) => {
-  const running = await isApiRunning();
   // if the api is already running, return early
+  const running = await isApiRunning();
   if (running) {
-    console.log(running);
-    new Notice('Semantic search API is already running');
+    new Notice('🧙 AVA Search - Already Running ⚠️');
     return;
   }
-  new Notice('Installing semantic search API - this can take up to 10 min.');
-  installApi(app);
+  // get obsidian root dir
+  const obsidianRootDir = getCwd(app);
+
+  new Notice(
+    '🧙 AVA Search - Installing in progress, this can take up to 10 min'
+  );
+
+  if (!hasApiSourceCode(obsidianRootDir)) {
+    new Notice('🧙 AVA Search - Downloading Source Files');
+
+    await downloadApiSourceCode(obsidianRootDir);
+  }
+  new Notice(
+    '🧙 AVA Search - Installing in progress, this can take up to 10 min'
+  );
+
+  new Notice('🧙 AVA Search - Installing Dependencies');
+  installApi(obsidianRootDir);
 };
 
 /**
@@ -116,7 +138,7 @@ export const runSemanticApi = async (app: App) => {
  */
 export const killAllApiInstances = async (): Promise<boolean> => {
   try {
-    console.log('Killing all API instances');
+    console.log('AVA - Killing all API instances');
     await promisify(exec)('pkill -9 -f api:app');
     console.log('Killed all API instances');
     return true;
