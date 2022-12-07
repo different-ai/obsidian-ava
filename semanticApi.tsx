@@ -130,7 +130,10 @@ export const runSemanticApi = async (app: App) => {
   );
 
   new Notice('🧙 AVA Search - Installing Dependencies');
-  installApi(obsidianRootDir);
+  // race condition when source code is downloaded so adding a timeout
+  setTimeout(() => {
+    installApi(obsidianRootDir);
+  }, 1500);
 };
 
 /**
