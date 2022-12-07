@@ -1,55 +1,100 @@
 # obsidian-ava
 
-Augment your brain with AI.
+> Obsidian AVA - Personal Learning Assistant
 
-## Stable diffusion
+- [x] **Connect the dots**: connect individual pieces of information in your knowledge base. ✅ 2022-12-07
+- [x] **Point you in the right direction**: provide you with other areas of interest that you could explore further. ✅ 2022-12-07
+- [ ]   **Engage with the material**: suggest meetups or activities to engage with the learning materials.
+- [ ]   **Remember what you learned**: create spaced-repetition prompts to help you remember what you've learned.
 
-![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/25003283/201516129-fa109c45-ce3b-4a34-93be-09750c07fc93.gif)
+⚠️ Experimental
 
-## GPT3 custom prompt
+## What is included
 
-![ezgif com-gif-maker (2)](https://user-images.githubusercontent.com/25003283/201516098-db39c37f-29c8-4dfa-a999-1e1ac8f08272.gif)
+- [x] **🧙 AVA Link**: Automatically generate semantic links to other pages ✅ 2022-12-07
+- [x] **🧙 AVA Learn**: Display wikipedia links to relevant knowledge ✅ 2022-12-07
+- [ ] **🧙 AVA Search**: A search bar that uses AVA Search API
+- [ ] **🧙 AVA Do**: Display events that help you engage with what you learn
+- [ ] 🧙 **AVA Repeat**: Integrate with spaced repetition platform
+
+
+## Limitations
+
+- only tested on macos
+- requires `virtualenv` to be installed
+- quite heavy setup
+
 
 ## Installation
 
-1. Install Ava from Obsidian's community plugins list
-2. Setup your API keys in the settings
-3. Set hotkeys / shortcuts for Ava the commands
-4. To generate an image, write & select your prompt then press the Ava image generation hotkey you set
-5. For GPT3/text, either enable autocompletion when you want or disable it and use [Templater](https://github.com/SilentVoid13/Templater).
-
-
-### Settings
+1. Install Ava from Obsidian's community plugins list 
+2. Setup your API keys in the settings 
 
 ![settings](./docs/settings.png)
 
-### GPT3 + [Templater](https://github.com/SilentVoid13/Templater)
+*You don't need to configure any advanced settings*
 
-The advantage of using [Templater](https://github.com/SilentVoid13/Templater) is that you can create your favorite prompts and prompt engineering techniques and use them in any note. 
+## How to use 
 
-You can combine GPT3, stable diffusion and more to helps you think & connect ideas.
 
-Please see https://github.com/louis030195/obsidian-ava/issues/13 for template examples.
+### 🧙 AVA Link - Connect current page to existing notes
+This is a bit cumbersome at the moment. You're required to start the API manually thourgh a command. It can take 2 - 10 min to fully load up.
 
-### Advanced usage: semantic search
+1. <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
+2. 2. Type Start Search API
+![Start Server Gif](https://im2.ezgif.com/tmp/ezgif-2-d2ef5ddcdd.gif)
 
-Please see [semantic search documentation](./semantic/README.md) to learn how to use semantic search.
+After you're able to automatically generate links based on your page content using
+1. Select some text
+2. Press <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
+3. Type "add related topics"
+![Related Topics Example](https://im2.ezgif.com/tmp/ezgif-2-cd3767184b.gif)
 
-It can be useful to for example, automatically connect semantically your notes through links, tags, etc. Or simply for semantic search :).
+### 🧙 AVA Learn - Get suggestion to further reading on Wikipedia 
+1. <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
+2. Type "wikipedia"
+![wikipedia example](https://im3.ezgif.com/tmp/ezgif-3-573ca1c494.gif)
 
-Also see https://github.com/louis030195/obsidian-ava/issues/15.
+
+### Extra
+
+We also make it easy to generate Stable Diffusion images from selected text.
+
+#### Stable Diffusion
+
+![ezgif com-gif-maker (3)](https://user-images.githubusercontent.com/25003283/201516129-fa109c45-ce3b-4a34-93be-09750c07fc93.gif)
+
+
 
 ## TODOs
 
-- [x] Provide an example to use GPT3 with [Templater](https://github.com/SilentVoid13/Templater) for endless prompt engineering
-- [ ] optimise autocompletion UX, copy Copilot's UX
-- [ ] implement DALLE-2 API
-- [x] implement Stable diffusion API (https://beta.dreamstudio.ai)
-- [ ] implement huggingface API / custom API
-- [ ] local inference?
+### Phase 0 - it works on my machine
+- [x] **🧙 AVA Link**: Automatically generate semantic links to other pages ✅ 2022-12-07
+- [x] **🧙 AVA Learn**: Display wikipedia links to relevant knowledge ✅ 2022-12-07
+
+### Phase 0.5 - It's not a feature, it's definetely a bug
+
+- [x] fix(addRelatedLinks) `[[` appearing at beginning of the "Related Topcis"
+- [x] fix(addRelatedLinks):"Related topics" is being added each time that the command is launched -> we should look for a "Related" tag and append notes if already exists ✅ 2022-12-07
+- [x] fix(general): should block usage and notify user if  NO API key is set ✅ 2022-12-07
+- [x] fix(wikipedia):  "Loading" is appended each time ✅ 2022-12-07
+- [x] feat: Add link to page that generated wkipedia come from ✅ 2022-12-07
+- [ ] feat: add an icon in the sidebar to show that the api is ready/not ready
+- [ ] clean up
+	- [ ] remove unused commands
+	- [ ] remove dead code
+	- [ ] add tests
+	
+### Phase 1 - Power to the people
+- [ ] Create a dockerized version (should favor docker if available)
+- [ ] Lower barrier to entry: improve installation process
+- [ ] 
+
+## Phase 2 - Beyond
+- [ ] **🧙 AVA Search**: A search bar that uses AVA Search API
+- [ ] **🧙 AVA Do**: Display events that help you engage with what you learn
+- [ ] 🧙 **AVA Repeat**: Integrate with spaced repetition platform
 - [ ] [Implement any search augmented conversational AI for thinking feedback](https://louis030195.medium.com/deploy-seeker-search-augmented-conversational-ai-on-kubernetes-in-5-minutes-81a61aa4e749)
-
-
 ## Releasing
 
 - bump package.json
