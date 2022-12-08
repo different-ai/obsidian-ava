@@ -93,6 +93,9 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
   const openai = new OpenAIApi(configuration);
 
   React.useEffect(() => {
+    // don't call the API if the key is not fully typed
+    if (openAiConfig?.key?.length < 50) return;
+
     openai
       .listModels()
       .then((models) =>
@@ -131,15 +134,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           width: '100%',
         },
       }}
-      subheader={
-        error ? (
-          <Tooltip title={error}>
-            <Error color="error" />
-          </Tooltip>
-        ) : (
-          <Check color="success" />
-        )
-      }
     >
       <ListItem>
         <ListItemText primary="Settings" />
@@ -147,15 +141,22 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       <CustomDivider text="OpenAI" />
       <ListItem>
         <TextField
-          variant="standard"
           label="OpenAI API Key"
-          placeholder='sk-LS5Pgc9DaNlbholGwJu6N3BlbkFJD3hbVFYOgK9mxuNU3rOS'
+          placeholder="sk-LS5Pgc9DaNlbholGwJu6N3BlbkFJD3hbVFYOgK9mxuNU3rOS"
           value={openAiConfig?.key}
           type={revealKey ? 'text' : 'password'}
+          style={{ border: 'none' }}
           fullWidth
+          sx={{
+            '& .MuiInputBase-input': {
+              border: 'none',
+            },
+            '& .MuiInputBase-root': {
+              minHeight: '3rem',
+            },
+          }}
           InputProps={
             {
-              disableUnderline: true,
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={() => setRevealKey(!revealKey)}>
@@ -175,12 +176,19 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       </ListItem>
       <ListItem>
         <TextField
-          variant="standard"
           placeholder="org-L8pV8oipdXlb9M7xo1zGnLWi"
           label="OpenAI Organization ID"
           value={openAiConfig?.organization}
           color="primary"
           fullWidth
+          sx={{
+            '& .MuiInputBase-input': {
+              border: 'none',
+            },
+            '& .MuiInputBase-root': {
+              minHeight: '3rem',
+            },
+          }}
           onChange={(e) => {
             setOpenAiConfig({
               ...openAiConfig,
@@ -366,17 +374,23 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           </ListItem>
         </List>
       </Collapse>
-
       <CustomDivider text="Stable diffusion" />
       <ListItem>
         <TextField
-          variant="standard"
           label="Stable diffusion API key"
-          placeholder=''
+          placeholder=""
           value={stableDiffusionConfig?.key}
           type={revealKey ? 'text' : 'password'}
           color="primary"
           fullWidth
+          sx={{
+            '& .MuiInputBase-input': {
+              border: 'none',
+            },
+            '& .MuiInputBase-root': {
+              minHeight: '3rem',
+            },
+          }}
           InputProps={
             {
               disableUnderline: true,
@@ -405,7 +419,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       >
         <LoadingButton
           loading={isLoading}
-          variant="contained"
           onClick={onSave}
           color="primary"
           sx={{
@@ -417,6 +430,24 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           Save
         </LoadingButton>
       </ListItem>
+      {error ? (
+        <Tooltip title={error}>
+          <Error color="error" />
+        </Tooltip>
+      ) : (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            marginTop: '0rem',
+            padding: '16px',
+          }}
+        >
+          Valid Configuration
+          <Check color="success" />
+        </div>
+      )}
     </List>
   );
 };

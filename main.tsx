@@ -1,5 +1,4 @@
 /* eslint-disable require-jsdoc */
-import { ThemeProvider } from '@mui/material';
 import linkifyHtml from 'linkify-html';
 import {
   App,
@@ -24,7 +23,6 @@ import {
 } from 'stableDiffusion';
 import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import { AvaSuggest, StatusBar } from './suggest';
-import { theme } from './theme';
 import { createSemanticLinks, createWikipediaLinks } from './utils';
 
 interface StableDiffusion {
@@ -270,11 +268,7 @@ class AvaSettingTab extends PluginSettingTab {
   // eslint-disable-next-line require-jsdoc
   display(): void {
     const root = createRoot(this.containerEl);
-    root.render(
-      <ThemeProvider theme={theme}>
-        <CustomSettings plugin={this.plugin} />
-      </ThemeProvider>
-    );
+    root.render(<CustomSettings plugin={this.plugin} />);
   }
 }
 
