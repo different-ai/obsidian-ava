@@ -6,7 +6,6 @@ import {
   Editor,
   ItemView,
   MarkdownRenderer,
-  MarkdownView,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -26,12 +25,7 @@ import {
 import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import { AvaSuggest, StatusBar } from './suggest';
 import { theme } from './theme';
-import {
-  createGPT3Links,
-  createSemanticLinks,
-  createWikipediaLinks,
-  downloadApiSourceCode,
-} from './utils';
+import { createSemanticLinks, createWikipediaLinks } from './utils';
 
 interface StableDiffusion {
   generateAsync: (opts: DraftStabilityOptions & RequiredStabilityOptions) => {
@@ -68,13 +62,6 @@ export default class AvaPlugin extends Plugin {
       };
 
       this.addCommand({
-        id: 'ava-manual-download',
-        name: 'Manually Download API',
-        callback: async () => {
-          await downloadApiSourceCode(obsidianRootDir);
-        },
-      });
-      this.addCommand({
         id: 'ava-start-semantic-api',
         name: 'Start AVA Search API',
         callback: async () => {
@@ -93,14 +80,7 @@ export default class AvaPlugin extends Plugin {
           runSemanticApi(this.app);
         },
       });
-      // This adds a simple command that can be triggered anywhere
-      this.addCommand({
-        id: 'ava-autocompletion-enable',
-        name: 'Disable/enable automatic completion',
-        callback: () => {
-          suggest.setAutomaticSuggestion(!this.settings.openai.automatic);
-        },
-      });
+
       this.addCommand({
         id: 'semantic-related-topics',
         name: '🧙 AVA Link - Add Related Topics',
@@ -147,51 +127,7 @@ ${completion}`;
           new Notice('🧙 AVA Link - Related Topics Added', 2000);
         },
       });
-      this.addCommand({
-        id: 'gpt3-related-topics',
-        name: 'Add Related Topics (gpt3)',
-        editorCallback: async (editor: Editor, view: ItemView) => {
-          const title = this.app.workspace.getActiveFile()?.basename;
-          new Notice('Generating Related Topics ⏰');
-          this.statusBarItem.render(<StatusBar status="loading" />);
-          const completion = await createGPT3Links(
-            title,
-            editor.getSelection(),
-            [''],
-            this
-          );
-          const lastLine = editor.lastLine();
-          const lastChar = editor.getLine(editor.lastLine()).length;
 
-          editor.replaceRange(`\n\nSimilar topic links:\n\n- [[${completion}`, {
-            line: lastLine,
-            ch: lastChar,
-          });
-          this.statusBarItem.render(<StatusBar status="disabled" />);
-
-          new Notice('Topics added at bottom of the page🔥');
-        },
-      });
-      this.addCommand({
-        id: 'ava-test-editor',
-        name: 'test',
-        editorCallback: (editor: Editor, view: MarkdownView) => {
-          // const file = this.app.workspace.getActiveFile();
-          const match = '# Related';
-          const matchLength = match.length;
-          const currentText = editor.getValue();
-          const insertPos = currentText.indexOf(match) + matchLength;
-          const content = `
-
-- la bla bla`;
-          const newText =
-            currentText.slice(0, insertPos) +
-            content +
-            currentText.slice(insertPos);
-
-          editor.setValue(newText);
-        },
-      });
       this.addCommand({
         id: 'get-wikipedia-suggestions',
         name: '🧙 AVA Learn - Get Wikipedia Suggestions',
@@ -225,7 +161,7 @@ ${completion}`;
       });
       this.addCommand({
         id: 'ava-generate-image',
-        name: 'Generate an image based on selected text',
+        name: '🧙 AVA - Generate an image based on selected text',
         editorCallback: async (editor: Editor) => {
           if (!this.settings.stableDiffusion.key) {
             new Notice(
