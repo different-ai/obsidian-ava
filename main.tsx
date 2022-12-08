@@ -69,7 +69,7 @@ export default class AvaPlugin extends Plugin {
 
       this.addCommand({
         id: 'ava-restart-semantic-api',
-        name: '🧙 AVA Search API - Force Restart',
+        name: '🧙 AVA Search API -  Restart',
         callback: async () => {
           new Notice('🧙 AVA Search - Shutting Down API');
           await killAllApiInstances();
@@ -85,11 +85,12 @@ export default class AvaPlugin extends Plugin {
           const title = this.app.workspace.getActiveFile()?.basename;
           new Notice('🧙 AVA Link - Generating Related Topics ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
+          let currentText = editor.getValue();
           let completion = '';
           try {
             completion = await createSemanticLinks(
               title,
-              editor.getSelection(),
+              currentText,
               // todo: fetch obsidian tags
               ['']
             );
@@ -104,7 +105,6 @@ export default class AvaPlugin extends Plugin {
 
           const match = '# Related';
           const matchLength = match.length;
-          let currentText = editor.getValue();
           const content = `
 ${completion}`;
 
