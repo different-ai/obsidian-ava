@@ -15,7 +15,7 @@ import { OpenAIApi } from 'openai';
 
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { getCwd, killAllApiInstances, runSemanticApi } from 'semanticApi';
+import { killAllApiInstances, runSemanticApi } from 'semanticApi';
 import {
   DraftStabilityOptions,
   generateAsync,
@@ -49,7 +49,6 @@ export default class AvaPlugin extends Plugin {
     await this.loadSettings();
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
-    const obsidianRootDir = getCwd(this.app);
 
     this.app.workspace.onLayoutReady(async () => {
       // runSemanticApi(this.app);
@@ -63,7 +62,7 @@ export default class AvaPlugin extends Plugin {
 
       this.addCommand({
         id: 'ava-start-semantic-api',
-        name: 'Start AVA Search API',
+        name: '🧙 AVA Search API - Start',
         callback: async () => {
           new Notice('🧙 AVA Search - Starting API');
           runSemanticApi(this.app);
@@ -72,7 +71,7 @@ export default class AvaPlugin extends Plugin {
 
       this.addCommand({
         id: 'ava-restart-semantic-api',
-        name: 'Force Restart AVA Search API',
+        name: '🧙 AVA Search API - Force Restart',
         callback: async () => {
           new Notice('🧙 AVA Search - Shutting Down API');
           await killAllApiInstances();
