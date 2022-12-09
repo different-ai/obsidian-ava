@@ -1,5 +1,9 @@
 # obsidian-ava
 
+
+https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-89c8-ed2f3277df72.mp4
+
+
 > Obsidian AVA - Personal Learning Assistant
 
 - [x] **Connect the dots**: connect individual pieces of information in your knowledge base. ✅ 2022-12-07
