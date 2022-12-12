@@ -59,6 +59,20 @@ export default class AvaPlugin extends Plugin {
       };
 
       this.addCommand({
+        id: 'ava-refresh-semantic-api',
+        name: '🧙 AVA Search API - Refresh',
+        callback: async () => {
+          new Notice('🧙 AVA Search - Refreshing API');
+          fetch('http://localhost:3333/refresh')
+            .then(() => new Notice("🧙 AVA Search - Refreshed API"))
+            .catch((e) => {
+              new Notice("🧙 AVA Search - Error refreshing API");
+              console.error(e);
+            });
+        },
+      });
+
+      this.addCommand({
         id: 'ava-start-semantic-api',
         name: '🧙 AVA Search API - Start',
         callback: async () => {

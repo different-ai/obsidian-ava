@@ -3,3 +3,10 @@ evaluation.json
 
 # python garbage
 __pycache__
+.pytest_cache
+
+# python virtual environment
+env
+
+# jupyter notebook
+.ipynb_checkpoints

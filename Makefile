@@ -1,7 +1,8 @@
 semantic/install:
 	virtualenv env; \
 	source env/bin/activate; \
-	pip install -r semantic/requirements.txt
+	pip install -r semantic/requirements.txt; \
+	pip install -r semantic/requirements-test.txt
 
 
 release:

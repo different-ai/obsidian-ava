@@ -9,3 +9,5 @@ Flask
 ipywidgets
 plotly
 wandb
+httpx
+trio
