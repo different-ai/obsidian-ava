@@ -16,6 +16,7 @@ https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-
 ## What is included
 
 - [x] **🧙 AVA Link**: Automatically generate semantic links to other pages ✅ 2022-12-07
+- [x] **🧙 AVA Link**: Automatically generate tags for your notes based on your pattern of tagging notes ✅ 2022-12-07
 - [x] **🧙 AVA Learn**: Display wikipedia links to relevant knowledge ✅ 2022-12-07
 - [ ] **🧙 AVA Search**: A search bar that uses AVA Search API
 - [ ] **🧙 AVA Do**: Display events that help you engage with what you learn
@@ -56,6 +57,15 @@ After you're able to automatically generate links based on your page content usi
 
 ![Related Topics Example](https://user-images.githubusercontent.com/11430621/206310806-c3c1a226-8c79-46d2-b349-ef7b293fd5dd.gif)
 
+### 🧙 AVA Link - Generate tags for your notes based on your pattern of tagging notes
+
+AVA API need to be started.
+
+2. Press <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
+3. Type "add related tags"
+
+![ezgif com-gif-maker (2)](https://user-images.githubusercontent.com/25003283/207370811-db8f2a10-763e-4424-b4ff-bfcbbfce4309.gif)
+
 ### 🧙 AVA Learn - Get suggestion to further reading on Wikipedia 
 1. <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P 
 2. Type "wikipedia"
@@ -91,6 +101,7 @@ We also make it easy to generate Stable Diffusion images from selected text.
 	- [ ] remove unused commands
 	- [ ] remove dead code
 	- [ ] add tests
+- [x] feat: Generate tags for your notes based on your pattern of tagging notes ✅ 2022-12-13
 	
 ### Phase 1 - Power to the people
 - [ ] Create a dockerized version (should favor docker if available)
