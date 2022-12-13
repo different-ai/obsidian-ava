@@ -1,7 +1,7 @@
 {
 	"id": "ava",
 	"name": "AVA - Personal Learning Assistant",
-	"version": "2.3.5",
+	"version": "2.3.6",
 	"minAppVersion": "0.12.0",
 	"description": "AI-Assited Learning in Obsidian",
 	"author": "louis030195",

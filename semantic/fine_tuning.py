@@ -34,7 +34,7 @@ def st_ft(
     corpus = []
 
     for k, v in vault.readable_text_index.items():
-        corpus.append(f"File:\n{k}\nTags:{vault.get_tags(k, show_nested=True)}\nContent:\n{v}")
+        corpus.append(f"File:\n{k}\nTags:\n{vault.get_tags(k, show_nested=True)}\nContent:\n{v}")
 
     from sentence_transformers import SentenceTransformer
     from sentence_transformers import models, datasets, evaluation, losses

@@ -65,7 +65,7 @@ def compute_embeddings(wkd: typing.Union[str, Path]):
 
     for k, v in vault.readable_text_index.items():
         text_to_embed = (
-            f"File:\n{k}\nTags:{vault.get_tags(k, show_nested=True)}\nContent:\n{v}"
+            f"File:\n{k}\nTags:\n{vault.get_tags(k, show_nested=True)}\nContent:\n{v}"
         )
 
         corpus[k] = {

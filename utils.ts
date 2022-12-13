@@ -16,7 +16,7 @@ export const createSemanticLinks = async (
   text: string,
   tags: string[]
 ) => {
-  const query = `File:\n${title}\nTags:${tags}\nContent:\n${text}`;
+  const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
   console.log('Query:', query);
   const response: { similarities: ISimilarFile[] } = await fetch(
     'http://localhost:3333/semantic_search',
@@ -134,7 +134,7 @@ export const createSemanticTags = async (
   text: string,
   tags: string[]
 ) => {
-  const query = `File:\n${title}\nTags:${tags}\nContent:\n${text}`;
+  const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
   console.log('Query:', query);
   const response: { similarities: ISimilarFile[] } = await fetch(
     'http://localhost:3333/semantic_search',
