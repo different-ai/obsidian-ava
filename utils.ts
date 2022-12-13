@@ -4,8 +4,11 @@ import { Extract } from 'unzipper';
 import manifest from './manifest.json';
 
 export interface ISimilarFile {
+  score: number;
   file_name: string;
   file_path: string;
+  file_content: string;
+  file_tags: string[];
 }
 
 export const createSemanticLinks = async (
@@ -26,6 +29,7 @@ export const createSemanticLinks = async (
     }
   ).then((response) => response.json());
 
+  // TODO: we could ignore score < 0.7 (configurable in settings)
   const similarities = response.similarities.filter(
     (similarity) => similarity.file_name !== title
   );
@@ -70,13 +74,13 @@ export const createWikipediaLinks = async (
   return `- ${completion}`;
 };
 
+const ignoredTags = [ // TODO: make it configurable in the settings
+  '#shower-thought',
+  '#godel-uncertain',
+  '#todo',
+  '#to-digest',
+];
 export const filterTags = (tags: string[]) => {
-  const ignoredTags = [
-    '#shower-thought',
-    '#godel-uncertain',
-    '#todo',
-    '#to-digest',
-  ];
   return tags
     .filter((t) => !ignoredTags.includes(t))
     .map((tag) => tag.replace('#', ''))
@@ -123,4 +127,35 @@ export const downloadApiSourceCode = async (dest: string): Promise<boolean> => {
       })
       .pipe(Extract({ path: dest }));
   });
+};
+
+export const createSemanticTags = async (
+  title: string,
+  text: string,
+  tags: string[]
+) => {
+  const query = `File:\n${title}\nTags:${tags}\nContent:\n${text}`;
+  console.log('Query:', query);
+  const response: { similarities: ISimilarFile[] } = await fetch(
+    'http://localhost:3333/semantic_search',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ query: query }),
+    }
+  ).then((response) => response.json());
+
+  // tags not already in the file - unique
+  const newTags = response.similarities
+    .flatMap((similarity) => similarity.file_tags.map((tag) => '#' + tag))
+    .filter((tag) =>
+      !tags.includes(tag) && 
+      !ignoredTags.includes(tag) &&
+      // only accept "#" and alphanumeric characters in tags
+      // TODO: related to https://github.com/mfarragher/obsidiantools/issues/24
+      tag.match(/^#[a-zA-Z0-9]+$/)
+    );
+  return [...new Set(newTags)].join(' ');
 };

@@ -23,7 +23,7 @@ import {
 } from 'stableDiffusion';
 import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import { AvaSuggest, StatusBar } from './suggest';
-import { createSemanticLinks, createWikipediaLinks } from './utils';
+import { createSemanticLinks, createSemanticTags, createWikipediaLinks } from './utils';
 
 interface StableDiffusion {
   generateAsync: (opts: DraftStabilityOptions & RequiredStabilityOptions) => {
@@ -136,6 +136,51 @@ ${completion}`;
           editor.setValue(newText);
           this.statusBarItem.render(<StatusBar status="disabled" />);
           new Notice('🧙 AVA Link - Related Topics Added', 2000);
+        },
+      });
+
+      this.addCommand({
+        id: 'semantic-related-tags',
+        name: '🧙 AVA Link - Add Related Tags',
+        editorCallback: async (editor: Editor, view: ItemView) => {
+          const title = this.app.workspace.getActiveFile()?.basename;
+          new Notice('🧙 AVA Link - Generating Related Tags ⏰');
+          this.statusBarItem.render(<StatusBar status="loading" />);
+          const currentText = editor.getValue();
+          let completion = '';
+          try {
+            completion = await createSemanticTags(
+              title,
+              currentText,
+              // todo: fetch obsidian tags
+              ['']
+            );
+          } catch (e) {
+            console.error(e);
+            new Notice(
+              '🧙 AVA Link - Error generating related tags. Make sure you started AVA Search API'
+            );
+            this.statusBarItem.render(<StatusBar status="disabled" />);
+            return;
+          }
+
+          // add tags after the frontmatter
+          // i.e. second time the --- is found
+          // if no frontmatter, add to the top
+          const match = '---';
+          const matchLength = match.length;
+          const content = `\n[Obsidian AVA](https://github.com/louis030195/obsidian-ava) AI generated tags: ${completion}\n`;
+
+          // find the second match
+          const insertPos = currentText.indexOf(match, currentText.indexOf(match) + matchLength) + matchLength;
+          const newText =
+            currentText.slice(0, insertPos) +
+            content +
+            currentText.slice(insertPos);
+
+          editor.setValue(newText);
+          this.statusBarItem.render(<StatusBar status="disabled" />);
+          new Notice('🧙 AVA Link - Related Tags Added', 2000);
         },
       });
 
@@ -266,6 +311,8 @@ ${completion}`;
     await this.saveData(this.settings);
   }
   onunload(): void {
+    // TODO skip on dev
+    // if (process.env.DEVELOPMENT) return;
     killAllApiInstances();
   }
 }
