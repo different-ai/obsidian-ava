@@ -16,7 +16,7 @@ https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-
 ## What is included
 
 - [x] **🧙 AVA Link**: Automatically generate semantic links to other pages ✅ 2022-12-07
-- [x] **🧙 AVA Link**: Automatically generate tags for your notes based on your pattern of tagging notes ✅ 2022-12-07
+- [x] **🧙 AVA Link**: Automatically generate tags for your notes based on your pattern of tagging notes ✅ 2022-12-13 - 2.3.5
 - [x] **🧙 AVA Learn**: Display wikipedia links to relevant knowledge ✅ 2022-12-07
 - [ ] **🧙 AVA Search**: A search bar that uses AVA Search API
 - [ ] **🧙 AVA Do**: Display events that help you engage with what you learn
