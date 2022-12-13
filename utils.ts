@@ -35,7 +35,7 @@ export const createSemanticLinks = async (
   );
   console.log(similarities);
   return `${similarities
-    .map((similarity) => '[[' + similarity.file_path + ']]')
+    .map((similarity) => '- [[' + similarity.file_path + ']]')
     .join('\n')}`;
 };
 

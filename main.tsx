@@ -25,6 +25,17 @@ import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import { AvaSuggest, StatusBar } from './suggest';
 import { createSemanticLinks, createSemanticTags, createWikipediaLinks } from './utils';
 
+import posthog from 'posthog-js'
+
+posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', { 
+  api_host: 'https://app.posthog.com',
+  loaded: (posthog) => {
+    posthog.register_once({
+      'environment': process.env.NODE_ENV,
+      'version': process.env.npm_package_version,
+    })
+  }
+})
 interface StableDiffusion {
   generateAsync: (opts: DraftStabilityOptions & RequiredStabilityOptions) => {
     images: ImageData[];
@@ -62,6 +73,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-refresh-semantic-api',
         name: '🧙 AVA Search API - Refresh',
         callback: async () => {
+          posthog.capture('ava-refresh-semantic-api');
           new Notice('🧙 AVA Search - Refreshing API');
           fetch('http://localhost:3333/refresh')
             .then(() => new Notice("🧙 AVA Search - Refreshed API"))
@@ -76,6 +88,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-start-semantic-api',
         name: '🧙 AVA Search API - Start',
         callback: async () => {
+          posthog.capture('ava-start-semantic-api');
           new Notice('🧙 AVA Search - Starting API');
           runSemanticApi(this.app);
         },
@@ -85,6 +98,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-restart-semantic-api',
         name: '🧙 AVA Search API -  Restart',
         callback: async () => {
+          posthog.capture('ava-restart-semantic-api');
           new Notice('🧙 AVA Search - Shutting Down API');
           await killAllApiInstances();
           new Notice('🧙 AVA Search - Starting API');
@@ -96,6 +110,7 @@ export default class AvaPlugin extends Plugin {
         id: 'semantic-related-topics',
         name: '🧙 AVA Link - Add Related Topics',
         editorCallback: async (editor: Editor, view: ItemView) => {
+          posthog.capture('semantic-related-topics');
           const title = this.app.workspace.getActiveFile()?.basename;
           new Notice('🧙 AVA Link - Generating Related Topics ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
@@ -143,6 +158,7 @@ ${completion}`;
         id: 'semantic-related-tags',
         name: '🧙 AVA Link - Add Related Tags',
         editorCallback: async (editor: Editor, view: ItemView) => {
+          posthog.capture('semantic-related-tags');
           const title = this.app.workspace.getActiveFile()?.basename;
           new Notice('🧙 AVA Link - Generating Related Tags ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
@@ -188,6 +204,7 @@ ${completion}`;
         id: 'get-wikipedia-suggestions',
         name: '🧙 AVA Learn - Get Wikipedia Suggestions',
         editorCallback: async (editor: Editor, view: ItemView) => {
+          posthog.capture('get-wikipedia-suggestions');
           const title = this.app.workspace.getActiveFile()?.basename;
 
           // if there's no open ai key stop here and display a message to user
@@ -219,6 +236,7 @@ ${completion}`;
         id: 'ava-generate-image',
         name: '🧙 AVA - Generate an image based on selected text',
         editorCallback: async (editor: Editor) => {
+          posthog.capture('ava-generate-image');
           if (!this.settings.stableDiffusion.key) {
             new Notice(
               'You need to set a key for Stable Diffusion in the settings',
@@ -311,8 +329,7 @@ ${completion}`;
     await this.saveData(this.settings);
   }
   onunload(): void {
-    // TODO skip on dev
-    // if (process.env.DEVELOPMENT) return;
+    if (process.env.NODE_ENV === 'development') return;
     killAllApiInstances();
   }
 }

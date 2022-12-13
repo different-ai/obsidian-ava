@@ -51,6 +51,11 @@ esbuild
     sourcemap: prod ? false : 'inline',
     treeShaking: true,
     outfile: 'main.js',
-    plugins: [dirnamePlugin],
+    plugins: [dirnamePlugin], 
+    define: {
+      'process.env.NODE_ENV': prod ?
+        '"production"' :
+        '"development"',
+    },
   })
   .catch(() => process.exit(1));
