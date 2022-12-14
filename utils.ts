@@ -181,7 +181,6 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
       stream: true,
       temperature: 0.7,
       top_p: 1,
-      stop: ['\n'],
     }),
   });
   return source;

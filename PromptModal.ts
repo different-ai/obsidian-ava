@@ -12,8 +12,8 @@ export class PromptModal extends Modal {
 
   search = (evt: Event) => {
     evt.preventDefault();
-    this.close();
     this.onSubmit(this.text);
+    this.close();
   };
 
   onOpen() {
@@ -28,13 +28,11 @@ export class PromptModal extends Modal {
       })
     );
 
-    new Setting(form).addButton(
-      (btn) =>
-        (btn
-          .setButtonText('Write paragraph')
-          .setCta()
-          .onClick(this.search).buttonEl.type = 'submit')
-    );
+    new Setting(form).addButton((btn) => {
+      btn.buttonEl.type = 'submit';
+
+      return btn.setButtonText('Write paragraph').setCta().onClick(this.search);
+    });
   }
 
   onClose() {
