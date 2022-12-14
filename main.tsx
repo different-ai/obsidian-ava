@@ -23,19 +23,25 @@ import {
 } from 'stableDiffusion';
 import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import { AvaSuggest, StatusBar } from './suggest';
-import { createSemanticLinks, createSemanticTags, createWikipediaLinks } from './utils';
+import {
+  createParagraph,
+  createSemanticLinks,
+  createSemanticTags,
+  createWikipediaLinks,
+} from './utils';
 
-import posthog from 'posthog-js'
+import posthog from 'posthog-js';
+import { PromptModal } from './PromptModal';
 
-posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', { 
+posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
   api_host: 'https://app.posthog.com',
   loaded: (posthog) => {
     posthog.register_once({
-      'environment': process.env.NODE_ENV,
-      'version': process.env.npm_package_version,
-    })
-  }
-})
+      environment: process.env.NODE_ENV,
+      version: process.env.npm_package_version,
+    });
+  },
+});
 interface StableDiffusion {
   generateAsync: (opts: DraftStabilityOptions & RequiredStabilityOptions) => {
     images: ImageData[];
@@ -68,6 +74,36 @@ export default class AvaPlugin extends Plugin {
         // @ts-ignore
         generateAsync: generateAsync,
       };
+      this.addCommand({
+        id: 'ava-add-prompt',
+        name: '🧙 AVA Write - Paragraph',
+        editorCallback: (editor: Editor) => {
+          // if there's no open ai key stop here and display a message to user
+          if (this.settings.openai.key?.length === 0) {
+            new Notice('You need to set an OpenAI API key in the settings');
+            return;
+          }
+
+          const onSubmit = async (text: string) => {
+            this.statusBarItem.render(<StatusBar status="loading" />);
+            const source = await createParagraph(text, this);
+            source.addEventListener('message', function (e: any) {
+              console.log('listen to event');
+              const payload = JSON.parse(e.data);
+              console.log(payload);
+              const currentLine = editor.getCursor().line;
+              const lastChar = editor.getLine(currentLine).length;
+              editor.replaceRange(`${payload.choices[0].text}`, {
+                line: currentLine,
+                ch: lastChar,
+              });
+            });
+            source.stream();
+          };
+
+          new PromptModal(this.app, onSubmit).open();
+        },
+      });
 
       this.addCommand({
         id: 'ava-refresh-semantic-api',
@@ -76,9 +112,9 @@ export default class AvaPlugin extends Plugin {
           posthog.capture('ava-refresh-semantic-api');
           new Notice('🧙 AVA Search - Refreshing API');
           fetch('http://localhost:3333/refresh')
-            .then(() => new Notice("🧙 AVA Search - Refreshed API"))
+            .then(() => new Notice('🧙 AVA Search - Refreshed API'))
             .catch((e) => {
-              new Notice("🧙 AVA Search - Error refreshing API");
+              new Notice('🧙 AVA Search - Error refreshing API');
               console.error(e);
             });
         },
@@ -117,13 +153,13 @@ export default class AvaPlugin extends Plugin {
           let currentText = editor.getValue();
           let completion = '';
           const tags = this.app.metadataCache.getFileCache(
-            this.app.workspace.getActiveFile(),
+            this.app.workspace.getActiveFile()
           ).tags;
           try {
             completion = await createSemanticLinks(
               title,
               currentText,
-              tags.map((tag) => tag.tag),
+              tags.map((tag) => tag.tag)
             );
           } catch (e) {
             console.error(e);
@@ -166,7 +202,7 @@ ${completion}`;
           this.statusBarItem.render(<StatusBar status="loading" />);
           const currentText = editor.getValue();
           const tags = this.app.metadataCache.getFileCache(
-            this.app.workspace.getActiveFile(),
+            this.app.workspace.getActiveFile()
           ).tags;
           let completion = '';
           try {
@@ -202,8 +238,11 @@ ${completion}`;
           if (!hasFrontmatter) {
             editor.setValue(content + currentText);
           } else {
-            const insertPos = currentText.indexOf(match, 
-              currentText.indexOf(match) + matchLength) + matchLength;
+            const insertPos =
+              currentText.indexOf(
+                match,
+                currentText.indexOf(match) + matchLength
+              ) + matchLength;
             const newText =
               currentText.slice(0, insertPos) +
               content +

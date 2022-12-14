@@ -1,4 +1,5 @@
 import got from 'got';
+import { SSE } from 'lib/sse';
 import AvaPlugin from 'main';
 import { Extract } from 'unzipper';
 import manifest from './manifest.json';
@@ -74,7 +75,8 @@ export const createWikipediaLinks = async (
   return `- ${completion}`;
 };
 
-const ignoredTags = [ // TODO: make it configurable in the settings
+const ignoredTags = [
+  // TODO: make it configurable in the settings
   '#shower-thought',
   '#godel-uncertain',
   '#todo',
@@ -150,12 +152,37 @@ export const createSemanticTags = async (
   // tags not already in the file - unique
   const newTags = response.similarities
     .flatMap((similarity) => similarity.file_tags.map((tag) => '#' + tag))
-    .filter((tag) =>
-      !tags.includes(tag) && 
-      !ignoredTags.includes(tag) &&
-      // only accept "#" and alphanumeric characters in tags
-      // TODO: related to https://github.com/mfarragher/obsidiantools/issues/24
-      tag.match(/^#[a-zA-Z0-9]+$/)
+    .filter(
+      (tag) =>
+        !tags.includes(tag) &&
+        !ignoredTags.includes(tag) &&
+        // only accept "#" and alphanumeric characters in tags
+        // TODO: related to https://github.com/mfarragher/obsidiantools/issues/24
+        tag.match(/^#[a-zA-Z0-9]+$/)
     );
   return [...new Set(newTags)].join(' ');
+};
+
+export const createParagraph = async (text: string, plugin: AvaPlugin) => {
+  const prompt = `Write a paragraph about ${text}`;
+  console.log('Prompt:', prompt);
+  const source = new SSE('https://api.openai.com/v1/completions', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + plugin.settings.openai.key,
+    },
+    method: 'POST',
+    payload: JSON.stringify({
+      frequency_penalty: 0,
+      max_tokens: text.length + 300,
+      model: 'text-davinci-003',
+      presence_penalty: 0,
+      prompt: prompt,
+      stream: true,
+      temperature: 0.7,
+      top_p: 1,
+      stop: ['\n'],
+    }),
+  });
+  return source;
 };
