@@ -185,3 +185,30 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   });
   return source;
 };
+
+export const rewrite = async (
+  text: string,
+  alteration: string,
+  plugin: AvaPlugin
+) => {
+  const prompt = `Could your rewrite ${text} into something more like ${alteration}}`;
+  console.log('Prompt:', prompt);
+  const source = new SSE('https://api.openai.com/v1/completions', {
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: 'Bearer ' + plugin.settings.openai.key,
+    },
+    method: 'POST',
+    payload: JSON.stringify({
+      frequency_penalty: 0,
+      max_tokens: text.length + 300,
+      model: 'text-davinci-003',
+      presence_penalty: 0,
+      prompt: prompt,
+      stream: true,
+      temperature: 0.7,
+      top_p: 1,
+    }),
+  });
+  return source;
+};

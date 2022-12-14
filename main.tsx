@@ -28,10 +28,12 @@ import {
   createSemanticLinks,
   createSemanticTags,
   createWikipediaLinks,
+  rewrite,
 } from './utils';
 
 import posthog from 'posthog-js';
 import { PromptModal } from './PromptModal';
+import { RewriteModal } from './RewriteModal';
 
 posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
   api_host: 'https://app.posthog.com',
@@ -66,7 +68,6 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.app.workspace.onLayoutReady(async () => {
-      // runSemanticApi(this.app);
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
 
@@ -75,8 +76,40 @@ export default class AvaPlugin extends Plugin {
         generateAsync: generateAsync,
       };
       this.addCommand({
+        id: 'ava-rewrite-prompt',
+        name: 'Write - Rewrite',
+        editorCallback: (editor: Editor) => {
+          // if there's no open ai key stop here and display a message to user
+          if (this.settings.openai.key?.length === 0) {
+            new Notice('You need to set an OpenAI API key in the settings');
+            return;
+          }
+
+          const onSubmit = async (alteration: string) => {
+            this.statusBarItem.render(<StatusBar status="loading" />);
+            const text = editor.getSelection();
+            const source = await rewrite(text, alteration, this);
+
+            source.addEventListener('message', function (e: any) {
+              const payload = JSON.parse(e.data);
+              console.log(payload);
+              const currentLine = editor.getCursor().line;
+              const lastChar = editor.getLine(currentLine).length;
+              editor.replaceRange(`${payload.choices[0].text}`, {
+                line: currentLine,
+                ch: lastChar,
+              });
+            });
+            source.stream();
+            this.statusBarItem.render(<StatusBar status="success" />);
+          };
+
+          new RewriteModal(this.app, onSubmit).open();
+        },
+      });
+      this.addCommand({
         id: 'ava-add-prompt',
-        name: '🧙 AVA Write - Paragraph',
+        name: 'Write - Paragraph',
         editorCallback: (editor: Editor) => {
           // if there's no open ai key stop here and display a message to user
           if (this.settings.openai.key?.length === 0) {
@@ -99,6 +132,7 @@ export default class AvaPlugin extends Plugin {
               });
             });
             source.stream();
+            this.statusBarItem.render(<StatusBar status="success" />);
           };
 
           new PromptModal(this.app, onSubmit).open();
@@ -107,14 +141,14 @@ export default class AvaPlugin extends Plugin {
 
       this.addCommand({
         id: 'ava-refresh-semantic-api',
-        name: '🧙 AVA Search API - Refresh',
+        name: 'Search API - Refresh',
         callback: async () => {
           posthog.capture('ava-refresh-semantic-api');
-          new Notice('🧙 AVA Search - Refreshing API');
+          new Notice('Search - Refreshing API');
           fetch('http://localhost:3333/refresh')
-            .then(() => new Notice('🧙 AVA Search - Refreshed API'))
+            .then(() => new Notice('Search - Refreshed API'))
             .catch((e) => {
-              new Notice('🧙 AVA Search - Error refreshing API');
+              new Notice('Search - Error refreshing API');
               console.error(e);
             });
         },
@@ -122,33 +156,33 @@ export default class AvaPlugin extends Plugin {
 
       this.addCommand({
         id: 'ava-start-semantic-api',
-        name: '🧙 AVA Search API - Start',
+        name: 'Search API - Start',
         callback: async () => {
           posthog.capture('ava-start-semantic-api');
-          new Notice('🧙 AVA Search - Starting API');
+          new Notice('Search - Starting API');
           runSemanticApi(this.app);
         },
       });
 
       this.addCommand({
         id: 'ava-restart-semantic-api',
-        name: '🧙 AVA Search API -  Restart',
+        name: 'Search API -  Restart',
         callback: async () => {
           posthog.capture('ava-restart-semantic-api');
-          new Notice('🧙 AVA Search - Shutting Down API');
+          new Notice('Search - Shutting Down API');
           await killAllApiInstances();
-          new Notice('🧙 AVA Search - Starting API');
+          new Notice('Search - Starting API');
           runSemanticApi(this.app);
         },
       });
 
       this.addCommand({
         id: 'semantic-related-topics',
-        name: '🧙 AVA Link - Add Related Topics',
+        name: 'Link - Add Related Topics',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('semantic-related-topics');
           const title = this.app.workspace.getActiveFile()?.basename;
-          new Notice('🧙 AVA Link - Generating Related Topics ⏰');
+          new Notice('Link - Generating Related Topics ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           let currentText = editor.getValue();
           let completion = '';
@@ -164,7 +198,7 @@ export default class AvaPlugin extends Plugin {
           } catch (e) {
             console.error(e);
             new Notice(
-              '🧙 AVA Link - Error generating related topics. Make sure you started AVA Search API'
+              'Link - Error generating related topics. Make sure you started AVA Search API'
             );
             this.statusBarItem.render(<StatusBar status="disabled" />);
             return;
@@ -188,17 +222,17 @@ ${completion}`;
 
           editor.setValue(newText);
           this.statusBarItem.render(<StatusBar status="disabled" />);
-          new Notice('🧙 AVA Link - Related Topics Added', 2000);
+          new Notice('Link - Related Topics Added', 2000);
         },
       });
 
       this.addCommand({
         id: 'semantic-related-tags',
-        name: '🧙 AVA Link - Add Related Tags',
+        name: 'Link - Add Related Tags',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('semantic-related-tags');
           const title = this.app.workspace.getActiveFile()?.basename;
-          new Notice('🧙 AVA Link - Generating Related Tags ⏰');
+          new Notice('Link - Generating Related Tags ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           const currentText = editor.getValue();
           const tags = this.app.metadataCache.getFileCache(
@@ -214,14 +248,14 @@ ${completion}`;
           } catch (e) {
             console.error(e);
             new Notice(
-              '🧙 AVA Link - Error generating related tags. Make sure you started AVA Search API'
+              'Link - Error generating related tags. Make sure you started AVA Search API'
             );
             this.statusBarItem.render(<StatusBar status="disabled" />);
             return;
           }
 
           if (!completion) {
-            new Notice('🧙 AVA Link - No related tags found');
+            new Notice('Link - No related tags found');
             this.statusBarItem.render(<StatusBar status="disabled" />);
             return;
           }
@@ -251,13 +285,13 @@ ${completion}`;
             editor.setValue(newText);
           }
           this.statusBarItem.render(<StatusBar status="disabled" />);
-          new Notice('🧙 AVA Link - Related Tags Added', 2000);
+          new Notice('Link - Related Tags Added', 2000);
         },
       });
 
       this.addCommand({
         id: 'get-wikipedia-suggestions',
-        name: '🧙 AVA Learn - Get Wikipedia Suggestions',
+        name: 'Learn - Get Wikipedia Suggestions',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('get-wikipedia-suggestions');
           const title = this.app.workspace.getActiveFile()?.basename;
@@ -289,7 +323,7 @@ ${completion}`;
       });
       this.addCommand({
         id: 'ava-generate-image',
-        name: '🧙 AVA - Generate an image based on selected text',
+        name: '- Generate an image based on selected text',
         editorCallback: async (editor: Editor) => {
           posthog.capture('ava-generate-image');
           if (!this.settings.stableDiffusion.key) {
