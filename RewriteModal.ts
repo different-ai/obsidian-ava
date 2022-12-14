@@ -22,11 +22,13 @@ export class RewriteModal extends Modal {
     contentEl.createEl('h1', { text: 'Obsidian AI - Rewrite Assist' });
     const form = contentEl.createEl('form');
     form.onsubmit = this.search;
-    new Setting(form).setName('Make this text sound more').addText((text) =>
-      text.setValue(this.text).onChange((value) => {
-        this.text = value;
-      })
-    );
+    new Setting(form)
+      .setName('Make this text sound more like')
+      .addText((text) =>
+        text.setValue(this.text).onChange((value) => {
+          this.text = value;
+        })
+      );
 
     new Setting(form).addButton((btn) => {
       btn.buttonEl.type = 'submit';
