@@ -89,6 +89,8 @@ export default class AvaPlugin extends Plugin {
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
             const source = await rewrite(text, alteration, this);
+            // go to the next line
+            editor.setCursor({ line: editor.getCursor().line + 1, ch: 0 });
 
             source.addEventListener('message', function (e: any) {
               const payload = JSON.parse(e.data);
