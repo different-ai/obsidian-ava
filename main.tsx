@@ -79,6 +79,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-rewrite-prompt',
         name: 'Write - Rewrite',
         editorCallback: (editor: Editor) => {
+          posthog.capture('ava-rewrite-prompt');
           // if there's no open ai key stop here and display a message to user
           if (this.settings.openai.key?.length === 0) {
             new Notice('You need to set an OpenAI API key in the settings');
@@ -113,6 +114,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-add-prompt',
         name: 'Write - Paragraph',
         editorCallback: (editor: Editor) => {
+          posthog.capture('ava-write-paragraph');
           // if there's no open ai key stop here and display a message to user
           if (this.settings.openai.key?.length === 0) {
             new Notice('You need to set an OpenAI API key in the settings');
