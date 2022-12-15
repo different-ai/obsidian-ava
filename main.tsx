@@ -136,10 +136,11 @@ export default class AvaPlugin extends Plugin {
               console.log(payload);
               const currentLine = editor.getCursor().line;
               const lastChar = editor.getLine(currentLine).length;
-              editor.replaceRange(`${payload.choices[0].text}`, {
-                line: currentLine,
-                ch: lastChar,
-              });
+              editor.setCursor({ line: currentLine, ch: lastChar });
+              editor.replaceRange(
+                `${payload.choices[0].text}`,
+                editor.getCursor()
+              );
             });
             source.stream();
             this.statusBarItem.render(<StatusBar status="success" />);
