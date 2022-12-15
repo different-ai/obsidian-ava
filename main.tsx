@@ -85,6 +85,11 @@ export default class AvaPlugin extends Plugin {
             new Notice('You need to set an OpenAI API key in the settings');
             return;
           }
+          if (editor.somethingSelected() === false) {
+            new Notice(
+              '🧙 Obsidian AI - Select some text to rewrite and try again :)'
+            );
+          }
 
           const onSubmit = async (alteration: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
@@ -98,10 +103,11 @@ export default class AvaPlugin extends Plugin {
               console.log(payload);
               const currentLine = editor.getCursor().line;
               const lastChar = editor.getLine(currentLine).length;
-              editor.replaceRange(`${payload.choices[0].text}`, {
-                line: currentLine,
-                ch: lastChar,
-              });
+              editor.setCursor({ line: currentLine, ch: lastChar });
+              editor.replaceRange(
+                `${payload.choices[0].text}`,
+                editor.getCursor()
+              );
             });
             source.stream();
             this.statusBarItem.render(<StatusBar status="success" />);
