@@ -3,11 +3,11 @@
 
 ## Create virtual env
 echo "Creating virtual env"
-python3 -m venv env
+python3 -m venv $TMPDIR/ava
 
 ## Load virtual env
 echo "Loading env"
-source env/bin/activate
+source $TMPDIR/ava/bin/activate
 
 ## kill existing instance
 echo "Killing existing instance"
