@@ -191,13 +191,14 @@ export const rewrite = async (
   alteration: string,
   plugin: AvaPlugin
 ) => {
-  const prompt = `Could your rewrite ${text} into something more like ${alteration}}`;
+  const prompt = `\n Rewrite ${text} to ${alteration}} \n. Of course, here it is: \n`;
   console.log('Prompt:', prompt);
   const source = new SSE('https://api.openai.com/v1/completions', {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + plugin.settings.openai.key,
     },
+
     method: 'POST',
     payload: JSON.stringify({
       frequency_penalty: 0,

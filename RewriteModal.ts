@@ -19,16 +19,22 @@ export class RewriteModal extends Modal {
   onOpen() {
     const { contentEl } = this;
 
-    contentEl.createEl('h1', { text: 'Obsidian AI - Rewrite Assist' });
+    contentEl.createEl('h1', { text: 'Rewrite Assist' });
     const form = contentEl.createEl('form');
     form.onsubmit = this.search;
-    new Setting(form)
-      .setName('Make this text sound more like')
-      .addText((text) =>
-        text.setValue(this.text).onChange((value) => {
+    new Setting(form).setName('Rewrite text to').addText((text) => {
+      text
+        .setPlaceholder(
+          'Remove all email addresses / Make it sound more like [paste text] / Make it more polite'
+        )
+        .onChange((value) => {
           this.text = value;
-        })
-      );
+        });
+      text.inputEl.style.minWidth = '100%';
+    });
+
+    // TextArea.inputEl.style.minHeight = '10rem';
+    // TextArea.inputEl.style.width = '100%';
 
     new Setting(form).addButton((btn) => {
       btn.buttonEl.type = 'submit';

@@ -99,10 +99,16 @@ export default class AvaPlugin extends Plugin {
             editor.setCursor({ line: editor.getCursor('to').line + 2, ch: 0 });
 
             source.addEventListener('message', function (e: any) {
-              const payload = JSON.parse(e.data);
-              console.log(payload);
               const currentLine = editor.getCursor().line;
               const lastChar = editor.getLine(currentLine).length;
+
+              const payload = JSON.parse(e.data);
+              // if the first char is a new line, go to the next line
+              // for some reason this doesn't work without this check
+              if (payload.choices[0].text === '\n') {
+                editor.setCursor({ line: currentLine + 1, ch: 0 });
+                return;
+              }
               editor.setCursor({ line: currentLine, ch: lastChar });
               editor.replaceRange(
                 `${payload.choices[0].text}`,
@@ -133,6 +139,7 @@ export default class AvaPlugin extends Plugin {
             source.addEventListener('message', function (e: any) {
               console.log('listen to event');
               const payload = JSON.parse(e.data);
+
               console.log(payload);
               const currentLine = editor.getCursor().line;
               const lastChar = editor.getLine(currentLine).length;
