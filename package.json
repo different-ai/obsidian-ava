@@ -1,7 +1,7 @@
 {
   "name": "ava",
-  "version": "2.3.9",
-  "description": "AI-enhanced reflection in Obsidian",
+  "version": "2.4.0",
+  "description": "AI assistant for Obsidian",
   "main": "main.js",
   "scripts": {
     "dev": "node esbuild.config.mjs",
