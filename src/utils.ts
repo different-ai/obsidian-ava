@@ -4,12 +4,12 @@ import { Extract } from 'unzipper';
 import manifest from '../manifest.json';
 import AvaPlugin from './main';
 
+
 export interface ISimilarFile {
   score: number;
-  file_name: string;
-  file_path: string;
-  file_content: string;
-  file_tags: string[];
+  note_path: string;
+  note_content: string;
+  note_tags: string[];
 }
 
 export const createSemanticLinks = async (
@@ -32,11 +32,11 @@ export const createSemanticLinks = async (
 
   // TODO: we could ignore score < 0.7 (configurable in settings)
   const similarities = response.similarities.filter(
-    (similarity) => similarity.file_name !== title
+    (similarity) => similarity.note_path !== title
   );
   console.log(similarities);
   return `${similarities
-    .map((similarity) => '- [[' + similarity.file_path + ']]')
+    .map((similarity) => '- [[' + similarity.note_path + ']]')
     .join('\n')}`;
 };
 
@@ -151,7 +151,7 @@ export const createSemanticTags = async (
 
   // tags not already in the file - unique
   const newTags = response.similarities
-    .flatMap((similarity) => similarity.file_tags.map((tag) => '#' + tag))
+    .flatMap((similarity) => similarity.note_tags.map((tag) => '#' + tag))
     .filter(
       (tag) =>
         !tags.includes(tag) &&
@@ -213,3 +213,30 @@ export const rewrite = async (
   });
   return source;
 };
+
+interface NoteRefresh {
+    notePath?: string;
+    noteTags?: string[];
+    noteContent?: string;
+    oldPath?: string;
+}
+/**
+ * Make a query to /refresh to refresh the semantic search index
+ */
+export const refreshSemanticSearch = async (note: NoteRefresh) => {
+  console.log('Refreshing semantic search index', note);
+  const response = await fetch('http://localhost:3333/refresh', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      // snake_case to match the API
+      note_path: note.notePath,
+      note_tags: note.noteTags,
+      note_content: note.noteContent,
+      old_path: note.oldPath,
+    }),
+  });
+  return response;
+}

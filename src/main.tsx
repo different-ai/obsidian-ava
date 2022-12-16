@@ -3,11 +3,13 @@ import linkifyHtml from 'linkify-html';
 import {
   App,
   Editor,
+  EventRef,
   ItemView,
   MarkdownRenderer,
   Notice,
   Plugin,
   PluginSettingTab,
+  TFile,
   WorkspaceLeaf,
 } from 'obsidian';
 import { OpenAIApi } from 'openai';
@@ -28,6 +30,7 @@ import {
   createSemanticLinks,
   createSemanticTags,
   createWikipediaLinks,
+  refreshSemanticSearch,
   rewrite,
 } from './utils';
 
@@ -60,9 +63,17 @@ export default class AvaPlugin extends Plugin {
   openai: OpenAIApi;
   stableDiffusion: StableDiffusion;
   private sidebar: AvaSidebarView;
+  private eventRef: EventRef;
 
   // eslint-disable-next-line require-jsdoc
   async onload() {
+    // TODO: handle for file rename
+    this.eventRef = this.app.metadataCache.on("changed", (file, data, cache) => refreshSemanticSearch({
+      notePath: file.name.replace(".md", ""),
+      noteTags: cache.tags?.map((tag) => tag.tag) || [],
+      noteContent: data,
+    }));
+    // TODO rename & deleted
     await this.loadSettings();
     if (this.settings.debug) posthog.opt_out_capturing();
     const statusBarItemHtml = this.addStatusBarItem();
@@ -207,7 +218,7 @@ export default class AvaPlugin extends Plugin {
           let completion = '';
           const tags = this.app.metadataCache.getFileCache(
             this.app.workspace.getActiveFile()
-          ).tags;
+          ).tags || [];
           try {
             completion = await createSemanticLinks(
               title,
@@ -256,7 +267,7 @@ ${completion}`;
           const currentText = editor.getValue();
           const tags = this.app.metadataCache.getFileCache(
             this.app.workspace.getActiveFile()
-          ).tags;
+          ).tags || [];
           let completion = '';
           try {
             completion = await createSemanticTags(
@@ -437,6 +448,7 @@ ${completion}`;
     await this.saveData(this.settings);
   }
   onunload(): void {
+    this.app.metadataCache.offref(this.eventRef);
     if (process.env.NODE_ENV === 'development') return;
     killAllApiInstances();
   }
