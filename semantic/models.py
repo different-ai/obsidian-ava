@@ -5,7 +5,7 @@ class Note(BaseModel):
     note_path: Optional[str] = None
     note_tags: Optional[List[str]] = None
     note_content: Optional[str] = None
-    old_path: Optional[str] = None
+    path_to_delete: Optional[str] = None
 
 class Input(BaseModel):
     query: str

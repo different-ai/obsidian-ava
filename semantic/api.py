@@ -150,18 +150,20 @@ def refresh(note: Note, _: Settings = Depends(get_settings)):
     """
     Refresh the embeddings for a given file
     """
-    if note.old_path:
-        state["logger"].info(f"Deleting {note.old_path}")
-        del state["corpus"][note.old_path]
+
+    if note.path_to_delete:
+        state["logger"].info(f"Deleting {note.path_to_delete}")
+        try:
+            del state["corpus"][note.path_to_delete]
+        except KeyError:
+            state["logger"].info(f"Could not delete {note.path_to_delete}")
+
+    if not note.note_path:
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content={"status": "success", "message": "Deleted"},
         )
-    if not note.note_path or not note.note_content or not note.note_tags:
-        return JSONResponse(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            content={"status": "error", "message": "Missing fields"},
-        )
+
     state["status"] = "refreshing"
     file_to_embed = note_to_embedding_format(
         note.note_path, note.note_tags, note.note_content

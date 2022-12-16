@@ -56,6 +56,8 @@ interface StableDiffusion {
 
 export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
+const ERROR_NOTE_EVENT = 'Error while refreshing Obsidian AI search. Please check the console for more details.';
+
 // eslint-disable-next-line require-jsdoc
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
@@ -63,17 +65,71 @@ export default class AvaPlugin extends Plugin {
   openai: OpenAIApi;
   stableDiffusion: StableDiffusion;
   private sidebar: AvaSidebarView;
-  private eventRef: EventRef;
+  private eventRefChanged: EventRef;
+  private eventRefRenamed: EventRef;
+  private eventRefDeleted: EventRef;
 
+  private unlistenToNoteEvents()  {
+    this.app.metadataCache.offref(this.eventRefChanged);
+    this.app.metadataCache.offref(this.eventRefRenamed);
+    this.app.metadataCache.offref(this.eventRefDeleted);
+  }
   // eslint-disable-next-line require-jsdoc
   async onload() {
-    // TODO: handle for file rename
-    this.eventRef = this.app.metadataCache.on("changed", (file, data, cache) => refreshSemanticSearch({
-      notePath: file.name.replace(".md", ""),
-      noteTags: cache.tags?.map((tag) => tag.tag) || [],
-      noteContent: data,
-    }));
-    // TODO rename & deleted
+    this.eventRefChanged = this.app.metadataCache.on("changed", (file, data, cache) => {
+      try {
+        refreshSemanticSearch({
+          notePath: file.basename,
+          noteTags: cache.tags?.map((tag) => tag.tag) || [],
+          noteContent: data,
+        });
+      } catch (e) {
+        console.error(e);
+        new Notice(
+          ERROR_NOTE_EVENT
+        );
+        this.unlistenToNoteEvents();
+      }
+    });
+    this.eventRefRenamed = this.app.vault.on("rename", (file, oldPath) => {
+      Promise.all([
+        this.app.vault.adapter.read(file.path),
+        this.app.metadataCache.getCache(file.path),
+      ]).then(([data, cache]) => {
+        // Somehow event triggered twice and cache only defined on the second time
+        if (!cache) return;
+        const f = file as TFile;
+        try {
+          refreshSemanticSearch({
+            notePath: f.basename,
+            noteTags: cache.tags?.map((tag) => tag.tag) || [],
+            noteContent: data,
+            pathToDelete: oldPath.split("/").pop().replace(".md", ""),
+          });
+        } catch (e) {
+          console.error(e);
+          new Notice(
+            ERROR_NOTE_EVENT
+          );
+          this.unlistenToNoteEvents();
+        }
+      });
+    });
+    this.eventRefDeleted = this.app.vault.on("delete", (file) => {
+      try {
+        refreshSemanticSearch({
+          pathToDelete: (file as TFile).basename,
+        });
+      }
+      catch (e) {
+        console.error(e);
+        new Notice(
+          ERROR_NOTE_EVENT
+        );
+        this.unlistenToNoteEvents();
+      }
+    });
+
     await this.loadSettings();
     if (this.settings.debug) posthog.opt_out_capturing();
     const statusBarItemHtml = this.addStatusBarItem();
@@ -448,7 +504,7 @@ ${completion}`;
     await this.saveData(this.settings);
   }
   onunload(): void {
-    this.app.metadataCache.offref(this.eventRef);
+    this.unlistenToNoteEvents();
     if (process.env.NODE_ENV === 'development') return;
     killAllApiInstances();
   }

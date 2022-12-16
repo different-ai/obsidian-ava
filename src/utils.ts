@@ -218,13 +218,12 @@ interface NoteRefresh {
     notePath?: string;
     noteTags?: string[];
     noteContent?: string;
-    oldPath?: string;
+    pathToDelete?: string;
 }
 /**
  * Make a query to /refresh to refresh the semantic search index
  */
 export const refreshSemanticSearch = async (note: NoteRefresh) => {
-  console.log('Refreshing semantic search index', note);
   const response = await fetch('http://localhost:3333/refresh', {
     method: 'POST',
     headers: {
@@ -235,7 +234,7 @@ export const refreshSemanticSearch = async (note: NoteRefresh) => {
       note_path: note.notePath,
       note_tags: note.noteTags,
       note_content: note.noteContent,
-      old_path: note.oldPath,
+      path_to_delete: note.pathToDelete,
     }),
   });
   return response;
