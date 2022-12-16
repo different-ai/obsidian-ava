@@ -1,6 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  prefix: 'ava-',
+  // prefix: 'ava-',
   content: ['./src/**/*.{ts,tsx}'],
   theme: {
     extend: {},

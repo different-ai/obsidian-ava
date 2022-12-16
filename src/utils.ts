@@ -202,7 +202,7 @@ export const rewrite = async (
     method: 'POST',
     payload: JSON.stringify({
       frequency_penalty: 0,
-      max_tokens: text.length + 300,
+      max_tokens: text.length + 1400,
       model: 'text-davinci-003',
       presence_penalty: 0,
       prompt: prompt,
