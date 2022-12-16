@@ -29,10 +29,10 @@ import {
   TextField,
   Tooltip,
 } from '@mui/material';
-import CustomDivider from 'CustomerDivider';
 import { Configuration, CreateCompletionRequest, OpenAIApi } from 'openai';
 import { posthog } from 'posthog-js';
 import * as React from 'react';
+import CustomDivider from './CustomerDivider';
 // import 'styles.css';
 import AvaPlugin from './main';
 
