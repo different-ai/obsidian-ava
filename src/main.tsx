@@ -74,8 +74,11 @@ export default class AvaPlugin extends Plugin {
     this.app.metadataCache.offref(this.eventRefRenamed);
     this.app.metadataCache.offref(this.eventRefDeleted);
   }
-  // eslint-disable-next-line require-jsdoc
-  async onload() {
+  private listenToNoteEvents() {
+    if (this.eventRefChanged) {
+      console.log('Already listening to note events, unlistening first');
+      this.unlistenToNoteEvents();
+    }
     this.eventRefChanged = this.app.metadataCache.on("changed", (file, data, cache) => {
       try {
         refreshSemanticSearch({
@@ -129,7 +132,9 @@ export default class AvaPlugin extends Plugin {
         this.unlistenToNoteEvents();
       }
     });
-
+  }
+  // eslint-disable-next-line require-jsdoc
+  async onload() {
     await this.loadSettings();
     if (this.settings.debug) posthog.opt_out_capturing();
     const statusBarItemHtml = this.addStatusBarItem();
@@ -247,6 +252,7 @@ export default class AvaPlugin extends Plugin {
           posthog.capture('ava-start-semantic-api');
           new Notice('Search - Starting API');
           runSemanticApi(this.app);
+          this.listenToNoteEvents();
         },
       });
 
@@ -259,6 +265,7 @@ export default class AvaPlugin extends Plugin {
           await killAllApiInstances();
           new Notice('Search - Starting API');
           runSemanticApi(this.app);
+          this.listenToNoteEvents();
         },
       });
 

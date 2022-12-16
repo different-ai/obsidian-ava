@@ -110,16 +110,19 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       );
   }, [openAiConfig?.key]);
 
+  React.useEffect(() => {
+    plugin.settings.debug = debug;
+    plugin.saveSettings();
+  }, [debug]);
+
   const onSave = async () => {
     setIsloading(true);
 
     await openai
       .listFiles()
       .then(() => {
-        plugin.settings.debug = debug;
         plugin.settings.openai = openAiConfig;
         plugin.settings.stableDiffusion = stableDiffusionConfig;
-        return plugin.saveSettings();
       })
       .catch((e) => {
         console.error(e);
