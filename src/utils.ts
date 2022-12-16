@@ -1,8 +1,8 @@
 import got from 'got';
 import { SSE } from 'lib/sse';
-import AvaPlugin from 'main';
 import { Extract } from 'unzipper';
-import manifest from './manifest.json';
+import manifest from '../manifest.json';
+import AvaPlugin from './main';
 
 export interface ISimilarFile {
   score: number;

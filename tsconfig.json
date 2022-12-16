@@ -15,6 +15,6 @@
     "resolveJsonModule": true,
     "lib": ["DOM", "ES5", "ES6", "ES7", "ES2020"]
   },
-  "include": ["*.tsx", "utils.ts"],
+  "include": ["*.tsx", "utils.ts", "src/main.tsx"],
   "exclude": ["node_modules"]
 }

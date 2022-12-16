@@ -1,10 +1,11 @@
 import {
-  Check, Error,
+  Check,
+  Error,
   ExpandLess,
   ExpandMore,
   Settings,
   Visibility,
-  VisibilityOff
+  VisibilityOff,
 } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
@@ -12,7 +13,8 @@ import {
   Checkbox,
   Collapse,
   Divider,
-  FormControl, IconButton,
+  FormControl,
+  IconButton,
   InputAdornment,
   InputLabel,
   List,
@@ -25,14 +27,14 @@ import {
   Select,
   Slider,
   TextField,
-  Tooltip
+  Tooltip,
 } from '@mui/material';
 import CustomDivider from 'CustomerDivider';
 import { Configuration, CreateCompletionRequest, OpenAIApi } from 'openai';
 import { posthog } from 'posthog-js';
 import * as React from 'react';
+// import 'styles.css';
 import AvaPlugin from './main';
-
 
 export interface AvaSettings {
   debug: boolean;
@@ -142,22 +144,22 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       <ListItem>
         <ListItemText primary="Settings" />
       </ListItem>
-      <ListItem
-        disablePadding
-      >
-        <ListItemButton role={undefined} onClick={
-          () => {
+      <ListItem disablePadding>
+        <ListItemButton
+          role={undefined}
+          onClick={() => {
             setDebug(!debug);
             if (debug) posthog.opt_out_capturing();
-          }
-        } dense>
+          }}
+          dense
+        >
           <ListItemIcon>
             <Checkbox
               edge="start"
               checked={debug}
               tabIndex={-1}
               disableRipple
-              inputProps={{ 'aria-labelledby': "debug" }}
+              inputProps={{ 'aria-labelledby': 'debug' }}
             />
           </ListItemIcon>
           <ListItemText id="debug" primary="Debug" />
@@ -311,13 +313,13 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
                   placeholder="stop"
                   error={
                     openAiConfig.completionsConfig?.stop &&
-                      openAiConfig.completionsConfig!.stop!.length > 3
+                    openAiConfig.completionsConfig!.stop!.length > 3
                       ? true
                       : false
                   }
                   helperText={
                     openAiConfig.completionsConfig?.stop &&
-                      openAiConfig.completionsConfig!.stop!.length >= 3
+                    openAiConfig.completionsConfig!.stop!.length >= 3
                       ? 'Maximum stops reached'
                       : ''
                   }
@@ -406,7 +408,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           placeholder=""
           value={stableDiffusionConfig?.key}
           type={revealKey ? 'text' : 'password'}
-          color="primary"
           fullWidth
           sx={{
             '& .MuiInputBase-input': {
@@ -418,7 +419,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           }}
           InputProps={
             {
-              disableUnderline: true,
               endAdornment: (
                 <InputAdornment position="end">
                   <IconButton onClick={() => setRevealKey(!revealKey)}>
@@ -473,6 +473,7 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           <Check color="success" />
         </div>
       )}
+      <div className="text-red-500 ava-bg-yellow-500">test</div>
     </List>
   );
 };

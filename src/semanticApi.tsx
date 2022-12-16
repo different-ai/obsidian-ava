@@ -2,7 +2,7 @@ import { exec, spawn } from 'child_process';
 import fs from 'fs';
 import { App, FileSystemAdapter, Notice } from 'obsidian';
 import { promisify } from 'util';
-import { downloadApiSourceCode } from 'utils';
+import { downloadApiSourceCode } from './utils';
 
 export const getCwd = (app: App): string => {
   let cwd = '';

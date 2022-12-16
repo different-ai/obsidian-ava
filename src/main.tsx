@@ -14,14 +14,14 @@ import { OpenAIApi } from 'openai';
 
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { killAllApiInstances, runSemanticApi } from 'semanticApi';
+import { killAllApiInstances, runSemanticApi } from './semanticApi';
+import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import {
   DraftStabilityOptions,
   generateAsync,
   RequiredStabilityOptions,
   ResponseData,
-} from 'stableDiffusion';
-import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
+} from './stableDiffusion';
 import { AvaSuggest, StatusBar } from './suggest';
 import {
   createParagraph,
@@ -445,6 +445,7 @@ ${completion}`;
 // eslint-disable-next-line require-jsdoc
 class AvaSettingTab extends PluginSettingTab {
   plugin: AvaPlugin;
+  initialized = false;
   // eslint-disable-next-line require-jsdoc
   constructor(app: App, plugin: AvaPlugin) {
     super(app, plugin);
@@ -453,8 +454,10 @@ class AvaSettingTab extends PluginSettingTab {
 
   // eslint-disable-next-line require-jsdoc
   display(): void {
+    if (this.initialized) return;
     const root = createRoot(this.containerEl);
     root.render(<CustomSettings plugin={this.plugin} />);
+    this.initialized = true;
   }
 }
 
