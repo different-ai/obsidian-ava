@@ -473,7 +473,9 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
           <Check color="success" />
         </div>
       )}
-      <div className="text-red-500 ava-bg-yellow-500">test</div>
+      {plugin.settings.debug && (
+        <div className="text-red-500 ava-bg-yellow-500">test</div>
+      )}
     </List>
   );
 };
