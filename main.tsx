@@ -64,6 +64,7 @@ export default class AvaPlugin extends Plugin {
   // eslint-disable-next-line require-jsdoc
   async onload() {
     await this.loadSettings();
+    if (this.settings.debug) posthog.opt_out_capturing();
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
 

@@ -1,19 +1,18 @@
 import {
-  Check,
-  Error,
+  Check, Error,
   ExpandLess,
   ExpandMore,
   Settings,
   Visibility,
-  VisibilityOff,
+  VisibilityOff
 } from '@mui/icons-material';
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
+  Checkbox,
   Collapse,
   Divider,
-  FormControl,
-  IconButton,
+  FormControl, IconButton,
   InputAdornment,
   InputLabel,
   List,
@@ -26,14 +25,17 @@ import {
   Select,
   Slider,
   TextField,
-  Tooltip,
+  Tooltip
 } from '@mui/material';
 import CustomDivider from 'CustomerDivider';
 import { Configuration, CreateCompletionRequest, OpenAIApi } from 'openai';
+import { posthog } from 'posthog-js';
 import * as React from 'react';
 import AvaPlugin from './main';
 
+
 export interface AvaSettings {
+  debug: boolean;
   openai: OpenAISettings;
   stableDiffusion: StableDiffusionSettings;
 }
@@ -53,6 +55,7 @@ export interface StableDiffusionSettings {
 }
 
 export const DEFAULT_SETTINGS: AvaSettings = {
+  debug: false,
   openai: {
     promptLines: 5,
     automatic: false,
@@ -75,6 +78,7 @@ interface CustomSettingsProps {
 }
 export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
   const [isLoading, setIsloading] = React.useState(false);
+  const [debug, setDebug] = React.useState<boolean>(plugin.settings.debug);
   const [openAiConfig, setOpenAiConfig] = React.useState<OpenAISettings>(
     plugin.settings.openai || DEFAULT_SETTINGS.openai
   );
@@ -101,7 +105,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       .then((models) =>
         setAvailableModels(models.data?.data?.map((m) => m.id!) || [])
       );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [openAiConfig?.key]);
 
   const onSave = async () => {
@@ -110,6 +113,7 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
     await openai
       .listFiles()
       .then(() => {
+        plugin.settings.debug = debug;
         plugin.settings.openai = openAiConfig;
         plugin.settings.stableDiffusion = stableDiffusionConfig;
         return plugin.saveSettings();
@@ -137,6 +141,27 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
     >
       <ListItem>
         <ListItemText primary="Settings" />
+      </ListItem>
+      <ListItem
+        disablePadding
+      >
+        <ListItemButton role={undefined} onClick={
+          () => {
+            setDebug(!debug);
+            if (debug) posthog.opt_out_capturing();
+          }
+        } dense>
+          <ListItemIcon>
+            <Checkbox
+              edge="start"
+              checked={debug}
+              tabIndex={-1}
+              disableRipple
+              inputProps={{ 'aria-labelledby': "debug" }}
+            />
+          </ListItemIcon>
+          <ListItemText id="debug" primary="Debug" />
+        </ListItemButton>
       </ListItem>
       <CustomDivider text="OpenAI" />
       <ListItem>
@@ -286,13 +311,13 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
                   placeholder="stop"
                   error={
                     openAiConfig.completionsConfig?.stop &&
-                    openAiConfig.completionsConfig!.stop!.length > 3
+                      openAiConfig.completionsConfig!.stop!.length > 3
                       ? true
                       : false
                   }
                   helperText={
                     openAiConfig.completionsConfig?.stop &&
-                    openAiConfig.completionsConfig!.stop!.length >= 3
+                      openAiConfig.completionsConfig!.stop!.length >= 3
                       ? 'Maximum stops reached'
                       : ''
                   }
