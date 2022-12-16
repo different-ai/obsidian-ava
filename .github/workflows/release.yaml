@@ -58,6 +58,7 @@ jobs:
           asset_path: ./semantic.zip
           asset_name: semantic.zip
           asset_content_type: application/zip
+      # Upload the packaged release file
       - name: Upload zip file
         id: upload-zip
         uses: actions/upload-release-asset@v1
@@ -65,9 +66,10 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.PLUGIN_NAME }}.zip
-          asset_name: ${{ env.PLUGIN_NAME }}-${{ steps.build.outputs.tag_name }}.zip
+          asset_path: ./${{ github.event.repository.name }}.zip
+          asset_name: ${{ github.event.repository.name }}.zip
           asset_content_type: application/zip
+            asset_content_type: application/zip
       - name: Upload main.js
         id: upload-main
         uses: actions/upload-release-asset@v1
