@@ -45,9 +45,9 @@ jobs:
           push: true
           tags: |
             ghcr.io/${{ github.repository_owner }}/obsidian-ava:latest
-            ghcr.io/${{ github.repository_owner }}/obsidian-ava:${{ steps.get_version.outputs.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/obsidian-ava:${{ env.VERSION }}
             gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:latest
-            gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ steps.get_version.outputs.VERSION }}
+            gcr.io/${{ env.PROJECT_ID }}/${{ env.SERVICE }}:${{ env.VERSION }}
 
       - name: Deploy to Cloud Run
         id: deploy
@@ -56,7 +56,7 @@ jobs:
           metadata: api/service.prod.yaml
           project_id: ${{ env.PROJECT_ID }}
           region: us-central1
-          tag: ${{ steps.get_version.outputs.VERSION }}
+          tag: ${{ env.VERSION }}
 
       - name: Integration test
         shell: bash

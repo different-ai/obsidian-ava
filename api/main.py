@@ -29,7 +29,6 @@ class RequestImageCreate(BaseModel):
     prompt: str
 
 # curl -X POST "http://localhost:8000/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
-
 @app.post("/v1/image/create")
 async def create(request: RequestImageCreate, response_class=StreamingResponse):
     stability_api = client.StabilityInference(
