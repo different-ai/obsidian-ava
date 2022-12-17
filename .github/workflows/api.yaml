@@ -66,3 +66,9 @@ jobs:
           IMGUR_URL=$(curl -X POST "https://api.imgur.com/3/upload" -F "image=@\"giraffes.jpg\"" | jq ".data.link" -r)
           # print the url
           echo "The service indeed workds, generated a funny image that you can see at ${IMGUR_URL}"
+
+      - name: Save image as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: generated-image-${{ github.sha }}
+          path: giraffes.jpg

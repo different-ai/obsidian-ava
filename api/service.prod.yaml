@@ -22,4 +22,10 @@ spec:
           limits:
             cpu: "4"
             memory: 8192Mi
+        env:
+        - name: STABILITY_KEY
+          valueFrom:
+            secretKeyRef:
+              key: 1
+              name: obsidian-ai
       timeoutSeconds: 1200

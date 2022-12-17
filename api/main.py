@@ -30,7 +30,16 @@ class RequestImageCreate(BaseModel):
 
 # curl -X POST "http://localhost:8000/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
 @app.post("/v1/image/create")
-async def create(request: RequestImageCreate, response_class=StreamingResponse):
+def create(request: RequestImageCreate, response_class=StreamingResponse):
+    # TODO: currently only supports 1 image
+    if request.limit != 1:
+        return JSONResponse(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            content={
+                "status": "error",
+                "message": "Currently only 1 image is supported.",
+            },
+        )
     stability_api = client.StabilityInference(
         key=os.environ["STABILITY_KEY"],
         verbose=True,

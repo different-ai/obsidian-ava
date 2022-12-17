@@ -22,6 +22,9 @@ gcloud services enable containerregistry.googleapis.com
 # Enable Cloud Run
 gcloud services enable run.googleapis.com
 
+# Enable Secret Manager
+gcloud services enable secretmanager.googleapis.com
+
 # login to firebase
 firebase login
 
@@ -30,6 +33,13 @@ firebase projects:addfirebase ${PROJECT_ID}
 
 # add target
 firebase target:apply hosting api ${PROJECT_ID}
+
+# create a secret for the stability key
+gcloud secrets create STABILITY_KEY --replication-policy=automatic
+
+# add a version to the secret (from https://beta.dreamstudio.ai/membership)
+STABILITY_KEY="foo"
+echo -n "${STABILITY_KEY}" | gcloud secrets versions add STABILITY_KEY --data-file=-
 ```
 
 ### Manual deployment
