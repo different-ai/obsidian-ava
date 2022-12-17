@@ -26,6 +26,6 @@ spec:
         - name: STABILITY_KEY
           valueFrom:
             secretKeyRef:
-              key: 1
+              key: "1"
               name: obsidian-ai
       timeoutSeconds: 1200
