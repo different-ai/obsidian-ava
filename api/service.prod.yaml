@@ -13,6 +13,7 @@ spec:
         autoscaling.knative.dev/maxScale: "100"
     spec:
       containerConcurrency: 5
+      serviceAccountName: obsidian-ai-cloud-run@obsidian-ai.iam.gserviceaccount.com
       containers:
         image: gcr.io/obsidian-ai/obsidian-ai:0.0.1
         ports:

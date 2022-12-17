@@ -2,9 +2,11 @@
 
 API dedicated to simplify the usage of image creation with Obsidian AI.
 
-This is runnable locally or in Google Clour Run (optionally behind a Firebase Hosting configuration).
+This is runnable locally or in Google Cloud Run (optionally behind a Firebase Hosting configuration).
 
 Please refer to [the main Makefile](../Makefile) for the available commands.
+
+If you are looking for an API key for [stabiblity.ai](https://stability.ai) (stable diffusion) image generation, please head to [https://beta.dreamstudio.ai/membership](https://beta.dreamstudio.ai/membership).
 
 ## Cloud Run configuration
 
@@ -44,13 +46,29 @@ echo -n "${STABILITY_KEY}" | gcloud secrets versions add STABILITY_KEY --data-fi
 
 ### Manual deployment
 
-⚠️ Since we are using a `.yaml` configuration for the Cloud Run service, no env var has been defined for the `STABILITY_KEY` for leakage purposes, you will need to manually edit the service once and add this env var for the first deployment. ⚠️
-
 ```bash
 # add cloud run to firebase
 make api/hosting
 
+# create a service account for the cloud run runtime
+gcloud iam service-accounts create obsidian-ai-cloud-run \
+  --display-name "Obsidian AI Cloud Run"
+
+# get the service account email
+RUNTIME_SVC="obsidian-ai-cloud-run@${PROJECT_ID}.iam.gserviceaccount.com"
+
+# give the service account access to the secret
+gcloud secrets add-iam-policy-binding STABILITY_KEY \
+  --member serviceAccount:${RUNTIME_SVC} \
+  --role roles/secretmanager.secretAccessor
+
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member serviceAccount:${RUNTIME_SVC} \
+  --role roles/secretmanager.secretAccessor
+
 make api/docker/deploy
+# allow unauthenticated access
+make api/policy
 
 curl -X POST "https://${PROJECT_ID}.web.app/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
 ```
