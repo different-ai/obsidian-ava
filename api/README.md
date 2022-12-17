@@ -60,6 +60,17 @@ gcloud projects add-iam-policy-binding ${PROJECT_ID} \
   --member serviceAccount:cloud-run-deployer@${PROJECT_ID}.iam.gserviceaccount.com \
   --role roles/run.admin
 
+# Grant the appropriate Cloud Storage role
+# to the service account to provide registry access
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member serviceAccount:cloud-run-deployer@${PROJECT_ID}.iam.gserviceaccount.com \
+  --role roles/storage.admin
+
+# Service Account User
+gcloud projects add-iam-policy-binding ${PROJECT_ID} \
+  --member serviceAccount:cloud-run-deployer@${PROJECT_ID}.iam.gserviceaccount.com \
+  --role roles/iam.serviceAccountUser
+
 # get svc key
 KEY_PATH="obsidian-ai.cloud-run-deployer.svc.prod.json"
 gcloud iam service-accounts keys create ${KEY_PATH} \
