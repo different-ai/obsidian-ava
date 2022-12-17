@@ -39,7 +39,10 @@ export const createImage = async (request: RequestImageCreate): Promise<Response
   
   const buffer = Buffer.from(await response.arrayBuffer());
   // file name is "time"_"the prompt as a writable encoded path" (only keep alphanumeric and underscores)
-  const fileName = `${Date.now()}_${request.prompt.replace(/[^a-zA-Z0-9_]/g, "_")}`;
+  const encoded = request.prompt.replace(/[^a-zA-Z0-9_]/g, "_");
+  // if it's too long, truncate it
+  const truncated = encoded.length > 100 ? encoded.substring(0, 100) : encoded;
+  const fileName = `${Date.now()}_${truncated}`;
   const filePath = path.resolve(
       path.join(
           request.outputDir,
