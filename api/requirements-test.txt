@@ -1,0 +1,10 @@
+black
+mypy
+pylint
+pytest-cov
+pytest-xdist
+pytest
+ipykernel
+ipywidgets
+httpx
+trio

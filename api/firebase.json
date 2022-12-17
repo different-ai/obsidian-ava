@@ -1,0 +1,21 @@
+{
+  "hosting": [
+    {
+      "public": "public",
+      "target": "api",
+      "ignore": [
+        "**/.*"
+      ],
+      "rewrites": [
+        {
+          "source": "/v1/image/create",
+          "run": {
+            "serviceId": "obsidian-ai",
+            "region": "us-central1"
+          }
+        }
+      ],
+      "trailingSlash": false
+    }
+  ]
+}

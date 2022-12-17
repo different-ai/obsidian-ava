@@ -1,0 +1,10 @@
+# python garbage
+__pycache__
+.pytest_cache
+
+# jupyter notebooks
+.ipynb_checkpoints
+*.ipynb
+
+# not sure about this
+.firebase

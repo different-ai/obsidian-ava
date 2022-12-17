@@ -1,0 +1,12 @@
+{
+  "projects": {},
+  "targets": {
+    "obsidian-ai": {
+      "hosting": {
+        "api": [
+          "obsidian-ai"
+        ]
+      }
+    }
+  }
+}
