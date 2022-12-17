@@ -29,6 +29,13 @@ Automatically link your notes in seconds.  Use the "link" shortcut to automatic
 
 ![](https://d1muf25xaso8hp.cloudfront.net/https%3A%2F%2Fs3.amazonaws.com%2Fappforest_uf%2Ff1671041695384x127761232744105780%2FScreen%2520Recording%25202022-12-13%2520at%25205.15.17%2520PM.gif?w=512&h=&auto=compress&dpr=2&fit=max)
 
+### Create images from selected text
+
+Create images and visualizations to illustrate your thoughts and help you and the reader understand what you are saying.
+
+![ezgif com-gif-maker (4)](https://user-images.githubusercontent.com/25003283/208254052-136f3fac-3ef6-46d5-85eb-73a4d249ffdf.gif)
+
+
 ## Installation
 
 1. Install Ava from Obsidian's community plugins list 
