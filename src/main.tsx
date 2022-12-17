@@ -1,4 +1,3 @@
-/* eslint-disable require-jsdoc */
 import linkifyHtml from 'linkify-html';
 import {
   App,
@@ -19,10 +18,7 @@ import { createRoot, Root } from 'react-dom/client';
 import { killAllApiInstances, runSemanticApi } from './semanticApi';
 import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import {
-  DraftStabilityOptions,
-  generateAsync,
-  RequiredStabilityOptions,
-  ResponseData,
+  createImage, RequestImageCreate, ResponseImageCreate,
 } from './stableDiffusion';
 import { AvaSuggest, StatusBar } from './suggest';
 import {
@@ -47,23 +43,19 @@ posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
     });
   },
 });
-interface StableDiffusion {
-  generateAsync: (opts: DraftStabilityOptions & RequiredStabilityOptions) => {
-    images: ImageData[];
-    res: ResponseData;
-  };
+interface ImageAIClient {
+  createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
 }
 
 export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
 const ERROR_NOTE_EVENT = 'Error while refreshing Obsidian AI search. Please check the console for more details.';
 
-// eslint-disable-next-line require-jsdoc
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
   statusBarItem: Root;
   openai: OpenAIApi;
-  stableDiffusion: StableDiffusion;
+  imageAIClient: ImageAIClient;
   private sidebar: AvaSidebarView;
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
@@ -144,9 +136,8 @@ export default class AvaPlugin extends Plugin {
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
 
-      this.stableDiffusion = {
-        // @ts-ignore
-        generateAsync: generateAsync,
+      this.imageAIClient = {
+        createImage,
       };
       this.addCommand({
         id: 'ava-rewrite-prompt',
@@ -418,15 +409,12 @@ ${completion}`;
         id: 'ava-generate-image',
         name: '- Generate an image based on selected text',
         editorCallback: async (editor: Editor) => {
-          posthog.capture('ava-generate-image');
-          if (!this.settings.stableDiffusion.key) {
-            new Notice(
-              'You need to set a key for Stable Diffusion in the settings',
-              3333
-            );
-            return;
-          }
           const selection = editor.getSelection();
+
+          posthog.capture('ava-generate-image', {
+            // capture prompt length (i.e. might create GPT3 post-processing for newbies)
+            promptLength: selection.length,
+          });
           if (!selection) {
             new Notice(
               'You need to select some text to generate an image',
@@ -447,22 +435,19 @@ ${completion}`;
                 statusMessage={'Error while generating image ' + e}
               />
             );
+          new Notice('Generating image ⏰');
           try {
-            const { images } = await generateAsync({
+            const {imagePaths} = await createImage({
               prompt: selection,
-              apiKey: this.settings.stableDiffusion.key,
-              outDir: outDir,
-              debug: false,
-              samples: 1,
+              outputDir: outDir,
             });
-            if (images.length === 0) {
+            if (imagePaths.length === 0) {
               onError('No image was generated');
               return;
             }
             // append image below
             editor.replaceSelection(
-              // eslint-disable-next-line max-len
-              `${selection}\n\n![[${images[0].filePath.split('/').pop()}]]\n\n`
+              `${selection}\n\n![[${imagePaths[0].split('/').pop()}]]\n\n`
             );
 
             this.statusBarItem.render(
@@ -471,6 +456,7 @@ ${completion}`;
                 statusMessage="Completion successful"
               />
             );
+            new Notice('Image generated successfully', 2000);
           } catch (e) {
             onError(e);
           }

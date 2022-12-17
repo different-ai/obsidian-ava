@@ -33,14 +33,12 @@ import { Configuration, CreateCompletionRequest, OpenAIApi } from 'openai';
 import { posthog } from 'posthog-js';
 import * as React from 'react';
 import CustomDivider from './CustomerDivider';
-// import 'styles.css';
 import AvaPlugin from './main';
 import PricingSection from './PricingSection';
 
 export interface AvaSettings {
   debug: boolean;
   openai: OpenAISettings;
-  stableDiffusion: StableDiffusionSettings;
 }
 type CompletionConfig = Omit<
   CreateCompletionRequest,
@@ -52,9 +50,6 @@ export interface OpenAISettings {
   key: string;
   completionsConfig: CompletionConfig;
   organization?: string;
-}
-export interface StableDiffusionSettings {
-  key: string;
 }
 
 export const DEFAULT_SETTINGS: AvaSettings = {
@@ -71,9 +66,6 @@ export const DEFAULT_SETTINGS: AvaSettings = {
     },
     organization: '',
   },
-  stableDiffusion: {
-    key: '',
-  },
 };
 
 interface CustomSettingsProps {
@@ -85,10 +77,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
   const [openAiConfig, setOpenAiConfig] = React.useState<OpenAISettings>(
     plugin.settings.openai || DEFAULT_SETTINGS.openai
   );
-  const [stableDiffusionConfig, setStableDiffusionConfig] =
-    React.useState<StableDiffusionSettings>(
-      plugin.settings.stableDiffusion || DEFAULT_SETTINGS.stableDiffusion
-    );
   const [error, setError] = React.useState<string | undefined>(undefined);
   const [revealKey, setRevealKey] = React.useState(false);
   const [advancedSettingsOpen, setAdvancedSettingsOpen] = React.useState(false);
@@ -122,7 +110,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
       .listFiles()
       .then(() => {
         plugin.settings.openai = openAiConfig;
-        plugin.settings.stableDiffusion = stableDiffusionConfig;
       })
       .catch((e) => {
         console.error(e);
@@ -406,41 +393,6 @@ export const CustomSettings = ({ plugin }: CustomSettingsProps) => {
             </ListItem>
           </List>
         </Collapse>
-        <CustomDivider text="Stable diffusion" />
-        <ListItem>
-          <TextField
-            label="Stable diffusion API key"
-            placeholder=""
-            value={stableDiffusionConfig?.key}
-            type={revealKey ? 'text' : 'password'}
-            fullWidth
-            sx={{
-              '& .MuiInputBase-input': {
-                border: 'none',
-              },
-              '& .MuiInputBase-root': {
-                minHeight: '3rem',
-              },
-            }}
-            InputProps={
-              {
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={() => setRevealKey(!revealKey)}>
-                      {revealKey ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              } as Partial<OutlinedInputProps>
-            }
-            onChange={(e) => {
-              setStableDiffusionConfig({
-                ...stableDiffusionConfig,
-                key: e.target.value,
-              });
-            }}
-          />
-        </ListItem>
         <Divider />
         <ListItem
           sx={{

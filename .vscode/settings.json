@@ -6,4 +6,9 @@
         "source.sortMembers": true
     },
     "python.formatting.provider": "black",
+    "python.testing.pytestArgs": [
+        "api"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true,
 }

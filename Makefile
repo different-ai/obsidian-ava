@@ -22,7 +22,7 @@ api/install: ## [DEVELOPMENT] Install the API dependencies
 	pip install -r api/requirements-test.txt
 
 api/run: ## [DEVELOPMENT] Run the API
-	STABILITY_KEY=$(shell cat data.json | jq '.stableDiffusion.key') python3 -m uvicorn api.main:app
+	python3 -m uvicorn api.main:app
 
 api/docker/build: ## [Local development] Build the docker image.
 	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
@@ -31,7 +31,7 @@ api/docker/build: ## [Local development] Build the docker image.
 
 api/docker/run: ## [Local development] Run the docker image.
 	docker build -t ${IMAGE_URL} -f ./api/Dockerfile ./api
-	docker run -p 8000:8000 --rm --name obsidian-ai -e STABILITY_KEY=$(shell cat data.json | jq '.stableDiffusion.key') ${IMAGE_URL}
+	docker run -p 8000:8000 --rm --name obsidian-ai -e STABILITY_KEY=$$STABILITY_KEY ${IMAGE_URL}
 
 api/docker/push: api/docker/build ## [Local development] Push the docker image to GCR.
 	docker push ${IMAGE_URL}
