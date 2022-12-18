@@ -16,7 +16,7 @@ import { OpenAIApi } from 'openai';
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
 import { killAllApiInstances, runSemanticApi } from './semanticApi';
-import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
+import { CustomSettings } from './Settings';
 import {
   createImage,
   RequestImageCreate,
@@ -33,6 +33,7 @@ import {
 } from './utils';
 
 import posthog from 'posthog-js';
+import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
 
