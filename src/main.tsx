@@ -18,7 +18,9 @@ import { createRoot, Root } from 'react-dom/client';
 import { killAllApiInstances, runSemanticApi } from './semanticApi';
 import { AvaSettings, CustomSettings, DEFAULT_SETTINGS } from './Settings';
 import {
-  createImage, RequestImageCreate, ResponseImageCreate,
+  createImage,
+  RequestImageCreate,
+  ResponseImageCreate,
 } from './stableDiffusion';
 import { AvaSuggest, StatusBar } from './suggest';
 import {
@@ -34,22 +36,14 @@ import posthog from 'posthog-js';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
 
-posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
-  api_host: 'https://app.posthog.com',
-  loaded: (posthog) => {
-    posthog.register_once({
-      environment: process.env.NODE_ENV,
-      version: process.env.npm_package_version,
-    });
-  },
-});
 interface ImageAIClient {
   createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
 }
 
 export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
-const ERROR_NOTE_EVENT = 'Error while refreshing Obsidian AI search. Please check the console for more details.';
+const ERROR_NOTE_EVENT =
+  'Error while refreshing Obsidian AI search. Please check the console for more details.';
 
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
@@ -61,7 +55,7 @@ export default class AvaPlugin extends Plugin {
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
 
-  private unlistenToNoteEvents()  {
+  private unlistenToNoteEvents() {
     this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
     this.app.metadataCache.offref(this.eventRefDeleted);
@@ -71,22 +65,23 @@ export default class AvaPlugin extends Plugin {
       console.log('Already listening to note events, unlistening first');
       this.unlistenToNoteEvents();
     }
-    this.eventRefChanged = this.app.metadataCache.on("changed", (file, data, cache) => {
-      try {
-        refreshSemanticSearch({
-          notePath: file.basename,
-          noteTags: cache.tags?.map((tag) => tag.tag) || [],
-          noteContent: data,
-        });
-      } catch (e) {
-        console.error(e);
-        new Notice(
-          ERROR_NOTE_EVENT
-        );
-        this.unlistenToNoteEvents();
+    this.eventRefChanged = this.app.metadataCache.on(
+      'changed',
+      (file, data, cache) => {
+        try {
+          refreshSemanticSearch({
+            notePath: file.basename,
+            noteTags: cache.tags?.map((tag) => tag.tag) || [],
+            noteContent: data,
+          });
+        } catch (e) {
+          console.error(e);
+          new Notice(ERROR_NOTE_EVENT);
+          this.unlistenToNoteEvents();
+        }
       }
-    });
-    this.eventRefRenamed = this.app.vault.on("rename", (file, oldPath) => {
+    );
+    this.eventRefRenamed = this.app.vault.on('rename', (file, oldPath) => {
       Promise.all([
         this.app.vault.adapter.read(file.path),
         this.app.metadataCache.getCache(file.path),
@@ -99,28 +94,23 @@ export default class AvaPlugin extends Plugin {
             notePath: f.basename,
             noteTags: cache.tags?.map((tag) => tag.tag) || [],
             noteContent: data,
-            pathToDelete: oldPath.split("/").pop().replace(".md", ""),
+            pathToDelete: oldPath.split('/').pop().replace('.md', ''),
           });
         } catch (e) {
           console.error(e);
-          new Notice(
-            ERROR_NOTE_EVENT
-          );
+          new Notice(ERROR_NOTE_EVENT);
           this.unlistenToNoteEvents();
         }
       });
     });
-    this.eventRefDeleted = this.app.vault.on("delete", (file) => {
+    this.eventRefDeleted = this.app.vault.on('delete', (file) => {
       try {
         refreshSemanticSearch({
           pathToDelete: (file as TFile).basename,
         });
-      }
-      catch (e) {
+      } catch (e) {
         console.error(e);
-        new Notice(
-          ERROR_NOTE_EVENT
-        );
+        new Notice(ERROR_NOTE_EVENT);
         this.unlistenToNoteEvents();
       }
     });
@@ -128,7 +118,18 @@ export default class AvaPlugin extends Plugin {
   // eslint-disable-next-line require-jsdoc
   async onload() {
     await this.loadSettings();
+
+    posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
+      api_host: 'https://app.posthog.com',
+      loaded: (posthog) => {
+        posthog.register_once({
+          environment: process.env.NODE_ENV,
+          version: process.env.npm_package_version,
+        });
+      },
+    });
     if (this.settings.debug) posthog.opt_out_capturing();
+
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
 
@@ -270,9 +271,10 @@ export default class AvaPlugin extends Plugin {
           this.statusBarItem.render(<StatusBar status="loading" />);
           let currentText = editor.getValue();
           let completion = '';
-          const tags = this.app.metadataCache.getFileCache(
-            this.app.workspace.getActiveFile()
-          ).tags || [];
+          const tags =
+            this.app.metadataCache.getFileCache(
+              this.app.workspace.getActiveFile()
+            ).tags || [];
           try {
             completion = await createSemanticLinks(
               title,
@@ -319,9 +321,10 @@ ${completion}`;
           new Notice('Link - Generating Related Tags ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           const currentText = editor.getValue();
-          const tags = this.app.metadataCache.getFileCache(
-            this.app.workspace.getActiveFile()
-          ).tags || [];
+          const tags =
+            this.app.metadataCache.getFileCache(
+              this.app.workspace.getActiveFile()
+            ).tags || [];
           let completion = '';
           try {
             completion = await createSemanticTags(
@@ -437,7 +440,7 @@ ${completion}`;
             );
           new Notice('Generating image ⏰');
           try {
-            const {imagePaths} = await createImage({
+            const { imagePaths } = await createImage({
               prompt: selection,
               outputDir: outDir,
             });
