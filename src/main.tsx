@@ -140,9 +140,101 @@ export default class AvaPlugin extends Plugin {
       this.imageAIClient = {
         createImage,
       };
+
+      this.addCommand({
+        id: 'ava-add-prompt',
+        name: 'Write Paragraph',
+        editorCallback: (editor: Editor) => {
+          posthog.capture('ava-write-paragraph');
+          // if there's no open ai key stop here and display a message to user
+          if (this.settings.openai.key?.length === 0) {
+            new Notice('You need to set an OpenAI API key in the settings');
+            return;
+          }
+
+          const onSubmit = async (text: string) => {
+            this.statusBarItem.render(<StatusBar status="loading" />);
+            const source = await createParagraph(text, this);
+            source.addEventListener('message', function (e: any) {
+              console.log('listen to event');
+              const payload = JSON.parse(e.data);
+
+              console.log(payload);
+              const currentLine = editor.getCursor().line;
+              const lastChar = editor.getLine(currentLine).length;
+              editor.setCursor({ line: currentLine, ch: lastChar });
+              editor.replaceRange(
+                `${payload.choices[0].text}`,
+                editor.getCursor()
+              );
+            });
+            source.stream();
+            this.statusBarItem.render(<StatusBar status="success" />);
+          };
+
+          new PromptModal(this.app, onSubmit).open();
+        },
+      });
+      this.addCommand({
+        id: 'ava-generate-image',
+        name: 'Generate Image',
+        editorCallback: async (editor: Editor) => {
+          const selection = editor.getSelection();
+
+          posthog.capture('ava-generate-image', {
+            // capture prompt length (i.e. might create GPT3 post-processing for newbies)
+            promptLength: selection.length,
+          });
+          if (!selection) {
+            new Notice(
+              'You need to select some text to generate an image',
+              3333
+            );
+            return;
+          }
+
+          const outDir =
+            (this.app.vault.adapter as any).basePath +
+            '/' +
+            this.app.workspace.getActiveFile().parent.path;
+          this.statusBarItem.render(<StatusBar status="loading" />);
+          const onError = (e: any) =>
+            this.statusBarItem.render(
+              <StatusBar
+                status="error"
+                statusMessage={'Error while generating image ' + e}
+              />
+            );
+          new Notice('Generating image ⏰');
+          try {
+            const { imagePaths } = await createImage({
+              prompt: selection,
+              outputDir: outDir,
+            });
+            if (imagePaths.length === 0) {
+              onError('No image was generated');
+              return;
+            }
+            // append image below
+            editor.replaceSelection(
+              `${selection}\n\n![[${imagePaths[0].split('/').pop()}]]\n\n`
+            );
+
+            this.statusBarItem.render(
+              <StatusBar
+                status="success"
+                statusMessage="Completion successful"
+              />
+            );
+            new Notice('Image generated successfully', 2000);
+          } catch (e) {
+            onError(e);
+          }
+        },
+      });
       this.addCommand({
         id: 'ava-rewrite-prompt',
-        name: 'Write - Rewrite',
+        name: 'Rewrite Selection',
         editorCallback: (editor: Editor) => {
           posthog.capture('ava-rewrite-prompt');
           // if there's no open ai key stop here and display a message to user
@@ -187,83 +279,10 @@ export default class AvaPlugin extends Plugin {
           new RewriteModal(this.app, onSubmit).open();
         },
       });
-      this.addCommand({
-        id: 'ava-add-prompt',
-        name: 'Write - Paragraph',
-        editorCallback: (editor: Editor) => {
-          posthog.capture('ava-write-paragraph');
-          // if there's no open ai key stop here and display a message to user
-          if (this.settings.openai.key?.length === 0) {
-            new Notice('You need to set an OpenAI API key in the settings');
-            return;
-          }
-
-          const onSubmit = async (text: string) => {
-            this.statusBarItem.render(<StatusBar status="loading" />);
-            const source = await createParagraph(text, this);
-            source.addEventListener('message', function (e: any) {
-              console.log('listen to event');
-              const payload = JSON.parse(e.data);
-
-              console.log(payload);
-              const currentLine = editor.getCursor().line;
-              const lastChar = editor.getLine(currentLine).length;
-              editor.setCursor({ line: currentLine, ch: lastChar });
-              editor.replaceRange(
-                `${payload.choices[0].text}`,
-                editor.getCursor()
-              );
-            });
-            source.stream();
-            this.statusBarItem.render(<StatusBar status="success" />);
-          };
-
-          new PromptModal(this.app, onSubmit).open();
-        },
-      });
-
-      this.addCommand({
-        id: 'ava-refresh-semantic-api',
-        name: 'Search API - Refresh',
-        callback: async () => {
-          posthog.capture('ava-refresh-semantic-api');
-          new Notice('Search - Refreshing API');
-          fetch('http://localhost:3333/refresh')
-            .then(() => new Notice('Search - Refreshed API'))
-            .catch((e) => {
-              new Notice('Search - Error refreshing API');
-              console.error(e);
-            });
-        },
-      });
-
-      this.addCommand({
-        id: 'ava-start-semantic-api',
-        name: 'Search API - Start',
-        callback: async () => {
-          posthog.capture('ava-start-semantic-api');
-          new Notice('Search - Starting API');
-          runSemanticApi(this.app);
-          this.listenToNoteEvents();
-        },
-      });
-
-      this.addCommand({
-        id: 'ava-restart-semantic-api',
-        name: 'Search API -  Restart',
-        callback: async () => {
-          posthog.capture('ava-restart-semantic-api');
-          new Notice('Search - Shutting Down API');
-          await killAllApiInstances();
-          new Notice('Search - Starting API');
-          runSemanticApi(this.app);
-          this.listenToNoteEvents();
-        },
-      });
 
       this.addCommand({
         id: 'semantic-related-topics',
-        name: 'Link - Add Related Topics',
+        name: 'Link Notes',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('semantic-related-topics');
           const title = this.app.workspace.getActiveFile()?.basename;
@@ -313,8 +332,47 @@ ${completion}`;
       });
 
       this.addCommand({
+        id: 'ava-refresh-semantic-api',
+        name: 'Search API - Refresh',
+        callback: async () => {
+          posthog.capture('ava-refresh-semantic-api');
+          new Notice('Search - Refreshing API');
+          fetch('http://localhost:3333/refresh')
+            .then(() => new Notice('Search - Refreshed API'))
+            .catch((e) => {
+              new Notice('Search - Error refreshing API');
+              console.error(e);
+            });
+        },
+      });
+
+      this.addCommand({
+        id: 'ava-start-semantic-api',
+        name: 'Search API - Start',
+        callback: async () => {
+          posthog.capture('ava-start-semantic-api');
+          new Notice('Search - Starting API');
+          runSemanticApi(this.app);
+          this.listenToNoteEvents();
+        },
+      });
+
+      this.addCommand({
+        id: 'ava-restart-semantic-api',
+        name: 'Search API -  Restart',
+        callback: async () => {
+          posthog.capture('ava-restart-semantic-api');
+          new Notice('Search - Shutting Down API');
+          await killAllApiInstances();
+          new Notice('Search - Starting API');
+          runSemanticApi(this.app);
+          this.listenToNoteEvents();
+        },
+      });
+
+      this.addCommand({
         id: 'semantic-related-tags',
-        name: 'Link - Add Related Tags',
+        name: 'Experimental: Link Tags',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('semantic-related-tags');
           const title = this.app.workspace.getActiveFile()?.basename;
@@ -378,7 +436,7 @@ ${completion}`;
 
       this.addCommand({
         id: 'get-wikipedia-suggestions',
-        name: 'Learn - Get Wikipedia Suggestions',
+        name: 'Get Wikipedia Suggestions',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('get-wikipedia-suggestions');
           const title = this.app.workspace.getActiveFile()?.basename;
@@ -406,63 +464,6 @@ ${completion}`;
           this.statusBarItem.render(<StatusBar status="disabled" />);
 
           new Notice('Generated Wikipedia Links check out your sidebar🔥');
-        },
-      });
-      this.addCommand({
-        id: 'ava-generate-image',
-        name: '- Generate an image based on selected text',
-        editorCallback: async (editor: Editor) => {
-          const selection = editor.getSelection();
-
-          posthog.capture('ava-generate-image', {
-            // capture prompt length (i.e. might create GPT3 post-processing for newbies)
-            promptLength: selection.length,
-          });
-          if (!selection) {
-            new Notice(
-              'You need to select some text to generate an image',
-              3333
-            );
-            return;
-          }
-
-          const outDir =
-            (this.app.vault.adapter as any).basePath +
-            '/' +
-            this.app.workspace.getActiveFile().parent.path;
-          this.statusBarItem.render(<StatusBar status="loading" />);
-          const onError = (e: any) =>
-            this.statusBarItem.render(
-              <StatusBar
-                status="error"
-                statusMessage={'Error while generating image ' + e}
-              />
-            );
-          new Notice('Generating image ⏰');
-          try {
-            const { imagePaths } = await createImage({
-              prompt: selection,
-              outputDir: outDir,
-            });
-            if (imagePaths.length === 0) {
-              onError('No image was generated');
-              return;
-            }
-            // append image below
-            editor.replaceSelection(
-              `${selection}\n\n![[${imagePaths[0].split('/').pop()}]]\n\n`
-            );
-
-            this.statusBarItem.render(
-              <StatusBar
-                status="success"
-                statusMessage="Completion successful"
-              />
-            );
-            new Notice('Image generated successfully', 2000);
-          } catch (e) {
-            onError(e);
-          }
         },
       });
 
