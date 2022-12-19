@@ -148,11 +148,6 @@ export default class AvaPlugin extends Plugin {
         name: 'Write Paragraph',
         editorCallback: (editor: Editor) => {
           posthog.capture('ava-write-paragraph');
-          // if there's no open ai key stop here and display a message to user
-          if (this.settings.openai.key?.length === 0) {
-            new Notice('You need to set an OpenAI API key in the settings');
-            return;
-          }
 
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
@@ -237,11 +232,7 @@ export default class AvaPlugin extends Plugin {
         name: 'Rewrite Selection',
         editorCallback: (editor: Editor) => {
           posthog.capture('ava-rewrite-prompt');
-          // if there's no open ai key stop here and display a message to user
-          if (this.settings.openai.key?.length === 0) {
-            new Notice('You need to set an OpenAI API key in the settings');
-            return;
-          }
+
           if (editor.somethingSelected() === false) {
             new Notice(
               '🧙 Obsidian AI - Select some text to rewrite and try again :)'
@@ -446,12 +437,6 @@ ${completion}`;
           posthog.capture('get-wikipedia-suggestions');
           const title = this.app.workspace.getActiveFile()?.basename;
 
-          // if there's no open ai key stop here and display a message to user
-          if (this.settings.openai.key?.length === 0) {
-            new Notice('You need to set an OpenAI API key in the settings');
-            return;
-          }
-
           new Notice('Generating Wikipedia Links ⏰');
 
           this.sidebar.setLoading();
@@ -459,7 +444,6 @@ ${completion}`;
           const completion = await createWikipediaLinks(
             title,
             editor.getSelection(),
-            this
           );
           this.app.workspace.rightSplit.expand();
           this.sidebar.removeLoading();

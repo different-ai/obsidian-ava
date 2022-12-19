@@ -55,7 +55,6 @@ export const limitLengthForGPT3 = (markdownFileContent: string) => {
 export const createWikipediaLinks = async (
   title: string,
   text: string,
-  plugin: AvaPlugin
 ) => {
   const prompt =
     'Title: ' +
@@ -64,16 +63,22 @@ export const createWikipediaLinks = async (
     text +
     '\nWikipedia links of similar topics:\n\n - https://';
   console.log('Prompt:', prompt);
-  const response = await plugin.openai.createCompletion({
-    model: 'text-davinci-003',
-    prompt: prompt,
-    temperature: 0.7,
-    max_tokens: text.length + 200,
-    top_p: 1,
-    frequency_penalty: 0,
-    presence_penalty: 0,
-  });
-  const completion = response.data.choices[0].text;
+  const response = await fetch(`${API_HOST}/v1/text/create`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'text-davinci-003',
+      prompt: prompt,
+      temperature: 0.7,
+      max_tokens: text.length + 200,
+      top_p: 1,
+      frequency_penalty: 0,
+      presence_penalty: 0,
+    }),
+  }).then((response) => response.json());
+  const completion = response.choices[0].text;
   return `- ${completion}`;
 };
 
@@ -89,34 +94,6 @@ export const filterTags = (tags: string[]) => {
     .filter((t) => !ignoredTags.includes(t))
     .map((tag) => tag.replace('#', ''))
     .join(',');
-};
-
-export const createGPT3Links = async (
-  title: string,
-  text: string,
-  tags: string[],
-  plugin: AvaPlugin
-) => {
-  const prompt =
-    'Title: ' +
-    title +
-    '\n' +
-    'Tags: ' +
-    tags +
-    '\n' +
-    text +
-    '\nSimilar topic links:\n- [[';
-  const response = await plugin.openai.createCompletion({
-    model: 'text-davinci-003',
-    prompt: prompt,
-    temperature: 0.7,
-    max_tokens: 200,
-    top_p: 1,
-    frequency_penalty: 0.1,
-    presence_penalty: 0.1,
-  });
-  const completion = response.data.choices[0].text.trim();
-  return completion;
 };
 
 export const downloadApiSourceCode = async (dest: string): Promise<boolean> => {
@@ -171,7 +148,6 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + plugin.settings.openai.key,
     },
     method: 'POST',
     payload: JSON.stringify({
@@ -191,14 +167,12 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
 export const rewrite = async (
   text: string,
   alteration: string,
-  plugin: AvaPlugin
 ) => {
   const prompt = `\n Rewrite ${text} to ${alteration}} \n. Of course, here it is: \n`;
   console.log('Prompt:', prompt);
   const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
-      Authorization: 'Bearer ' + plugin.settings.openai.key,
     },
 
     method: 'POST',

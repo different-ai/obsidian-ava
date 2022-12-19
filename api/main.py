@@ -54,10 +54,6 @@ def startup_event():
     print("Starting up...")
 
 
-@app.get("/")
-def hello():
-    return {"hello": "world"}
-
 # URL="https://obsidian-ai.web.app"
 # curl -X POST "$URL/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
 
