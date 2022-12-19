@@ -15,6 +15,9 @@ semantic/install: ## [DEVELOPMENT] Install the semantic API dependencies
 	pip install -r semantic/requirements.txt; \
 	pip install -r semantic/requirements-test.txt
 
+semantic/run: ## [DEVELOPMENT] Run the semantic API
+	python3 -m uvicorn semantic.api:app --port 3333
+
 api/install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv $$TMPDIR/ava; \
 	source $$TMPDIR/ava/bin/activate; \

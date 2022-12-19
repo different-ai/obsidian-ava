@@ -28,6 +28,7 @@ import {
   createSemanticLinks,
   createSemanticTags,
   createWikipediaLinks,
+  getCompleteFiles,
   refreshSemanticSearch,
   rewrite,
 } from './utils';
@@ -70,11 +71,11 @@ export default class AvaPlugin extends Plugin {
       'changed',
       (file, data, cache) => {
         try {
-          refreshSemanticSearch({
+          refreshSemanticSearch([{
             notePath: file.basename,
             noteTags: cache.tags?.map((tag) => tag.tag) || [],
             noteContent: data,
-          });
+          }]);
         } catch (e) {
           console.error(e);
           new Notice(ERROR_NOTE_EVENT);
@@ -91,12 +92,12 @@ export default class AvaPlugin extends Plugin {
         if (!cache) return;
         const f = file as TFile;
         try {
-          refreshSemanticSearch({
+          refreshSemanticSearch([{
             notePath: f.basename,
             noteTags: cache.tags?.map((tag) => tag.tag) || [],
             noteContent: data,
             pathToDelete: oldPath.split('/').pop().replace('.md', ''),
-          });
+          }]);
         } catch (e) {
           console.error(e);
           new Notice(ERROR_NOTE_EVENT);
@@ -106,9 +107,9 @@ export default class AvaPlugin extends Plugin {
     });
     this.eventRefDeleted = this.app.vault.on('delete', (file) => {
       try {
-        refreshSemanticSearch({
+        refreshSemanticSearch([{
           pathToDelete: (file as TFile).basename,
-        });
+        }]);
       } catch (e) {
         console.error(e);
         new Notice(ERROR_NOTE_EVENT);
@@ -333,28 +334,12 @@ ${completion}`;
       });
 
       this.addCommand({
-        id: 'ava-refresh-semantic-api',
-        name: 'Search API - Refresh',
-        callback: async () => {
-          posthog.capture('ava-refresh-semantic-api');
-          new Notice('Search - Refreshing API');
-          fetch('http://localhost:3333/refresh')
-            .then(() => new Notice('Search - Refreshed API'))
-            .catch((e) => {
-              new Notice('Search - Error refreshing API');
-              console.error(e);
-            });
-        },
-      });
-
-      this.addCommand({
         id: 'ava-start-semantic-api',
         name: 'Search API - Start',
         callback: async () => {
           posthog.capture('ava-start-semantic-api');
           new Notice('Search - Starting API');
           runSemanticApi(this.app);
-          this.listenToNoteEvents();
         },
       });
 
@@ -367,7 +352,28 @@ ${completion}`;
           await killAllApiInstances();
           new Notice('Search - Starting API');
           runSemanticApi(this.app);
-          this.listenToNoteEvents();
+        },
+      });
+
+      this.addCommand({
+        id: 'ava-load-semantic',
+        name: 'Search API - Load vault',
+        callback: async () => {
+          posthog.capture('ava-load-semantic');
+          try {
+            const files = await getCompleteFiles(this.app);
+            console.log('files', files);
+            await refreshSemanticSearch(files.map((file) => ({
+              notePath: file.path,
+              noteTags: file.tags,
+              noteContent: file.content,
+            })));
+            this.listenToNoteEvents();
+          } catch (e) {
+            console.error(e);
+            new Notice(ERROR_NOTE_EVENT);
+            this.unlistenToNoteEvents();
+          }
         },
       });
 

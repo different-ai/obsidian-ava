@@ -1,5 +1,6 @@
 import got from 'got';
 import { SSE } from 'lib/sse';
+import { App } from 'obsidian';
 import { Extract } from 'unzipper';
 import manifest from '../manifest.json';
 import AvaPlugin from './main';
@@ -223,19 +224,38 @@ interface NoteRefresh {
 /**
  * Make a query to /refresh to refresh the semantic search index
  */
-export const refreshSemanticSearch = async (note: NoteRefresh) => {
+export const refreshSemanticSearch = async (notes: NoteRefresh[]) => {
   const response = await fetch('http://localhost:3333/refresh', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
+    body: JSON.stringify({notes: notes.map((note) => ({
       // snake_case to match the API
       note_path: note.notePath,
       note_tags: note.noteTags,
       note_content: note.noteContent,
       path_to_delete: note.pathToDelete,
-    }),
+    }))}),
   });
   return response;
+}
+
+/**
+ * Get all Markdown files in the vault with their content and tags
+ * @param {App} app 
+ * @returns {Promise<{path: string, content: string, tags: string[]}[]>} 
+ */
+export const getCompleteFiles = async (app: App) => {
+  const files = app.vault.getFiles()
+    .filter((file) => file.extension === 'md');
+  const filesData = await Promise.all(
+    files.map(async (file) => {
+      const data = await app.vault.read(file);
+      const cache = app.metadataCache.getFileCache(file);
+      const tags =  cache?.tags?.map((tag) => tag.tag) || [];
+      return { path: file.path, content: data, tags };
+    })
+  );
+  return filesData;
 }

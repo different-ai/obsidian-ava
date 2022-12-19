@@ -1,6 +1,3 @@
 sentence-transformers
 fastapi
-# obsidiantools
-# until they merge to main
-git+https://github.com/mfarragher/obsidiantools@073881b94da5c7d429b9e5f926027088833d33c6#egg=obsidiantools
 uvicorn[standard]

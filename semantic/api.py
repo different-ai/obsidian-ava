@@ -1,8 +1,5 @@
-import os
 import time
 import torch
-from pathlib import Path
-import obsidiantools.api as otools
 import re
 from sentence_transformers import SentenceTransformer
 from sentence_transformers import util
@@ -11,7 +8,7 @@ import typing
 import logging
 from fastapi import Depends, FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
-from semantic.models import Input, Note
+from semantic.models import Input, Notes
 from pydantic import BaseSettings
 from fastapi.responses import JSONResponse
 
@@ -21,7 +18,6 @@ class Settings(BaseSettings):
     embed_cache_size: typing.Optional[int] = None
     log_level: str = "INFO"
     device: str = "cpu"
-    vault_path: typing.Optional[str] = None
 
     class Config:
         env_file = ".env"
@@ -59,46 +55,6 @@ def note_to_embedding_format(
     return f"File:\n{note_path}\nTags:\n{note_tags}\nContent:\n{note_content}"
 
 
-def compute_embeddings(wkd: typing.Union[str, Path]):
-    """
-    Compute vault's embeddings
-    :param wkd: path to the vault
-    """
-    start_time = time.time()
-    state["logger"].info(f"Loading vault from {wkd}")
-    vault = otools.Vault(wkd).connect(show_nested_tags=True).gather()
-    corpus = {}
-    state["logger"].info(
-        f"Loading corpus, there are {len(vault.readable_text_index.items())} notes"
-    )
-
-    for k, v in vault.readable_text_index.items():
-        text_to_embed = note_to_embedding_format(
-            k, vault.get_tags(k, show_nested=True), v
-        )
-
-        corpus[k] = {
-            "note_embedding_format": text_to_embed,
-            "note_tags": vault.get_tags(k, show_nested=True),
-            "note_path": k,
-            "note_content": v,
-        }
-    c_i = corpus.items()
-    # Batch is much faster than online
-    document_embeddings = state["model"].encode(
-        [v["note_embedding_format"] for _, v in c_i],
-        convert_to_tensor=True,
-        show_progress_bar=True,
-        batch_size=16,
-    )
-    for i, (k, v) in enumerate(c_i):
-        corpus[k]["note_embedding"] = document_embeddings[i]
-
-    state["logger"].info(f"Loaded {len(corpus)} sentences")
-    end_time = time.time()
-    state["logger"].info(f"Loaded in {end_time - start_time} seconds")
-    return corpus
-
 
 @app.on_event("startup")
 def startup_event():
@@ -114,20 +70,12 @@ def startup_event():
     logger.addHandler(handler)
     state["logger"] = logger
 
-    # two level above the current directory
-    wkd = (
-        settings.vault_path
-        if settings.vault_path
-        else Path(os.getcwd()).parent.parent.parent
-    )
     logger.info(f"Loading model {settings.model}")
     # TODO cuda
     if torch.backends.mps.is_available() and torch.backends.mps.is_built():
         logger.info("Using MPS device")
         settings.device = "mps"
     state["model"] = SentenceTransformer(settings.model, device=settings.device)
-    corpus = compute_embeddings(wkd)
-    state["corpus"] = corpus
     state["status"] = "ready"
 
 
@@ -146,36 +94,54 @@ def no_batch_embed(sentence: str, _: Settings = Depends(get_settings)) -> torch.
 
 
 @app.post("/refresh")
-def refresh(note: Note, _: Settings = Depends(get_settings)):
+def refresh(request: Notes, _: Settings = Depends(get_settings)):
     """
     Refresh the embeddings for a given file
     """
+    notes = request.notes
+    start_time = time.time()
+    corpus = {}
+    state["logger"].info(
+        f"Refreshing {len(notes)} embeddings"
+    )
+    notes_embedding_format = []
+    for note in notes:
+        if note.path_to_delete:
+            state["logger"].info(f"Deleting {note.path_to_delete}")
+            try:
+                del state["corpus"][note.path_to_delete]
+            except KeyError:
+                pass
 
-    if note.path_to_delete:
-        state["logger"].info(f"Deleting {note.path_to_delete}")
-        try:
-            del state["corpus"][note.path_to_delete]
-        except KeyError:
-            state["logger"].info(f"Could not delete {note.path_to_delete}")
-
-    if not note.note_path:
-        return JSONResponse(
-            status_code=status.HTTP_200_OK,
-            content={"status": "success", "message": "Deleted"},
+        if not note.note_path:
+            continue
+        note_embedding_format = note_to_embedding_format(
+            note.note_path, note.note_tags, note.note_content
         )
 
-    state["status"] = "refreshing"
-    file_to_embed = note_to_embedding_format(
-        note.note_path, note.note_tags, note.note_content
+        corpus[note.note_path] = {
+            "note_embedding_format": note_embedding_format,
+            "note_tags": note.note_tags,
+            "note_path": note.note_path,
+            "note_content": note.note_content,
+        }
+        notes_embedding_format.append(note_embedding_format)
+    c_i = corpus.items()
+    # Batch is much faster than online
+    document_embeddings = state["model"].encode(
+        notes_embedding_format,
+        convert_to_tensor=True,
+        show_progress_bar=True,
+        batch_size=16, # Seems to be optimal on my machine
     )
-    # TODO: I think we got only note name with obsidian so if we have "Humans/Bob.md" and "Dogs/Bob.md" we will have a problem
-    state["corpus"][note.note_path] = {
-        "note_embedding_format": file_to_embed,
-        "note_tags": note.note_tags,
-        "note_path": note.note_path,
-        "note_content": note.note_content,
-        "note_embedding": no_batch_embed(file_to_embed),
-    }
+    for i, (k, _) in enumerate(c_i):
+        corpus[k]["note_embedding"] = document_embeddings[i]
+
+    state["corpus"] = corpus
+    state["logger"].debug(f"Loaded {len(corpus)} sentences")
+    end_time = time.time()
+    state["logger"].debug(f"Loaded in {end_time - start_time} seconds")
+
     return JSONResponse(status_code=status.HTTP_200_OK, content={"status": "success"})
 
 

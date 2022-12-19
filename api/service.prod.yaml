@@ -28,5 +28,5 @@ spec:
           valueFrom:
             secretKeyRef:
               key: "1"
-              name: obsidian-ai
+              name: OBSIDIAN_AI
       timeoutSeconds: 1200
