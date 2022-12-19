@@ -242,7 +242,7 @@ export default class AvaPlugin extends Plugin {
           const onSubmit = async (alteration: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
-            const source = await rewrite(text, alteration, this);
+            const source = await rewrite(text, alteration);
             // go to the next line
             editor.setCursor({ line: editor.getCursor('to').line + 2, ch: 0 });
 
