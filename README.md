@@ -77,7 +77,6 @@ Unlock the full potential of Obsidian Notes and take your productivity to the ne
 
 
 ## Technical Limitations
-- You need to have a gpt-3 account. We'll progressively move to a hosted version.
 - [link feature](https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-89c8-ed2f3277df72.mp4) has only been tested on macos
 
 ## TODOs
