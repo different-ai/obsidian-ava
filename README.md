@@ -62,7 +62,6 @@ Unlock the full potential of Obsidian Notes and take your productivity to the ne
 
 
 1. Install Ava from Obsidian's community plugins list 
-2. [Add your API key to Obsidian AI](https://elephas.app/blog/how-to-create-openai-api-keys-cl5c4f21d281431po7k8fgyol0) - Settings
 
 *You don't need to configure any advanced settings*
 
