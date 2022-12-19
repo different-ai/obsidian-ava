@@ -25,7 +25,7 @@ api/install: ## [DEVELOPMENT] Install the API dependencies
 	pip install -r api/requirements-test.txt
 
 api/run: ## [DEVELOPMENT] Run the API
-	python3 -m uvicorn api.main:app --port 8000 --reload --log-level debug
+	python3 -m uvicorn api.main:app --port 8080 --reload --log-level debug
 
 api/docker/build: ## [Local development] Build the docker image.
 	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
@@ -34,7 +34,7 @@ api/docker/build: ## [Local development] Build the docker image.
 
 api/docker/run: ## [Local development] Run the docker image.
 	docker build -t ${IMAGE_URL} -f ./api/Dockerfile ./api
-	docker run -p 8000:8000 --rm --name obsidian-ai -e STABILITY_KEY=$$STABILITY_KEY ${IMAGE_URL}
+	docker run -p 8080:8080 --rm --name obsidian-ai -v $(shell pwd)/.env:/app/.env ${IMAGE_URL}
 
 api/docker/push: api/docker/build ## [Local development] Push the docker image to GCR.
 	docker push ${IMAGE_URL}

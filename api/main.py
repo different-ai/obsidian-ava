@@ -46,7 +46,7 @@ class RequestImageCreate(BaseModel):
     # e.g. "A group of Giraffes visiting a zoo on mars populated by humans"
     prompt: str
 
-# curl -X POST "http://localhost:8000/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
+# curl -X POST "http://localhost:8080/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
 
 @app.post("/v1/image/create")
 def create(request: RequestImageCreate, settings: Settings = Depends(get_settings)):
@@ -62,6 +62,10 @@ def create(request: RequestImageCreate, settings: Settings = Depends(get_setting
     stability_api = client.StabilityInference(
         key=settings.stability_key,
         verbose=True,
+        # TODO: use the latest model
+        # https://platform.stability.ai/docs/features/text-to-image
+        # https://github.com/Stability-AI/stability-sdk/issues/159
+        engine="stable-diffusion-768-v2-1",
     )
 
     answers = stability_api.generate(
@@ -119,9 +123,10 @@ class RequestTextCreate(BaseModel):
 
 
 """
-curl http://localhost:8000/v1/text/create \
+curl http://localhost:8080/v1/text/create \
   -H "Content-Type: application/json" \
   -d '{"model": "text-davinci-003",  "prompt": "Write a short story about group of Giraffes visiting a zoo on mars populated by humans."}' | jq '.'
+
 """
 
 STREAM_DELAY = 1  # second
