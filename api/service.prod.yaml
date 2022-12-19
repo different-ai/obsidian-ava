@@ -24,14 +24,14 @@ spec:
             cpu: "4"
             memory: 8192Mi
         volumeMounts:
-        - name: settings
-          readOnly: true
-          mountPath: /app
+          - name: settings
+            readOnly: true
+            mountPath: /app
       volumes:
-      - name: settings
-        secret:
-          secretName: OBSIDIAN_AI
-          items:
-          - key: '2'
-            path: .env
+        - name: settings
+          secret:
+            secretName: OBSIDIAN_AI
+            items:
+              - key: "2"
+                path: .env
       timeoutSeconds: 1200
