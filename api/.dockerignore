@@ -11,3 +11,5 @@ public
 .firebase*
 .gitignore
 firebase.json
+.pylintrc
+*.yaml

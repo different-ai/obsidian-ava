@@ -1,7 +1,7 @@
 import fs from "fs";
 import path from "path";
+import { API_HOST } from "./constants";
 
-const HOST = process.env.API_HOST || "https://obsidian-ai.web.app";
 export interface RequestImageCreate {
   // e.g. 512, 768, 1024
   size?: number;
@@ -25,7 +25,7 @@ export interface ResponseImageCreate {
  * @returns 
  */
 export const createImage = async (request: RequestImageCreate): Promise<ResponseImageCreate> => {
-  const response = await fetch(`${HOST}/v1/image/create`, {
+  const response = await fetch(`${API_HOST}/v1/image/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

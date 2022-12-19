@@ -3,6 +3,7 @@ import { SSE } from 'lib/sse';
 import { App } from 'obsidian';
 import { Extract } from 'unzipper';
 import manifest from '../manifest.json';
+import { API_HOST } from './constants';
 import AvaPlugin from './main';
 
 
@@ -167,7 +168,7 @@ export const createSemanticTags = async (
 export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   const prompt = `Write a paragraph about ${text}`;
   console.log('Prompt:', prompt);
-  const source = new SSE('https://api.openai.com/v1/completions', {
+  const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + plugin.settings.openai.key,
@@ -194,7 +195,7 @@ export const rewrite = async (
 ) => {
   const prompt = `\n Rewrite ${text} to ${alteration}} \n. Of course, here it is: \n`;
   console.log('Prompt:', prompt);
-  const source = new SSE('https://api.openai.com/v1/completions', {
+  const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
       Authorization: 'Bearer ' + plugin.settings.openai.key,

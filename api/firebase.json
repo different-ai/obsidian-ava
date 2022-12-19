@@ -13,6 +13,13 @@
             "serviceId": "obsidian-ai",
             "region": "us-central1"
           }
+        },
+        {
+          "source": "/v1/text/create",
+          "run": {
+            "serviceId": "obsidian-ai",
+            "region": "us-central1"
+          }
         }
       ],
       "trailingSlash": false

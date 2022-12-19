@@ -1,6 +1,7 @@
 from functools import lru_cache
 from io import BytesIO
 import json
+import os
 from typing import List, Optional
 from fastapi import Depends, FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -23,14 +24,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
+# hosted vs local
+SECRET_PATH = "/secrets/" if os.path.exists("/secrets") else "."
 class Settings(BaseSettings):
     stability_key: str
     openai_api_key: str
     openai_organization: str
 
     class Config:
-        env_file = ".env"
+        env_file = SECRET_PATH + "/.env"
 
 
 @lru_cache()
@@ -46,7 +48,19 @@ class RequestImageCreate(BaseModel):
     # e.g. "A group of Giraffes visiting a zoo on mars populated by humans"
     prompt: str
 
-# curl -X POST "http://localhost:8080/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
+
+@app.on_event("startup")
+def startup_event():
+    print("Starting up...")
+
+
+@app.get("/")
+def hello():
+    return {"hello": "world"}
+
+# URL="https://obsidian-ai.web.app"
+# curl -X POST "$URL/v1/image/create" -H "Content-Type: application/json" -d '{"size":512,"limit":1,"prompt":"A group of Giraffes visiting a zoo on mars populated by humans"}' > giraffes.jpg
+
 
 @app.post("/v1/image/create")
 def create(request: RequestImageCreate, settings: Settings = Depends(get_settings)):
@@ -123,14 +137,12 @@ class RequestTextCreate(BaseModel):
 
 
 """
-curl http://localhost:8080/v1/text/create \
+URL="https://obsidian-ai.web.app"
+curl $URL/v1/text/create \
   -H "Content-Type: application/json" \
-  -d '{"model": "text-davinci-003",  "prompt": "Write a short story about group of Giraffes visiting a zoo on mars populated by humans."}' | jq '.'
+  -d '{"model": "ada",  "prompt": "Write a short story about group of Giraffes visiting a zoo on mars populated by humans."}' | jq '.'
 
 """
-
-STREAM_DELAY = 1  # second
-RETRY_TIMEOUT = 15000  # milisecond
 
 # Keep the endpoint as close to possible as the openai endpoint.
 # Only abstract the key and organization.
@@ -153,6 +165,7 @@ async def create(
             presence_penalty=request_body.presence_penalty,
             stream=request_body.stream,
             stop=request_body.stop,
+            user="obsidian-ava",
         )
 
     async def event_generator():
