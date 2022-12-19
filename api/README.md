@@ -40,8 +40,8 @@ firebase target:apply hosting api ${PROJECT_ID}
 gcloud secrets create OBSIDIAN_AI --replication-policy=automatic
 
 # add a version to the secret (from https://beta.dreamstudio.ai/membership)
-STABILITY_KEY="foo"
-echo -n "${STABILITY_KEY}" | gcloud secrets versions add OBSIDIAN_AI --data-file=-
+OBSIDIAN_AI_CONFIG='{"stability": {"key" : "foo"}, "openai": {"key" : "bar", "organization" : "baz"}}'
+echo -n "${OBSIDIAN_AI_CONFIG}" | gcloud secrets versions add OBSIDIAN_AI --data-file=-
 ```
 
 ### Manual deployment

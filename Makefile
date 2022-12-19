@@ -16,7 +16,7 @@ semantic/install: ## [DEVELOPMENT] Install the semantic API dependencies
 	pip install -r semantic/requirements-test.txt
 
 semantic/run: ## [DEVELOPMENT] Run the semantic API
-	python3 -m uvicorn semantic.api:app --port 3333
+	python3 -m uvicorn semantic.api:app --port 3333 --reload --log-level debug
 
 api/install: ## [DEVELOPMENT] Install the API dependencies
 	virtualenv $$TMPDIR/ava; \
@@ -25,7 +25,7 @@ api/install: ## [DEVELOPMENT] Install the API dependencies
 	pip install -r api/requirements-test.txt
 
 api/run: ## [DEVELOPMENT] Run the API
-	python3 -m uvicorn api.main:app
+	python3 -m uvicorn api.main:app --port 8000 --reload --log-level debug
 
 api/docker/build: ## [Local development] Build the docker image.
 	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"

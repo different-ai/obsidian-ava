@@ -1,3 +1,5 @@
 fastapi
 uvicorn[standard]
 stability-sdk
+openai
+sse-starlette

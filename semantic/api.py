@@ -42,9 +42,6 @@ app.add_middleware(
 
 state = {"corpus": {}, "status": "loading", "model": None, "logger": None}
 
-# regex to grab the file title from content (File:\n(blabla))
-regex = re.compile(r"File:\n(.*)")
-
 
 def note_to_embedding_format(
     note_path: str, note_tags: typing.List[str], note_content: str
