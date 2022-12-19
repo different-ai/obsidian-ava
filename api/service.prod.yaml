@@ -15,7 +15,7 @@ spec:
       containerConcurrency: 5
       serviceAccountName: obsidian-ai-cloud-run@obsidian-ai.iam.gserviceaccount.com
       containers:
-        image: gcr.io/obsidian-ai/obsidian-ai:0.0.1
+        image: gcr.io/obsidian-ai/obsidian-ai:0.0.2
         ports:
           - containerPort: 8080
             name: http1
@@ -23,10 +23,15 @@ spec:
           limits:
             cpu: "4"
             memory: 8192Mi
-        env:
-        - name: STABILITY_KEY
-          valueFrom:
-            secretKeyRef:
-              key: "1"
-              name: OBSIDIAN_AI
+        volumeMounts:
+        - name: settings
+          readOnly: true
+          mountPath: /app
+      volumes:
+      - name: settings
+        secret:
+          secretName: OBSIDIAN_AI
+          items:
+          - key: '2'
+            path: .env
       timeoutSeconds: 1200
