@@ -5,24 +5,14 @@ import {
 import * as React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { Button } from './Button';
 import { useApp } from './hooks';
 import { store } from './store';
 
-interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   disabled?: boolean;
 }
-
-const Button: React.FC<ButtonProps> = ({ children, ...props }) => (
-  <button
-    className="mod-cta cursor-pointer"
-    disabled={props.disabled}
-    onClick={props.onClick}
-    {...props}
-  >
-    {children}
-  </button>
-);
 
 export const AvaComponent = () => {
   const app = useApp();
