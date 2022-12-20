@@ -97,7 +97,6 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
     """
     notes = request.notes
     start_time = time.time()
-    corpus = {}
     state["logger"].info(
         f"Refreshing {len(notes)} embeddings"
     )
@@ -116,14 +115,13 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
             note.note_path, note.note_tags, note.note_content
         )
 
-        corpus[note.note_path] = {
+        state["corpus"][note.note_path] = {
             "note_embedding_format": note_embedding_format,
             "note_tags": note.note_tags,
             "note_path": note.note_path,
             "note_content": note.note_content,
         }
         notes_embedding_format.append(note_embedding_format)
-    c_i = corpus.items()
     # Batch is much faster than online
     document_embeddings = state["model"].encode(
         notes_embedding_format,
@@ -131,11 +129,10 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         show_progress_bar=True,
         batch_size=16, # Seems to be optimal on my machine
     )
-    for i, (k, _) in enumerate(c_i):
-        corpus[k]["note_embedding"] = document_embeddings[i]
+    for i, n in enumerate(notes):
+        state["corpus"][n.note_path]["note_embedding"] = document_embeddings[i]
 
-    state["corpus"] = corpus
-    state["logger"].debug(f"Loaded {len(corpus)} sentences")
+    state["logger"].debug(f"Loaded {len(notes)} sentences")
     end_time = time.time()
     state["logger"].debug(f"Loaded in {end_time - start_time} seconds")
 
