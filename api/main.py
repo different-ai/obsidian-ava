@@ -175,7 +175,7 @@ async def create(
             data = next(response, None)
 
             if not data or not data["choices"][0]["text"]:
-                continue
+                break
             data_json = json.dumps(data)
             yield {
                 "data": data_json,

@@ -31,14 +31,14 @@ export const createSemanticLinks = async (
       body: JSON.stringify({ query: query }),
     }
   ).then((response) => response.json());
-
+  console.log("response", response);
   // TODO: we could ignore score < 0.7 (configurable in settings)
   const similarities = response.similarities.filter(
-    (similarity) => similarity.note_path !== title
+    (similarity) => similarity.note_path !== title && similarity.score > 0.7
   );
   console.log(similarities);
   return `${similarities
-    .map((similarity) => '- [[' + similarity.note_path + ']]')
+    .map((similarity) => '- [[' + similarity.note_path.replace(".md", "") + ']]')
     .join('\n')}`;
 };
 

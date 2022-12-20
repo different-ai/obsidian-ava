@@ -15,7 +15,7 @@ spec:
       containerConcurrency: 5
       serviceAccountName: obsidian-ai-cloud-run@obsidian-ai.iam.gserviceaccount.com
       containers:
-        image: gcr.io/obsidian-ai/obsidian-ai:0.0.4
+        image: gcr.io/obsidian-ai/obsidian-ai:0.0.5
         ports:
           - containerPort: 8080
             name: http1
@@ -34,4 +34,4 @@ spec:
             items:
               - key: "2"
                 path: .env
-      timeoutSeconds: 1200
+      timeoutSeconds: 120
