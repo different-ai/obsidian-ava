@@ -277,7 +277,7 @@ export default class AvaPlugin extends Plugin {
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('semantic-related-topics');
           const title = this.app.workspace.getActiveFile()?.basename;
-          new Notice('Link - Generating Related Topics ⏰');
+          new Notice('Link - Connecting Related Notes ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           let currentText = editor.getValue();
           let completion = '';
@@ -294,8 +294,14 @@ export default class AvaPlugin extends Plugin {
           } catch (e) {
             console.error(e);
             new Notice(
-              'Link - Error generating related topics. Make sure you started AVA Search API'
+              'Link - Error connecting related notes. Make sure you started AVA Search API'
             );
+            this.statusBarItem.render(<StatusBar status="disabled" />);
+            return;
+          }
+
+          if (!completion) {
+            new Notice('Link - No related notes found');
             this.statusBarItem.render(<StatusBar status="disabled" />);
             return;
           }
@@ -318,7 +324,7 @@ ${completion}`;
 
           editor.setValue(newText);
           this.statusBarItem.render(<StatusBar status="disabled" />);
-          new Notice('Link - Related Topics Added', 2000);
+          new Notice('Link - Related Notes Added', 2000);
         },
       });
 

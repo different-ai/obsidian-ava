@@ -62,7 +62,7 @@ export const installApi = async (appDir: string) => {
       return;
     }
     // print progress bar
-    if (data.toString().includes('Batches')) {
+    if (data.toString().includes('Batches') && !["0%", "100%"].includes(data.toString())) {
       const pattern = /B.*?\|(.*?)\|/;
       const match = data.toString().match(pattern);
       new Notice(`🧙 AVA Search - ${match[0]}`);

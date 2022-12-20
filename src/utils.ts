@@ -6,6 +6,9 @@ import manifest from '../manifest.json';
 import { API_HOST } from './constants';
 import AvaPlugin from './main';
 
+// TODO: threshold configurable in settings, maybe?
+const SEMANTIC_SIMILARITY_THRESHOLD = 0.35;
+
 export interface ISimilarFile {
   score: number;
   note_path: string;
@@ -31,9 +34,8 @@ export const createSemanticLinks = async (
     }
   ).then((response) => response.json());
   console.log('response', response);
-  // TODO: we could ignore score < 0.7 (configurable in settings)
   const similarities = response.similarities.filter(
-    (similarity) => similarity.note_path !== title && similarity.score > 0.7
+    (similarity) => similarity.note_path !== title && similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
   );
   console.log(similarities);
   return `${similarities
@@ -128,6 +130,9 @@ export const createSemanticTags = async (
 
   // tags not already in the file - unique
   const newTags = response.similarities
+    .filter(
+      (similarity) => similarity.note_path !== title && similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
+    )
     .flatMap((similarity) => similarity.note_tags.map((tag) => '#' + tag))
     .filter(
       (tag) =>
