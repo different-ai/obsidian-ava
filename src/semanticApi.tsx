@@ -112,19 +112,17 @@ export const runSemanticApi = async (app: App) => {
     new Notice('🧙 AVA Search - Already Running ⚠️');
     return;
   }
-  // get obsidian root dir
-  const obsidianRootDir = getCwd(app);
+  const pluginRootDir = getCwd(app);
 
   new Notice(
     '🧙 AVA Search - Installing in progress, this can take up to 10 min',
     2000
   );
 
-  if (!hasApiSourceCode(obsidianRootDir)) {
-    new Notice('🧙 AVA Search - Downloading Source Files');
+  fs.rmSync(`${pluginRootDir}/semantic`, { recursive: true });
+  new Notice('🧙 AVA Search - Downloading Source Files');
 
-    await downloadApiSourceCode(obsidianRootDir);
-  }
+  await downloadApiSourceCode(pluginRootDir);
   new Notice(
     '🧙 AVA Search - Installing in progress, this can take up to 10 min'
   );
@@ -132,7 +130,7 @@ export const runSemanticApi = async (app: App) => {
   new Notice('🧙 AVA Search - Installing Dependencies');
   // race condition when source code is downloaded so adding a timeout
   setTimeout(() => {
-    installApi(obsidianRootDir);
+    installApi(pluginRootDir);
   }, 1500);
 };
 
