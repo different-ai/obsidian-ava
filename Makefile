@@ -1,14 +1,3 @@
-GCLOUD_PROJECT:=$(shell gcloud config list --format 'value(core.project)' 2>/dev/null)
-REGION="us-central1"
-SERVICE="obsidian-ai"
-LATEST_IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:latest")
-VERSION=$(shell sed -n 's/.*image:.*:\(.*\)/\1/p' api/service.prod.yaml)
-IMAGE_URL=$(shell echo "gcr.io/${GCLOUD_PROJECT}/${SERVICE}:${VERSION}")
-
-# echo the gcloud project
-$(info GCLOUD_PROJECT is set to $(GCLOUD_PROJECT), to change it run `gcloud config set project <project>`)
-$(info To get a list of your projects run `gcloud projects list`)
-
 semantic/install: ## [DEVELOPMENT] Install the semantic API dependencies
 	virtualenv $$TMPDIR/ava; \
 	source $$TMPDIR/ava/bin/activate; \
@@ -17,41 +6,6 @@ semantic/install: ## [DEVELOPMENT] Install the semantic API dependencies
 
 semantic/run: ## [DEVELOPMENT] Run the semantic API
 	python3 -m uvicorn semantic.api:app --port 3333 --reload --log-level debug
-
-api/install: ## [DEVELOPMENT] Install the API dependencies
-	virtualenv $$TMPDIR/ava; \
-	source $$TMPDIR/ava/bin/activate; \
-	pip install -r api/requirements.txt; \
-	pip install -r api/requirements-test.txt
-
-api/run: ## [DEVELOPMENT] Run the API
-	python3 -m uvicorn api.main:app --port 8080 --reload --log-level debug
-
-api/docker/build: ## [Local development] Build the docker image.
-	@echo "Building docker image for urls ${LATEST_IMAGE_URL} and ${IMAGE_URL}"
-	docker buildx build ./api --platform linux/amd64 -t ${LATEST_IMAGE_URL} -f ./api/Dockerfile
-	docker buildx build ./api --platform linux/amd64 -t ${IMAGE_URL} -f ./api/Dockerfile
-
-api/docker/run: ## [Local development] Run the docker image.
-	docker build -t ${IMAGE_URL} -f ./api/Dockerfile ./api
-	docker run -p 8080:8080 --rm --name obsidian-ai -v $(shell pwd)/.env:/app/.env ${IMAGE_URL}
-
-api/docker/push: api/docker/build ## [Local development] Push the docker image to GCR.
-	docker push ${IMAGE_URL}
-	docker push ${LATEST_IMAGE_URL}
-
-api/docker/deploy: api/docker/push ## [Local development] Deploy the docker image to GCR.
-	@echo "Will deploy Obsidian AI to ${REGION} on ${GCLOUD_PROJECT}"
-	gcloud beta run services replace ./api/service.prod.yaml --region ${REGION}
-	@echo "Make sure that you ran `make api/policy` to set the correct IAM policy for public access."
-
-api/policy:
-	gcloud run services set-iam-policy ${SERVICE} ./api/policy.prod.yaml --region ${REGION}
-
-api/hosting:
-	cd api; \
-	firebase use ${GCLOUD_PROJECT}; \
-	firebase deploy --only hosting
 
 release: ## [DEVELOPMENT] Release a new version of the plugin
 	npm run version
