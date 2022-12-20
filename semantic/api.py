@@ -130,6 +130,8 @@ def refresh(request: Notes, _: Settings = Depends(get_settings)):
         batch_size=16, # Seems to be optimal on my machine
     )
     for i, n in enumerate(notes):
+        if note.path_to_delete or not note.note_path:
+            continue
         state["corpus"][n.note_path]["note_embedding"] = document_embeddings[i]
 
     state["logger"].debug(f"Loaded {len(notes)} sentences")
