@@ -1,10 +1,8 @@
-import linkifyHtml from 'linkify-html';
 import {
   App,
   Editor,
   EventRef,
   ItemView,
-  MarkdownRenderer,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -34,9 +32,11 @@ import {
 } from './utils';
 
 import posthog from 'posthog-js';
+import { AvaSidebarView } from './AvaSidebarView';
 import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
+import { store } from './store';
 
 interface ImageAIClient {
   createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
@@ -71,11 +71,13 @@ export default class AvaPlugin extends Plugin {
       'changed',
       (file, data, cache) => {
         try {
-          refreshSemanticSearch([{
-            notePath: file.basename,
-            noteTags: cache.tags?.map((tag) => tag.tag) || [],
-            noteContent: data,
-          }]);
+          refreshSemanticSearch([
+            {
+              notePath: file.basename,
+              noteTags: cache.tags?.map((tag) => tag.tag) || [],
+              noteContent: data,
+            },
+          ]);
         } catch (e) {
           console.error(e);
           new Notice(ERROR_NOTE_EVENT);
@@ -92,12 +94,14 @@ export default class AvaPlugin extends Plugin {
         if (!cache) return;
         const f = file as TFile;
         try {
-          refreshSemanticSearch([{
-            notePath: f.basename,
-            noteTags: cache.tags?.map((tag) => tag.tag) || [],
-            noteContent: data,
-            pathToDelete: oldPath.split('/').pop().replace('.md', ''),
-          }]);
+          refreshSemanticSearch([
+            {
+              notePath: f.basename,
+              noteTags: cache.tags?.map((tag) => tag.tag) || [],
+              noteContent: data,
+              pathToDelete: oldPath.split('/').pop().replace('.md', ''),
+            },
+          ]);
         } catch (e) {
           console.error(e);
           new Notice(ERROR_NOTE_EVENT);
@@ -107,9 +111,11 @@ export default class AvaPlugin extends Plugin {
     });
     this.eventRefDeleted = this.app.vault.on('delete', (file) => {
       try {
-        refreshSemanticSearch([{
-          pathToDelete: (file as TFile).basename,
-        }]);
+        refreshSemanticSearch([
+          {
+            pathToDelete: (file as TFile).basename,
+          },
+        ]);
       } catch (e) {
         console.error(e);
         new Notice(ERROR_NOTE_EVENT);
@@ -227,6 +233,7 @@ export default class AvaPlugin extends Plugin {
           }
         },
       });
+
       this.addCommand({
         id: 'ava-rewrite-prompt',
         name: 'Rewrite Selection',
@@ -238,30 +245,23 @@ export default class AvaPlugin extends Plugin {
               '🧙 Obsidian AI - Select some text to rewrite and try again :)'
             );
           }
+          this.app.workspace.rightSplit.expand();
+          this.app.workspace.revealLeaf(this.sidebar.leaf);
 
-          const onSubmit = async (alteration: string) => {
+          const onSubmit = async (prompt: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
-            const source = await rewrite(text, alteration);
+            const source = await rewrite(text, prompt);
+            store.getState().reset();
             // go to the next line
-            editor.setCursor({ line: editor.getCursor('to').line + 2, ch: 0 });
 
             source.addEventListener('message', function (e: any) {
-              const currentLine = editor.getCursor().line;
-              const lastChar = editor.getLine(currentLine).length;
-
               const payload = JSON.parse(e.data);
-              // if the first char is a new line, go to the next line
-              // for some reason this doesn't work without this check
-              if (payload.choices[0].text === '\n') {
-                editor.setCursor({ line: currentLine + 1, ch: 0 });
-                return;
-              }
-              editor.setCursor({ line: currentLine, ch: lastChar });
-              editor.replaceRange(
-                `${payload.choices[0].text}`,
-                editor.getCursor()
-              );
+              store.getState().setPrompt(`Rewrite to ${prompt}`);
+              store.getState().setEditorContext(editor);
+              store.getState().appendContentToRewrite(payload.choices[0].text);
+
+              return;
             });
             source.stream();
             this.statusBarItem.render(<StatusBar status="success" />);
@@ -352,11 +352,13 @@ ${completion}`;
           try {
             const files = await getCompleteFiles(this.app);
             console.log('files', files);
-            await refreshSemanticSearch(files.map((file) => ({
-              notePath: file.path,
-              noteTags: file.tags,
-              noteContent: file.content,
-            })));
+            await refreshSemanticSearch(
+              files.map((file) => ({
+                notePath: file.path,
+                noteTags: file.tags,
+                noteContent: file.content,
+              }))
+            );
             this.listenToNoteEvents();
           } catch (e) {
             console.error(e);
@@ -439,17 +441,17 @@ ${completion}`;
 
           new Notice('Generating Wikipedia Links ⏰');
 
-          this.sidebar.setLoading();
           this.statusBarItem.render(<StatusBar status="loading" />);
           const completion = await createWikipediaLinks(
             title,
-            editor.getSelection(),
+            editor.getSelection()
           );
+          store.getState().reset();
+          store.getState().setPrompt(title);
           this.app.workspace.rightSplit.expand();
-          this.sidebar.removeLoading();
-          this.sidebar.updateContent(title, completion);
           this.app.workspace.revealLeaf(this.sidebar.leaf);
-
+          store.getState().setEditorContext(editor);
+          store.getState().appendContentToRewrite(completion);
           this.statusBarItem.render(<StatusBar status="disabled" />);
 
           new Notice('Generated Wikipedia Links check out your sidebar🔥');
@@ -512,80 +514,5 @@ class AvaSettingTab extends PluginSettingTab {
     const root = createRoot(this.containerEl);
     root.render(<CustomSettings plugin={this.plugin} />);
     this.initialized = true;
-  }
-}
-
-export class AvaSidebarView extends ItemView {
-  private readonly plugin: AvaPlugin;
-
-  constructor(leaf: WorkspaceLeaf, plugin: AvaPlugin) {
-    super(leaf);
-    this.plugin = plugin;
-  }
-
-  getDisplayText(): string {
-    return 'Wikpedia Links';
-  }
-
-  getViewType(): string {
-    return VIEW_TYPE_AVA;
-  }
-  removeLoading = () => {
-    document.getElementById('loading-state')?.remove();
-  };
-
-  setLoading = () => {
-    const loadingEl = document.createElement('div');
-    loadingEl.innerText = 'Loading...';
-    loadingEl.id = 'loading-state';
-    this.contentEl.appendChild(loadingEl);
-  };
-
-  async updateContent(title: string, content: string): Promise<void> {
-    this.removeLoading();
-    const linkified = linkifyHtml(content);
-    await MarkdownRenderer.renderMarkdown(
-      `## [[${title}]]`,
-      this.contentEl,
-      '',
-      this.plugin
-    );
-
-    await MarkdownRenderer.renderMarkdown(
-      linkified,
-      this.contentEl,
-      '',
-      this.plugin
-    );
-    // this.containerEl.append(linkified);
-  }
-
-  getIcon(): string {
-    return 'clock';
-  }
-
-  async onOpen(): Promise<void> {
-    const header = document.createElement('h2');
-    header.id = 'header';
-    header.innerText = 'Wikipedia Links';
-
-    const emptyState = document.createElement('div');
-    emptyState.id = 'empty-state';
-
-    emptyState.innerHTML = `
-    <div>
-      <p>
-      Your links will appear here
-      </p>
-      <ol>
-      <li>Select some text</li>
-      <li>Press F1</li>
-      <li>Type "Get Wikipedia Suggestions"</li>
-      </ol>
-    </div>
-    `;
-
-    this.contentEl.appendChild(header);
-    this.contentEl.appendChild(emptyState);
   }
 }

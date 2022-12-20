@@ -6,7 +6,6 @@ import manifest from '../manifest.json';
 import { API_HOST } from './constants';
 import AvaPlugin from './main';
 
-
 export interface ISimilarFile {
   score: number;
   note_path: string;
@@ -31,14 +30,16 @@ export const createSemanticLinks = async (
       body: JSON.stringify({ query: query }),
     }
   ).then((response) => response.json());
-  console.log("response", response);
+  console.log('response', response);
   // TODO: we could ignore score < 0.7 (configurable in settings)
   const similarities = response.similarities.filter(
     (similarity) => similarity.note_path !== title && similarity.score > 0.7
   );
   console.log(similarities);
   return `${similarities
-    .map((similarity) => '- [[' + similarity.note_path.replace(".md", "") + ']]')
+    .map(
+      (similarity) => '- [[' + similarity.note_path.replace('.md', '') + ']]'
+    )
     .join('\n')}`;
 };
 
@@ -52,10 +53,7 @@ export const limitLengthForGPT3 = (markdownFileContent: string) => {
   return text;
 };
 
-export const createWikipediaLinks = async (
-  title: string,
-  text: string,
-) => {
+export const createWikipediaLinks = async (title: string, text: string) => {
   const prompt =
     'Title: ' +
     title +
@@ -164,11 +162,12 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   return source;
 };
 
-export const rewrite = async (
-  text: string,
-  alteration: string,
-) => {
-  const prompt = `\n Rewrite ${text} to ${alteration}} \n. Of course, here it is: \n`;
+export const rewrite = async (text: string, alteration: string) => {
+  const prompt = `\n Rewrite
+  "${text}" to
+  
+  ${alteration}} 
+  \n. Of course, here it is: \n`;
   console.log('Prompt:', prompt);
   const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
@@ -191,10 +190,10 @@ export const rewrite = async (
 };
 
 interface NoteRefresh {
-    notePath?: string;
-    noteTags?: string[];
-    noteContent?: string;
-    pathToDelete?: string;
+  notePath?: string;
+  noteTags?: string[];
+  noteContent?: string;
+  pathToDelete?: string;
 }
 /**
  * Make a query to /refresh to refresh the semantic search index
@@ -205,32 +204,33 @@ export const refreshSemanticSearch = async (notes: NoteRefresh[]) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({notes: notes.map((note) => ({
-      // snake_case to match the API
-      note_path: note.notePath,
-      note_tags: note.noteTags,
-      note_content: note.noteContent,
-      path_to_delete: note.pathToDelete,
-    }))}),
+    body: JSON.stringify({
+      notes: notes.map((note) => ({
+        // snake_case to match the API
+        note_path: note.notePath,
+        note_tags: note.noteTags,
+        note_content: note.noteContent,
+        path_to_delete: note.pathToDelete,
+      })),
+    }),
   });
   return response;
-}
+};
 
 /**
  * Get all Markdown files in the vault with their content and tags
- * @param {App} app 
- * @returns {Promise<{path: string, content: string, tags: string[]}[]>} 
+ * @param {App} app
+ * @returns {Promise<{path: string, content: string, tags: string[]}[]>}
  */
 export const getCompleteFiles = async (app: App) => {
-  const files = app.vault.getFiles()
-    .filter((file) => file.extension === 'md');
+  const files = app.vault.getFiles().filter((file) => file.extension === 'md');
   const filesData = await Promise.all(
     files.map(async (file) => {
       const data = await app.vault.read(file);
       const cache = app.metadataCache.getFileCache(file);
-      const tags =  cache?.tags?.map((tag) => tag.tag) || [];
+      const tags = cache?.tags?.map((tag) => tag.tag) || [];
       return { path: file.path, content: data, tags };
     })
   );
   return filesData;
-}
+};
