@@ -244,6 +244,7 @@ export default class AvaPlugin extends Plugin {
             new Notice(
               '🧙 Obsidian AI - Select some text to rewrite and try again :)'
             );
+            return;
           }
           this.app.workspace.rightSplit.expand();
           this.app.workspace.revealLeaf(this.sidebar.leaf);
@@ -446,6 +447,10 @@ ${completion}`;
           const title = this.app.workspace.getActiveFile()?.basename;
 
           new Notice('Generating Wikipedia Links ⏰');
+          if (editor.somethingSelected() === false) {
+            new Notice('🧙 Obsidian AI - Select some text and try again :)');
+            return;
+          }
 
           this.statusBarItem.render(<StatusBar status="loading" />);
           const completion = await createWikipediaLinks(
