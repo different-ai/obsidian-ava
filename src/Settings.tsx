@@ -7,6 +7,7 @@ import { PrimaryButton, SecondaryButton } from './Button';
 import { useInterval } from './hooks';
 import { LegacySettings } from './LegacySettings';
 import AvaPlugin from './main';
+import PricingSection from './PricingSection';
 import { clearLogs, killAllApiInstances, runSemanticApi } from './semanticApi';
 
 const SemanticAPI = ({ plugin }: { plugin: AvaPlugin }) => {
@@ -100,6 +101,7 @@ export const CustomSettings = ({ plugin }: { plugin: AvaPlugin }) => {
       <div className="text-4xl mb-4">Obsidian AI - Codename AVA</div>
       <LegacySettings plugin={plugin} />
       <SemanticAPI plugin={plugin} />
+      <PricingSection />
       {plugin.settings.debug && (
         <div className="flex justify-between gap-3">
           <div>You need to have an account to make the most of this plugin</div>
