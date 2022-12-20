@@ -5,7 +5,7 @@ import {
 import * as React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { Button } from './Button';
+import { PrimaryButton } from './Button';
 import { useApp } from './hooks';
 import { store } from './store';
 
@@ -55,13 +55,15 @@ export const AvaComponent = () => {
       </ReactMarkdown>
       {hideButtons ? null : (
         <div className="flex gap-3">
-          <Button onClick={handleCopy}>
+          <PrimaryButton onClick={handleCopy}>
             {isCopied && <ClipboardDocumentCheckIcon height={24} />}
             {isCopied && <span>Copied!</span>}
             {!isCopied && <ClipboardDocumentListIcon height={24} />}
             {!isCopied && <span>Copy</span>}
-          </Button>
-          <Button onClick={handleReplace}>Replace Selection</Button>
+          </PrimaryButton>
+          <PrimaryButton onClick={handleReplace}>
+            Replace Selection
+          </PrimaryButton>
         </div>
       )}
     </div>

@@ -21,14 +21,22 @@ export const getCwd = (app: App): string => {
  * @param {App} app
  * @return {Promise<boolean>} success or failure
  */
-export const installApi = async (appDir: string) => {
-  const process = spawn(`sh start-api.sh`, {
+export const installApi = (appDir: string) => {
+  const proc = spawn(`sh start-api.sh`, {
     shell: true,
     cwd: `${appDir}/semantic`,
   });
-  process.stdout.on('data', (data) => {
+  // hacky way to create visibility into the install process
+  proc.stdout.on('data', (data) => {
+    if (data.toString().includes('/health')) return;
+    fs.appendFileSync(`${process.env.TMPDIR}ava/log.txt`, data.toString());
+  });
+  proc.stderr.on('data', (data) => {
+    fs.appendFileSync(`${process.env.TMPDIR}ava/log.txt`, data.toString());
+  });
+
+  proc.stdout.on('data', (data) => {
     // whatever happens log the stdout
-    console.info(data.toString());
     const formattedNotice = `🧙 AVA Search - ${data.toString()}`;
 
     if (data.toString().includes('Loading env')) {
@@ -40,19 +48,14 @@ export const installApi = async (appDir: string) => {
       new Notice(formattedNotice);
       return;
     }
-    if (data.toString().includes('Starting API')) {
+    if (data.toString().includes('Initialzing API')) {
       new Notice(formattedNotice);
-      return;
-    }
-
-    if (data.toString().includes('Started Server')) {
-      new Notice('🧙 AVA Search - Initializing API');
       return;
     }
   });
 
   // a lot of the errors are actually stdout
-  process.stderr.on('data', (data) => {
+  proc.stderr.on('data', (data) => {
     // whatever happens log the stderr
     console.info(data.toString());
     const formattedNotice = `🧙 AVA Search - ${data.toString()}`;
@@ -62,7 +65,10 @@ export const installApi = async (appDir: string) => {
       return;
     }
     // print progress bar
-    if (data.toString().includes('Batches') && !["0%", "100%"].includes(data.toString())) {
+    if (
+      data.toString().includes('Batches') &&
+      !['0%', '100%'].includes(data.toString())
+    ) {
       const pattern = /B.*?\|(.*?)\|/;
       const match = data.toString().match(pattern);
       new Notice(`🧙 AVA Search - ${match[0]}`);
@@ -78,6 +84,7 @@ export const installApi = async (appDir: string) => {
       new Notice('🧙 AVA Search - Ready 🚀', 5000);
       return;
     }
+    return proc;
   });
 };
 
@@ -121,7 +128,6 @@ export const runSemanticApi = async (app: App) => {
 
   fs.rmSync(`${pluginRootDir}/semantic`, { recursive: true });
   new Notice('🧙 AVA Search - Downloading Source Files');
-
   await downloadApiSourceCode(pluginRootDir);
   new Notice(
     '🧙 AVA Search - Installing in progress, this can take up to 10 min'
@@ -133,6 +139,9 @@ export const runSemanticApi = async (app: App) => {
     installApi(pluginRootDir);
   }, 1500);
 };
+export const clearLogs = () => {
+  fs.rmSync(`${process.env.TMPDIR}/ava/log.txt`);
+};
 
 /**
  * Kill all processes containing "semantic.api:app" in their name.
@@ -140,6 +149,7 @@ export const runSemanticApi = async (app: App) => {
  */
 export const killAllApiInstances = async (): Promise<boolean> => {
   try {
+    new Notice('🧙 AVA Search - Stoping API');
     console.log('AVA - Killing all API instances');
     await promisify(exec)('pkill -9 -f api:app');
     console.log('Killed all API instances');
