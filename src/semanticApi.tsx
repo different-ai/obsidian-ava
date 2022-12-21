@@ -126,7 +126,9 @@ export const runSemanticApi = async (app: App) => {
     2000
   );
 
-  fs.rmSync(`${pluginRootDir}/semantic`, { recursive: true });
+  if (fs.existsSync(`${process.env.TMPDIR}/semantic`)) {
+    fs.rmSync(`${pluginRootDir}/semantic`, { recursive: true });
+  }
   new Notice('🧙 AVA Search - Downloading Source Files');
   await downloadApiSourceCode(pluginRootDir);
   new Notice(
