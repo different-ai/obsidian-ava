@@ -10,7 +10,6 @@ import {
 import { LoadingButton } from '@mui/lab';
 import {
   Autocomplete,
-  Checkbox,
   Collapse,
   Divider,
   FormControl,
@@ -26,6 +25,7 @@ import {
   OutlinedInputProps,
   Select,
   Slider,
+  Switch,
   TextField,
   Tooltip,
 } from '@mui/material';
@@ -72,7 +72,6 @@ interface CustomSettingsProps {
 }
 export const LegacySettings = ({ plugin }: CustomSettingsProps) => {
   const [isLoading, setIsloading] = React.useState(false);
-  const [debug, setDebug] = React.useState<boolean>(plugin.settings.debug);
   const [openAiConfig, setOpenAiConfig] = React.useState<OpenAISettings>(
     plugin.settings.openai || DEFAULT_SETTINGS.openai
   );
@@ -96,11 +95,6 @@ export const LegacySettings = ({ plugin }: CustomSettingsProps) => {
         setAvailableModels(models.data?.data?.map((m) => m.id!) || [])
       );
   }, [openAiConfig?.key]);
-
-  React.useEffect(() => {
-    plugin.settings.debug = debug;
-    plugin.saveSettings();
-  }, [debug]);
 
   const onSave = async () => {
     setIsloading(true);
@@ -134,27 +128,6 @@ export const LegacySettings = ({ plugin }: CustomSettingsProps) => {
       >
         <ListItem>
           <ListItemText primary="Settings" />
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton
-            role={undefined}
-            onClick={() => {
-              setDebug(!debug);
-              if (debug) posthog.opt_out_capturing();
-            }}
-            dense
-          >
-            <ListItemIcon>
-              <Checkbox
-                edge="start"
-                checked={debug}
-                tabIndex={-1}
-                disableRipple
-                inputProps={{ 'aria-labelledby': 'debug' }}
-              />
-            </ListItemIcon>
-            <ListItemText id="debug" primary="Debug" />
-          </ListItemButton>
         </ListItem>
         <CustomDivider text="OpenAI" />
         <ListItem>
@@ -436,3 +409,29 @@ export const LegacySettings = ({ plugin }: CustomSettingsProps) => {
     </>
   );
 };
+export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
+  const [isDebug, setDebug] = React.useState(plugin.settings.debug);
+
+  const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked;
+    plugin.settings.debug = checked;
+    plugin.saveSettings();
+    setDebug(checked);
+    checked && posthog.opt_out_capturing();
+  };
+
+  return (
+    <ListItem disablePadding>
+      <Switch
+        checked={isDebug}
+        onChange={handleDebug}
+        inputProps={{ 'aria-labelledby': 'debug' }}
+      />
+      <ListItemText
+        id="debug"
+        primary="Debug"
+        secondary="Requires Force Reload"
+      />
+    </ListItem>
+  );
+}

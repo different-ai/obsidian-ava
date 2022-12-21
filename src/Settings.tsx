@@ -5,9 +5,8 @@ import { posthog } from 'posthog-js';
 import * as React from 'react';
 import { PrimaryButton, SecondaryButton } from './Button';
 import { useInterval } from './hooks';
-import { LegacySettings } from './LegacySettings';
+import { AdvancedSettings, LegacySettings } from './LegacySettings';
 import AvaPlugin from './main';
-import PricingSection from './PricingSection';
 import { clearLogs, killAllApiInstances, runSemanticApi } from './semanticApi';
 
 const SemanticAPI = ({ plugin }: { plugin: AvaPlugin }) => {
@@ -99,16 +98,20 @@ export const CustomSettings = ({ plugin }: { plugin: AvaPlugin }) => {
   return (
     <div>
       <div className="text-4xl mb-4">Obsidian AI - Codename AVA</div>
-      <LegacySettings plugin={plugin} />
-      <SemanticAPI plugin={plugin} />
-      <PricingSection />
+      <div className="flex justify-between gap-3 mb-20">
+        <div>You need to have an account to make the most of this plugin</div>
+        <a href="https://app.anotherai.co">
+          <PrimaryButton>Connect</PrimaryButton>
+        </a>
+      </div>
+      <AdvancedSettings plugin={plugin} />
       {plugin.settings.debug && (
-        <div className="flex justify-between gap-3">
-          <div>You need to have an account to make the most of this plugin</div>
-          <a href="https://app.anotherai.co">
-            <PrimaryButton>Connect</PrimaryButton>
-          </a>
-        </div>
+        <>
+          <SemanticAPI plugin={plugin} />
+          <h2 className="text-3xl mt-4">Legacy Settings </h2>
+          <div className="text-red-400">You probably don't need this</div>
+          <LegacySettings plugin={plugin} />
+        </>
       )}
     </div>
   );
