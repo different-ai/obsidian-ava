@@ -38,6 +38,7 @@ import AvaPlugin from './main';
 export interface AvaSettings {
   debug: boolean;
   openai: OpenAISettings;
+  token: string;
 }
 type CompletionConfig = Omit<
   CreateCompletionRequest,

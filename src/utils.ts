@@ -263,9 +263,11 @@ export function getAuthHeaders() {
   };
 }
 
-const baseURL = 'http:/localhost:3000';
+// const baseURL = 'http:/localhost:3001';
+const baseURL = 'https://app.anotherai.co';
+
 export async function getUserAuthToken(attempt = 0) {
-  const uuid = this.getObsidianClientID();
+  const uuid = getObsidianClientID();
 
   if (attempt === 0) {
     window.open(`${baseURL}/signup?token=${uuid}&service=obsidian`);
@@ -273,7 +275,12 @@ export async function getUserAuthToken(attempt = 0) {
 
   let response, data;
   try {
-    response = await fetch(`${baseURL}/api/auth?token=${uuid}`);
+    response = await fetch(`${baseURL}/api/auth?token=${uuid}`, {
+      headers: {
+        'Content-Type': 'application/json',
+        mode: 'cors',
+      },
+    });
   } catch (e) {
     console.log('Obsidian AVA plugin: fetch failed in getUserAuthToken: ', e);
   }
@@ -291,8 +298,8 @@ export async function getUserAuthToken(attempt = 0) {
     // );
     return;
   }
-  if (data.userAccessToken) {
-    data.userAccessToken;
+  if (data.token) {
+    data.token;
   } else {
     if (attempt > 20) {
       console.log(
@@ -308,5 +315,5 @@ export async function getUserAuthToken(attempt = 0) {
     await new Promise((resolve) => setTimeout(resolve, 1000));
     await getUserAuthToken(attempt + 1);
   }
-  return data.userAccessToken;
+  return data.token;
 }

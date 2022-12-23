@@ -8,6 +8,7 @@ import { useInterval } from './hooks';
 import { AdvancedSettings, LegacySettings } from './LegacySettings';
 import AvaPlugin from './main';
 import { clearLogs, killAllApiInstances, runSemanticApi } from './semanticApi';
+import { getUserAuthToken } from './utils';
 
 const SemanticAPI = ({ plugin }: { plugin: AvaPlugin }) => {
   const [text, setText] = React.useState('');
@@ -94,15 +95,39 @@ const SemanticAPI = ({ plugin }: { plugin: AvaPlugin }) => {
   );
 };
 
+const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
+  const [isConnected, setIsConnected] = React.useState(
+    !plugin?.settings?.token
+  );
+  const handleConnect = async () => {
+    posthog.capture('ava-connect');
+    const token = await getUserAuthToken();
+    plugin.settings.token = token;
+    plugin.saveSettings();
+    setIsConnected(true);
+  };
+
+  const handleDisconnect = () => {
+    posthog.capture('ava-disconnect');
+    plugin.settings.token = '';
+    plugin.saveSettings();
+    setIsConnected(false);
+  };
+
+  if (!isConnected) {
+    return <PrimaryButton onClick={handleConnect}>Login</PrimaryButton>;
+  }
+
+  return <PrimaryButton onClick={handleDisconnect}>Logout</PrimaryButton>;
+};
+
 export const CustomSettings = ({ plugin }: { plugin: AvaPlugin }) => {
   return (
     <div>
       <div className="text-4xl mb-4">Obsidian AI - Codename AVA</div>
       <div className="flex justify-between gap-3 mb-20">
         <div>You need to have an account to make the most of this plugin</div>
-        <a href="https://app.anotherai.co">
-          <PrimaryButton>Connect</PrimaryButton>
-        </a>
+        <Connect plugin={plugin} />
       </div>
       <AdvancedSettings plugin={plugin} />
       {plugin.settings.debug && (
