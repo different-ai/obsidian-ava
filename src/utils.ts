@@ -35,7 +35,9 @@ export const createSemanticLinks = async (
   ).then((response) => response.json());
   console.log('response', response);
   const similarities = response.similarities.filter(
-    (similarity) => similarity.note_path !== title && similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
+    (similarity) =>
+      similarity.note_path !== title &&
+      similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
   );
   console.log(similarities);
   return `${similarities
@@ -131,7 +133,9 @@ export const createSemanticTags = async (
   // tags not already in the file - unique
   const newTags = response.similarities
     .filter(
-      (similarity) => similarity.note_path !== title && similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
+      (similarity) =>
+        similarity.note_path !== title &&
+        similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
     )
     .flatMap((similarity) => similarity.note_tags.map((tag) => '#' + tag))
     .filter(
@@ -239,3 +243,70 @@ export const getCompleteFiles = async (app: App) => {
   );
   return filesData;
 };
+
+// used to uniquely identify the user
+export const getObsidianClientID = () => {
+  let obsidianClientId = window.localStorage.getItem('rw-ObsidianClientId');
+  if (obsidianClientId) {
+    return obsidianClientId;
+  } else {
+    obsidianClientId = Math.random().toString(36).substring(2, 15);
+    window.localStorage.setItem('rw-ObsidianClientId', obsidianClientId);
+    return obsidianClientId;
+  }
+};
+
+export function getAuthHeaders() {
+  return {
+    AUTHORIZATION: `Token ${this.settings.token}`,
+    'Obsidian-Client': `${this.getObsidianClientID()}`,
+  };
+}
+
+const baseURL = 'http:/localhost:3000';
+export async function getUserAuthToken(attempt = 0) {
+  const uuid = this.getObsidianClientID();
+
+  if (attempt === 0) {
+    window.open(`${baseURL}/signup?token=${uuid}&service=obsidian`);
+  }
+
+  let response, data;
+  try {
+    response = await fetch(`${baseURL}/api/auth?token=${uuid}`);
+  } catch (e) {
+    console.log('Obsidian AVA plugin: fetch failed in getUserAuthToken: ', e);
+  }
+  if (response && response.ok) {
+    data = await response.json();
+  } else {
+    console.log(
+      'Obsidian AVA plugin: bad response in getUserAuthToken: ',
+      response
+    );
+    // this.showInfoStatus(
+    //   button.parentElement,
+    //   'Authorization failed. Try again',
+    //   'rw-error'
+    // );
+    return;
+  }
+  if (data.userAccessToken) {
+    data.userAccessToken;
+  } else {
+    if (attempt > 20) {
+      console.log(
+        'Obsidian AVA plugin: reached attempt limit in getUserAuthToken'
+      );
+      return;
+    }
+    console.log(
+      `Obsidian AVA plugin: didn't get token data, retrying (attempt ${
+        attempt + 1
+      })`
+    );
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await getUserAuthToken(attempt + 1);
+  }
+  return data.userAccessToken;
+}
