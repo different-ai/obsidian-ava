@@ -266,12 +266,15 @@ export function getAuthHeaders() {
 // const baseURL = 'http:/localhost:3001';
 const baseURL = 'https://app.anotherai.co';
 
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function getUserAuthToken(attempt = 0) {
   const uuid = getObsidianClientID();
 
   if (attempt === 0) {
     window.open(`${baseURL}/signup?token=${uuid}&service=obsidian`);
   }
+  // wait  little to be sure that the user has time to authorize
+  await wait(1000);
 
   let response, data;
   try {
