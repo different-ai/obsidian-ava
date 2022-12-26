@@ -57,7 +57,7 @@ export const limitLengthForGPT3 = (markdownFileContent: string) => {
   return text;
 };
 
-export const createWikipediaLinks = async (title: string, text: string) => {
+export const createWikipediaLinks = async (title: string, text: string, plugin: AvaPlugin) => {
   const prompt =
     'Title: ' +
     title +
@@ -69,6 +69,7 @@ export const createWikipediaLinks = async (title: string, text: string) => {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${plugin.settings.token}`,
     },
     body: JSON.stringify({
       model: 'text-davinci-003',
@@ -155,6 +156,7 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${plugin.settings.token}`,
     },
     method: 'POST',
     payload: JSON.stringify({
@@ -171,7 +173,7 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   return source;
 };
 
-export const rewrite = async (text: string, alteration: string) => {
+export const rewrite = async (text: string, alteration: string, plugin: AvaPlugin) => {
   const prompt = `\n Rewrite
   "${text}" to
   
@@ -181,6 +183,7 @@ export const rewrite = async (text: string, alteration: string) => {
   const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${plugin.settings.token}`,
     },
 
     method: 'POST',

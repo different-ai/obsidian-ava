@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { API_HOST } from "./constants";
+import AvaPlugin from "./main";
 
 export interface RequestImageCreate {
   // e.g. 512, 768, 1024
@@ -24,11 +25,12 @@ export interface ResponseImageCreate {
  * @param request 
  * @returns 
  */
-export const createImage = async (request: RequestImageCreate): Promise<ResponseImageCreate> => {
+export const createImage = async (request: RequestImageCreate, plugin: AvaPlugin): Promise<ResponseImageCreate> => {
   const response = await fetch(`${API_HOST}/v1/image/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
+      "Authorization": `Bearer ${plugin.settings?.token}`
     },
     body: JSON.stringify({
       size: request.size || 512,
@@ -36,6 +38,10 @@ export const createImage = async (request: RequestImageCreate): Promise<Response
       prompt: request.prompt,
     }),
   });
+
+  if (response.status !== 200) {
+    throw new Error(`Failed to create image: ${response.statusText}`);
+  }
   
   const buffer = Buffer.from(await response.arrayBuffer());
   // file name is "time"_"the prompt as a writable encoded path" (only keep alphanumeric and underscores)

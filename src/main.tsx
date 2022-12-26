@@ -37,6 +37,7 @@ import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
 import { store } from './store';
+import { defaultUserFacingMessage } from './constants';
 
 interface ImageAIClient {
   createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
@@ -46,6 +47,11 @@ export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
 const ERROR_NOTE_EVENT =
   'Error while refreshing Obsidian AI search. Please check the console for more details.';
+
+const onSSEError = (e: any) => {
+  console.error(e.data);
+  new Notice(defaultUserFacingMessage);
+}
 
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
@@ -169,6 +175,7 @@ export default class AvaPlugin extends Plugin {
                 editor.getCursor()
               );
             });
+            source.addEventListener('error', onSSEError);
             source.stream();
             this.statusBarItem.render(<StatusBar status="success" />);
           };
@@ -199,19 +206,22 @@ export default class AvaPlugin extends Plugin {
             '/' +
             this.app.workspace.getActiveFile().parent.path;
           this.statusBarItem.render(<StatusBar status="loading" />);
-          const onError = (e: any) =>
+          const onError = (e: any) => {
+            new Notice(defaultUserFacingMessage);
             this.statusBarItem.render(
               <StatusBar
                 status="error"
                 statusMessage={'Error while generating image ' + e}
               />
             );
+          };
           new Notice('Generating image ⏰');
           try {
             const { imagePaths } = await createImage({
               prompt: selection,
               outputDir: outDir,
-            });
+            }, this);
+            console.log("imagePaths", imagePaths);
             if (imagePaths.length === 0) {
               onError('No image was generated');
               return;
@@ -252,7 +262,8 @@ export default class AvaPlugin extends Plugin {
           const onSubmit = async (prompt: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
-            const source = await rewrite(text, prompt);
+            const source = await rewrite(text, prompt, this);
+            source.addEventListener('error', onSSEError);
             store.getState().reset();
             // go to the next line
 
@@ -455,7 +466,8 @@ ${completion}`;
           this.statusBarItem.render(<StatusBar status="loading" />);
           const completion = await createWikipediaLinks(
             title,
-            editor.getSelection()
+            editor.getSelection(),
+            this,
           );
           store.getState().reset();
           store.getState().setPrompt(title);
