@@ -25,12 +25,12 @@ export interface ResponseImageCreate {
  * @param request 
  * @returns 
  */
-export const createImage = async (request: RequestImageCreate, plugin: AvaPlugin): Promise<ResponseImageCreate> => {
+export const createImage = async (request: RequestImageCreate, token: string): Promise<ResponseImageCreate> => {
   const response = await fetch(`${API_HOST}/v1/image/create`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${plugin.settings?.token}`
+      "Authorization": `Bearer ${token}`
     },
     body: JSON.stringify({
       size: request.size || 512,

@@ -29,6 +29,7 @@ import {
   getCompleteFiles,
   refreshSemanticSearch,
   rewrite,
+  userMessage,
 } from './utils';
 
 import posthog from 'posthog-js';
@@ -37,10 +38,9 @@ import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
 import { store } from './store';
-import { defaultUserFacingMessage } from './constants';
 
 interface ImageAIClient {
-  createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
+  createImage: (request: RequestImageCreate, token: string) => Promise<ResponseImageCreate>;
 }
 
 export const VIEW_TYPE_AVA = 'online.louis01.ava';
@@ -50,7 +50,7 @@ const ERROR_NOTE_EVENT =
 
 const onSSEError = (e: any) => {
   console.error(e.data);
-  new Notice(defaultUserFacingMessage);
+  new Notice(userMessage(e.data));
 }
 
 export default class AvaPlugin extends Plugin {
@@ -207,7 +207,8 @@ export default class AvaPlugin extends Plugin {
             this.app.workspace.getActiveFile().parent.path;
           this.statusBarItem.render(<StatusBar status="loading" />);
           const onError = (e: any) => {
-            new Notice(defaultUserFacingMessage);
+            console.error(e);
+            new Notice(userMessage(e));
             this.statusBarItem.render(
               <StatusBar
                 status="error"
@@ -220,7 +221,7 @@ export default class AvaPlugin extends Plugin {
             const { imagePaths } = await createImage({
               prompt: selection,
               outputDir: outDir,
-            }, this);
+            }, this.settings?.token);
             console.log("imagePaths", imagePaths);
             if (imagePaths.length === 0) {
               onError('No image was generated');

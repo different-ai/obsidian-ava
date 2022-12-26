@@ -96,9 +96,11 @@ const SemanticAPI = ({ plugin }: { plugin: AvaPlugin }) => {
 };
 
 const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
-  const [isConnected, setIsConnected] = React.useState(
-    !plugin?.settings?.token
-  );
+  const [isConnected, setIsConnected] = React.useState(false);
+
+  React.useEffect(() => {
+    setIsConnected(plugin?.settings?.token !== '');
+  }, [plugin.settings]);
   const handleConnect = async () => {
     posthog.capture('ava-connect');
     const token = await getUserAuthToken();

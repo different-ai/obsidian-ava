@@ -323,3 +323,10 @@ export async function getUserAuthToken(attempt = 0) {
   }
   return data.token;
 }
+
+
+export const userMessage = (e: any) =>
+    e.toString().includes('Forbidden') ?
+    'You need to have a "hobby" or "pro" plan to use this feature' :
+    'Something wrong happened. \
+    Please make sure you connected your account in the settings';
