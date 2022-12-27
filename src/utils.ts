@@ -333,7 +333,6 @@ export async function getUserAuthToken(attempt = 0) {
 }
 
 export const userMessage = (e: any) =>
-  e.toString().includes('Forbidden')
-    ? 'You need to have a "hobby" or "pro" plan to use this feature'
-    : 'Something wrong happened. \
-    Please make sure you connected your account in the settings';
+  e.toString().includes('subscription')
+    ? '❗️ You need to have a "hobby" or "pro" plan to use this feature ❗️'
+    : '❗️ Something wrong happened. ❗️ \n ⚙️ Please make sure you connected your account in the settings ⚙️';

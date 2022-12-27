@@ -50,6 +50,10 @@ const ERROR_NOTE_EVENT =
 
 const onSSEError = (e: any) => {
   console.error(e.data);
+  if (e.data.toString().includes('subscription')) {
+    // open app.anotherai.co
+    window.open('https://app.anotherai.co', '_blank');
+  }
   new Notice(userMessage(e.data));
 }
 
@@ -208,6 +212,10 @@ export default class AvaPlugin extends Plugin {
           this.statusBarItem.render(<StatusBar status="loading" />);
           const onError = (e: any) => {
             console.error(e);
+            if (e.toString().includes('subscription')) {
+              // open app.anotherai.co
+              window.open('https://app.anotherai.co', '_blank');
+            }
             new Notice(userMessage(e));
             this.statusBarItem.render(
               <StatusBar
