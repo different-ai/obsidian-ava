@@ -1,4 +1,8 @@
-⚠️ Alpha Release
+
+⛔️ We made a breaking change. Please update to  >2.6.1 if you haven't done so already!⛔️
+
+
+
 
 # Obsidian AI - codename AVA
 
