@@ -13,7 +13,6 @@ import { OpenAIApi } from 'openai';
 
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { killAllApiInstances, runSemanticApi } from './semanticApi';
 import { CustomSettings } from './Settings';
 import {
   createImage,
@@ -45,16 +44,16 @@ interface ImageAIClient {
 
 export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
-const ERROR_NOTE_EVENT =
-  'Error while refreshing Obsidian AI search. Please check the console for more details.';
-
-const onSSEError = (e: any) => {
-  console.error(e.data);
-  if (e.data.toString().includes('subscription')) {
+const onGeneralError = (e: any) => {
+  console.error(e);
+  if (e.toString().includes('subscription')) {
     // open app.anotherai.co
     window.open('https://app.anotherai.co', '_blank');
   }
-  new Notice(userMessage(e.data));
+  new Notice(userMessage(e));
+}
+const onSSEError = (e: any) => {
+  onGeneralError(e.data);
 }
 
 export default class AvaPlugin extends Plugin {
@@ -87,10 +86,9 @@ export default class AvaPlugin extends Plugin {
               noteTags: cache.tags?.map((tag) => tag.tag) || [],
               noteContent: data,
             },
-          ]);
+          ], this.settings?.token);
         } catch (e) {
-          console.error(e);
-          new Notice(ERROR_NOTE_EVENT);
+          onGeneralError(e);
           this.unlistenToNoteEvents();
         }
       }
@@ -111,10 +109,9 @@ export default class AvaPlugin extends Plugin {
               noteContent: data,
               pathToDelete: oldPath.split('/').pop().replace('.md', ''),
             },
-          ]);
+          ], this.settings?.token);
         } catch (e) {
-          console.error(e);
-          new Notice(ERROR_NOTE_EVENT);
+          onGeneralError(e);
           this.unlistenToNoteEvents();
         }
       });
@@ -125,10 +122,9 @@ export default class AvaPlugin extends Plugin {
           {
             pathToDelete: (file as TFile).basename,
           },
-        ]);
+        ], this.settings?.token);
       } catch (e) {
-        console.error(e);
-        new Notice(ERROR_NOTE_EVENT);
+        onGeneralError(e);
         this.unlistenToNoteEvents();
       }
     });
@@ -200,7 +196,6 @@ export default class AvaPlugin extends Plugin {
           if (!selection) {
             new Notice(
               'You need to select some text to generate an image',
-              3333
             );
             return;
           }
@@ -211,12 +206,7 @@ export default class AvaPlugin extends Plugin {
             this.app.workspace.getActiveFile().parent.path;
           this.statusBarItem.render(<StatusBar status="loading" />);
           const onError = (e: any) => {
-            console.error(e);
-            if (e.toString().includes('subscription')) {
-              // open app.anotherai.co
-              window.open('https://app.anotherai.co', '_blank');
-            }
-            new Notice(userMessage(e));
+            onGeneralError(e);
             this.statusBarItem.render(
               <StatusBar
                 status="error"
@@ -230,7 +220,6 @@ export default class AvaPlugin extends Plugin {
               prompt: selection,
               outputDir: outDir,
             }, this.settings?.token);
-            console.log("imagePaths", imagePaths);
             if (imagePaths.length === 0) {
               onError('No image was generated');
               return;
@@ -310,7 +299,8 @@ export default class AvaPlugin extends Plugin {
             completion = await createSemanticLinks(
               title,
               currentText,
-              tags.map((tag) => tag.tag)
+              tags.map((tag) => tag.tag),
+              this.settings?.token
             );
           } catch (e) {
             console.error(e);
@@ -350,46 +340,24 @@ ${completion}`;
       });
 
       this.addCommand({
-        id: 'ava-start-semantic-api',
-        name: 'Search API - Start',
-        callback: async () => {
-          posthog.capture('ava-start-semantic-api');
-          new Notice('Search - Starting API');
-          runSemanticApi(this.app);
-        },
-      });
-
-      this.addCommand({
-        id: 'ava-restart-semantic-api',
-        name: 'Search API -  Restart',
-        callback: async () => {
-          posthog.capture('ava-restart-semantic-api');
-          new Notice('Search - Shutting Down API');
-          await killAllApiInstances();
-          new Notice('Search - Starting API');
-          runSemanticApi(this.app);
-        },
-      });
-
-      this.addCommand({
         id: 'ava-load-semantic',
         name: 'Search API - Load vault',
         callback: async () => {
           posthog.capture('ava-load-semantic');
           try {
             const files = await getCompleteFiles(this.app);
-            console.log('files', files);
             await refreshSemanticSearch(
               files.map((file) => ({
                 notePath: file.path,
                 noteTags: file.tags,
                 noteContent: file.content,
-              }))
+              })),
+              this.settings?.token
             );
             this.listenToNoteEvents();
+            new Notice('Search - Vault loaded successfully', 2000);
           } catch (e) {
-            console.error(e);
-            new Notice(ERROR_NOTE_EVENT);
+            onGeneralError(e);
             this.unlistenToNoteEvents();
           }
         },
@@ -413,7 +381,8 @@ ${completion}`;
             completion = await createSemanticTags(
               title,
               currentText,
-              tags.map((tag) => tag.tag)
+              tags.map((tag) => tag.tag),
+              this.settings?.token
             );
           } catch (e) {
             console.error(e);
@@ -525,8 +494,6 @@ ${completion}`;
   }
   onunload(): void {
     this.unlistenToNoteEvents();
-    if (process.env.NODE_ENV === 'development') return;
-    killAllApiInstances();
   }
 }
 
