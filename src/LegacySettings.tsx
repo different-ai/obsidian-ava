@@ -66,6 +66,7 @@ export const DEFAULT_SETTINGS: AvaSettings = {
     },
     organization: '',
   },
+  token: '',
 };
 
 interface CustomSettingsProps {

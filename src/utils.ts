@@ -57,7 +57,11 @@ export const limitLengthForGPT3 = (markdownFileContent: string) => {
   return text;
 };
 
-export const createWikipediaLinks = async (title: string, text: string, plugin: AvaPlugin) => {
+export const createWikipediaLinks = async (
+  title: string,
+  text: string,
+  plugin: AvaPlugin
+) => {
   const prompt =
     'Title: ' +
     title +
@@ -69,7 +73,7 @@ export const createWikipediaLinks = async (title: string, text: string, plugin: 
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${plugin.settings.token}`,
+      Authorization: `Bearer ${plugin.settings.token}`,
     },
     body: JSON.stringify({
       model: 'text-davinci-003',
@@ -156,7 +160,7 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${plugin.settings.token}`,
+      Authorization: `Bearer ${plugin.settings.token}`,
     },
     method: 'POST',
     payload: JSON.stringify({
@@ -173,7 +177,11 @@ export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   return source;
 };
 
-export const rewrite = async (text: string, alteration: string, plugin: AvaPlugin) => {
+export const rewrite = async (
+  text: string,
+  alteration: string,
+  plugin: AvaPlugin
+) => {
   const prompt = `\n Rewrite
   "${text}" to
   
@@ -183,7 +191,7 @@ export const rewrite = async (text: string, alteration: string, plugin: AvaPlugi
   const source = new SSE(`${API_HOST}/v1/text/create`, {
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${plugin.settings.token}`,
+      Authorization: `Bearer ${plugin.settings.token}`,
     },
 
     method: 'POST',
@@ -269,7 +277,7 @@ export function getAuthHeaders() {
 // const baseURL = 'http:/localhost:3001';
 const baseURL = 'https://app.anotherai.co';
 
-const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 export async function getUserAuthToken(attempt = 0) {
   const uuid = getObsidianClientID();
 
@@ -324,9 +332,8 @@ export async function getUserAuthToken(attempt = 0) {
   return data.token;
 }
 
-
 export const userMessage = (e: any) =>
-    e.toString().includes('Forbidden') ?
-    'You need to have a "hobby" or "pro" plan to use this feature' :
-    'Something wrong happened. \
+  e.toString().includes('Forbidden')
+    ? 'You need to have a "hobby" or "pro" plan to use this feature'
+    : 'Something wrong happened. \
     Please make sure you connected your account in the settings';
