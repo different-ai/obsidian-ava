@@ -1,11 +1,3 @@
-semantic/install: ## [DEVELOPMENT] Install the semantic API dependencies
-	virtualenv $$TMPDIR/ava; \
-	source $$TMPDIR/ava/bin/activate; \
-	pip install -r semantic/requirements.txt; \
-	pip install -r semantic/requirements-test.txt
-
-semantic/run: ## [DEVELOPMENT] Run the semantic API
-	python3 -m uvicorn semantic.api:app --port 3333 --reload --log-level debug
 
 release: ## [DEVELOPMENT] Release a new version of the plugin
 	npm run version

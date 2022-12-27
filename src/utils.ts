@@ -19,18 +19,20 @@ export interface ISimilarFile {
 export const createSemanticLinks = async (
   title: string,
   text: string,
-  tags: string[]
+  tags: string[],
+  token: string
 ) => {
   const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
   console.log('Query:', query);
   const response: { similarities: ISimilarFile[] } = await fetch(
-    'http://localhost:3333/semantic_search',
+    `${API_HOST}/v1/search`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
-      body: JSON.stringify({ query: query }),
+      body: JSON.stringify({ query: query, vault_id: getObsidianClientID() }),
     }
   ).then((response) => response.json());
   console.log('response', response);
@@ -103,33 +105,22 @@ export const filterTags = (tags: string[]) => {
     .join(',');
 };
 
-export const downloadApiSourceCode = async (dest: string): Promise<boolean> => {
-  const version = manifest.version;
-  const url = `https://github.com/louis030195/obsidian-ava/releases/download/${version}/semantic.zip`;
-  return new Promise((resolve) => {
-    console.log(`Downloading ${url}`);
-    got(url, { isStream: true })
-      .end(() => {
-        console.log('Unzipped Finished');
-        resolve(true);
-      })
-      .pipe(Extract({ path: dest }));
-  });
-};
 
 export const createSemanticTags = async (
   title: string,
   text: string,
-  tags: string[]
+  tags: string[],
+  token: string
 ) => {
   const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
   console.log('Query:', query);
   const response: { similarities: ISimilarFile[] } = await fetch(
-    'http://localhost:3333/semantic_search',
+    `${API_HOST}/v1/text/create`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({ query: query }),
     }
@@ -218,13 +209,15 @@ interface NoteRefresh {
 /**
  * Make a query to /refresh to refresh the semantic search index
  */
-export const refreshSemanticSearch = async (notes: NoteRefresh[]) => {
-  const response = await fetch('http://localhost:3333/refresh', {
+export const refreshSemanticSearch = async (notes: NoteRefresh[], token: string) => {
+  const response = await fetch(`${API_HOST}/v1/search/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify({
+      vault_id: getObsidianClientID(),
       notes: notes.map((note) => ({
         // snake_case to match the API
         note_path: note.notePath,
@@ -234,7 +227,12 @@ export const refreshSemanticSearch = async (notes: NoteRefresh[]) => {
       })),
     }),
   });
-  return response;
+  if (response.status !== 200) {
+    throw new Error(`Error refreshing semantic search: ${response.statusText}`);
+  }
+  const json = await response.json();
+  console.log('Refresh response:', json);
+  return json;
 };
 
 /**
