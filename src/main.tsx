@@ -44,13 +44,16 @@ interface ImageAIClient {
 
 export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
-const onSSEError = (e: any) => {
-  console.error(e.data);
-  if (e.data.toString().includes('subscription')) {
+const onGeneralError = (e: any) => {
+  console.error(e);
+  if (e.toString().includes('subscription')) {
     // open app.anotherai.co
     window.open('https://app.anotherai.co', '_blank');
   }
-  new Notice(userMessage(e.data));
+  new Notice(userMessage(e));
+}
+const onSSEError = (e: any) => {
+  onGeneralError(e.data);
 }
 
 export default class AvaPlugin extends Plugin {
@@ -85,8 +88,7 @@ export default class AvaPlugin extends Plugin {
             },
           ], this.settings?.token);
         } catch (e) {
-          console.error(e);
-          new Notice(userMessage(e));
+          onGeneralError(e);
           this.unlistenToNoteEvents();
         }
       }
@@ -109,8 +111,7 @@ export default class AvaPlugin extends Plugin {
             },
           ], this.settings?.token);
         } catch (e) {
-          console.error(e);
-          new Notice(userMessage(e));
+          onGeneralError(e);
           this.unlistenToNoteEvents();
         }
       });
@@ -123,8 +124,7 @@ export default class AvaPlugin extends Plugin {
           },
         ], this.settings?.token);
       } catch (e) {
-        console.error(e);
-        new Notice(userMessage(e));
+        onGeneralError(e);
         this.unlistenToNoteEvents();
       }
     });
@@ -206,12 +206,7 @@ export default class AvaPlugin extends Plugin {
             this.app.workspace.getActiveFile().parent.path;
           this.statusBarItem.render(<StatusBar status="loading" />);
           const onError = (e: any) => {
-            console.error(e);
-            if (e.toString().includes('subscription')) {
-              // open app.anotherai.co
-              window.open('https://app.anotherai.co', '_blank');
-            }
-            new Notice(userMessage(e));
+            onGeneralError(e);
             this.statusBarItem.render(
               <StatusBar
                 status="error"
@@ -360,9 +355,9 @@ ${completion}`;
               this.settings?.token
             );
             this.listenToNoteEvents();
+            new Notice('Search - Vault loaded successfully', 2000);
           } catch (e) {
-            console.error(e);
-            new Notice(userMessage(e));
+            onGeneralError(e);
             this.unlistenToNoteEvents();
           }
         },
