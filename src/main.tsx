@@ -69,6 +69,11 @@ export default class AvaPlugin extends Plugin {
   private async indexWholeVault () {
     try {
       const files = await getCompleteFiles(this.app);
+      console.log('Ava - Indexing vault with', files);
+      // display message estimating indexing time according to number of notes
+      new Notice('Search - Indexing vault...' +
+        (files.length > 1000 ? ' (your vault is large, this may take a while)' : ''), 2000);
+
       await refreshSemanticSearch(
         files.map((file) => ({
           notePath: file.path,
@@ -78,13 +83,14 @@ export default class AvaPlugin extends Plugin {
         this.settings?.token
       );
       this.listenToNoteEvents();
-      new Notice('Search - Vault loaded successfully', 2000);
+      new Notice('Search - Vault indexed successfully', 2000);
     } catch (e) {
       onGeneralError(e);
       this.unlistenToNoteEvents();
     }
   }
   private unlistenToNoteEvents() {
+    console.log('Ava - Unlistening to note events');
     this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
     this.app.metadataCache.offref(this.eventRefDeleted);
@@ -100,7 +106,7 @@ export default class AvaPlugin extends Plugin {
         try {
           refreshSemanticSearch([
             {
-              notePath: file.basename,
+              notePath: file.path,
               noteTags: cache.tags?.map((tag) => tag.tag) || [],
               noteContent: data,
             },
@@ -122,10 +128,10 @@ export default class AvaPlugin extends Plugin {
         try {
           refreshSemanticSearch([
             {
-              notePath: f.basename,
+              notePath: f.path,
               noteTags: cache.tags?.map((tag) => tag.tag) || [],
               noteContent: data,
-              pathToDelete: oldPath.split('/').pop().replace('.md', ''),
+              pathToDelete: oldPath,
             },
           ], this.settings?.token);
         } catch (e) {
@@ -138,7 +144,7 @@ export default class AvaPlugin extends Plugin {
       try {
         refreshSemanticSearch([
           {
-            pathToDelete: (file as TFile).basename,
+            pathToDelete: file.path,
           },
         ], this.settings?.token);
       } catch (e) {
@@ -168,7 +174,7 @@ export default class AvaPlugin extends Plugin {
     this.app.workspace.onLayoutReady(async () => {
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
-      this.indexWholeVault();
+      this.indexWholeVault(); // TODO: maybe should wait a bit?
 
       this.imageAIClient = {
         createImage,
@@ -305,18 +311,18 @@ export default class AvaPlugin extends Plugin {
         name: 'Link Notes',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('semantic-related-topics');
-          const title = this.app.workspace.getActiveFile()?.basename;
+          const file = this.app.workspace.getActiveFile();
           new Notice('Link - Connecting Related Notes ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           let currentText = editor.getValue();
           let completion = '';
           const tags =
             this.app.metadataCache.getFileCache(
-              this.app.workspace.getActiveFile()
+              file,
             ).tags || [];
           try {
             completion = await createSemanticLinks(
-              title,
+              file.path,
               currentText,
               tags.map((tag) => tag.tag),
               this.settings?.token
@@ -372,18 +378,18 @@ ${completion}`;
         name: 'Experimental: Link Tags',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('semantic-related-tags');
-          const title = this.app.workspace.getActiveFile()?.basename;
+          const file = this.app.workspace.getActiveFile();
           new Notice('Link - Generating Related Tags ⏰');
           this.statusBarItem.render(<StatusBar status="loading" />);
           const currentText = editor.getValue();
           const tags =
             this.app.metadataCache.getFileCache(
-              this.app.workspace.getActiveFile()
+              file,
             ).tags || [];
           let completion = '';
           try {
             completion = await createSemanticTags(
-              title,
+              file.path,
               currentText,
               tags.map((tag) => tag.tag),
               this.settings?.token

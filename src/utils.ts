@@ -1,8 +1,5 @@
-import got from 'got';
 import { SSE } from 'lib/sse';
 import { App } from 'obsidian';
-import { Extract } from 'unzipper';
-import manifest from '../manifest.json';
 import { API_HOST } from './constants';
 import AvaPlugin from './main';
 
@@ -11,6 +8,7 @@ const SEMANTIC_SIMILARITY_THRESHOLD = 0.35;
 
 export interface ISimilarFile {
   score: number;
+  note_name: string;
   note_path: string;
   note_content: string;
   note_tags: string[];
@@ -39,6 +37,7 @@ export const createSemanticLinks = async (
   const similarities = response.similarities.filter(
     (similarity) =>
       similarity.note_path !== title &&
+      !similarity.note_name.includes(title) &&
       similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
   );
   console.log(similarities);
