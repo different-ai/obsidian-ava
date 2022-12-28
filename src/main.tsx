@@ -66,6 +66,24 @@ export default class AvaPlugin extends Plugin {
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
 
+  private async indexWholeVault () {
+    try {
+      const files = await getCompleteFiles(this.app);
+      await refreshSemanticSearch(
+        files.map((file) => ({
+          notePath: file.path,
+          noteTags: file.tags,
+          noteContent: file.content,
+        })),
+        this.settings?.token
+      );
+      this.listenToNoteEvents();
+      new Notice('Search - Vault loaded successfully', 2000);
+    } catch (e) {
+      onGeneralError(e);
+      this.unlistenToNoteEvents();
+    }
+  }
   private unlistenToNoteEvents() {
     this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
@@ -150,6 +168,7 @@ export default class AvaPlugin extends Plugin {
     this.app.workspace.onLayoutReady(async () => {
       const suggest = new AvaSuggest(this.app, this, 1000, 3);
       this.openai = suggest.openai;
+      this.indexWholeVault();
 
       this.imageAIClient = {
         createImage,
@@ -344,22 +363,7 @@ ${completion}`;
         name: 'Search API - Load vault',
         callback: async () => {
           posthog.capture('ava-load-semantic');
-          try {
-            const files = await getCompleteFiles(this.app);
-            await refreshSemanticSearch(
-              files.map((file) => ({
-                notePath: file.path,
-                noteTags: file.tags,
-                noteContent: file.content,
-              })),
-              this.settings?.token
-            );
-            this.listenToNoteEvents();
-            new Notice('Search - Vault loaded successfully', 2000);
-          } catch (e) {
-            onGeneralError(e);
-            this.unlistenToNoteEvents();
-          }
+          await this.indexWholeVault();
         },
       });
 
