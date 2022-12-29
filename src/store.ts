@@ -1,7 +1,9 @@
 import { Editor } from 'obsidian';
 import create from 'zustand/vanilla';
 
+//     return { path: similarity.note_path, similarity: similarity.score };
 type State = {
+  embeds: { path: string; similarity: number }[];
   content: string;
   editorContext: Editor;
   appendContentToRewrite: (content: string) => void;
@@ -12,6 +14,10 @@ type State = {
 };
 
 export const store = create<State>((set) => ({
+  embeds: [],
+  setEmbeds: (embeds: { path: string; similarity: number }[]) => {
+    set(() => ({ embeds: embeds }));
+  },
   content: '',
   appendContentToRewrite: (content: string) => {
     console.log(content);

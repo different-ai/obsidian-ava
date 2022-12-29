@@ -1,11 +1,12 @@
 import { ItemView, WorkspaceLeaf } from 'obsidian';
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
-import { AvaComponent } from './AvaComponent';
 import { AppContext } from './context';
-import AvaPlugin, { VIEW_TYPE_AVA } from './main';
+import AvaPlugin from './main';
+import { WriteComponent } from './WriteComponent';
+export const VIEW_TYPE_WRITE = 'ava.write.sidebar';
 
-export class AvaSidebarView extends ItemView {
+export class WriteView extends ItemView {
   private readonly plugin: AvaPlugin;
   public root: Root;
 
@@ -15,21 +16,21 @@ export class AvaSidebarView extends ItemView {
   }
 
   getDisplayText(): string {
-    return 'Rewrite';
+    return 'Write Assistant';
   }
 
   getViewType(): string {
-    return VIEW_TYPE_AVA;
+    return VIEW_TYPE_WRITE;
   }
   getIcon(): string {
-    return 'clock';
+    return 'pencil';
   }
 
   async onOpen(): Promise<void> {
     const root = createRoot(this.containerEl.children[1]);
     root.render(
       <AppContext.Provider value={this.app}>
-        <AvaComponent />
+        <WriteComponent />
       </AppContext.Provider>
     );
     this.root = root;

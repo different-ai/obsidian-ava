@@ -19,11 +19,10 @@ import {
   RequestImageCreate,
   ResponseImageCreate,
 } from './stableDiffusion';
-import { AvaSuggest, StatusBar } from './suggest';
+import { StatusBar } from './suggest';
 import {
   createParagraph,
   createSemanticLinks,
-  createSemanticTags,
   createWikipediaLinks,
   getCompleteFiles,
   refreshSemanticSearch,
@@ -32,17 +31,19 @@ import {
 } from './utils';
 
 import posthog from 'posthog-js';
-import { AvaSidebarView } from './AvaSidebarView';
 import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
+import { LinkView, VIEW_TYPE_LINK } from './linkView';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
 import { store } from './store';
+import { VIEW_TYPE_WRITE, WriteView } from './writeView';
 
 interface ImageAIClient {
-  createImage: (request: RequestImageCreate, token: string) => Promise<ResponseImageCreate>;
+  createImage: (
+    request: RequestImageCreate,
+    token: string
+  ) => Promise<ResponseImageCreate>;
 }
-
-export const VIEW_TYPE_AVA = 'online.louis01.ava';
 
 const onGeneralError = (e: any) => {
   console.error(e);
@@ -51,28 +52,97 @@ const onGeneralError = (e: any) => {
     window.open('https://app.anotherai.co', '_blank');
   }
   new Notice(userMessage(e));
-}
+};
 const onSSEError = (e: any) => {
   onGeneralError(e.data);
-}
+};
 
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
   statusBarItem: Root;
   openai: OpenAIApi;
   imageAIClient: ImageAIClient;
-  private sidebar: AvaSidebarView;
+  private sidebar: WriteView;
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
 
-  private async indexWholeVault () {
+  private async link() {
+    posthog.capture('semantic-related-topics');
+    const file = this.app.workspace.getActiveFile();
+    new Notice('Link - Connecting Related Notes ⏰');
+    this.statusBarItem.render(<StatusBar status="loading" />);
+    const currentText = await this.app.vault.read(file);
+    let completion = null;
+    const tags = this.app.metadataCache.getFileCache(file).tags || [];
+    try {
+      completion = await createSemanticLinks(
+        file.path,
+        currentText,
+        tags.map((tag) => tag.tag),
+        this.settings?.token
+      );
+
+      this.statusBarItem.render(<StatusBar status="disabled" />);
+      return completion;
+    } catch (e) {
+      console.error(e);
+      new Notice(
+        'Link - Error connecting related notes. Make sure you started AVA Search API'
+      );
+      this.statusBarItem.render(<StatusBar status="disabled" />);
+      return;
+    }
+  }
+  async displayWriteSidebar() {
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_WRITE);
+
+    await this.app.workspace.getRightLeaf(false).setViewState({
+      type: VIEW_TYPE_WRITE,
+      active: true,
+    });
+
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_WRITE)[0]
+    );
+  }
+
+  async displayLinkSidebar() {
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_LINK);
+
+    await this.app.workspace.getRightLeaf(false).setViewState({
+      type: VIEW_TYPE_LINK,
+      active: true,
+    });
+
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_LINK)[0]
+    );
+  }
+
+  async updateSearch() {
+    this.statusBarItem.render(<StatusBar status="loading" />);
+
+    const results = await this.link();
+    if (results) {
+      store.setState({ embeds: results });
+    }
+
+    this.statusBarItem.render(<StatusBar status="disabled" />);
+  }
+
+  private async indexWholeVault() {
     try {
       const files = await getCompleteFiles(this.app);
       console.log('Ava - Indexing vault with', files);
       // display message estimating indexing time according to number of notes
-      new Notice('Search - Indexing vault...' +
-        (files.length > 1000 ? ' (your vault is large, this may take a while)' : ''), 2000);
+      new Notice(
+        'Search - Indexing vault...' +
+          (files.length > 1000
+            ? ' (your vault is large, this may take a while)'
+            : ''),
+        2000
+      );
 
       await refreshSemanticSearch(
         files.map((file) => ({
@@ -104,13 +174,16 @@ export default class AvaPlugin extends Plugin {
       'changed',
       (file, data, cache) => {
         try {
-          refreshSemanticSearch([
-            {
-              notePath: file.path,
-              noteTags: cache.tags?.map((tag) => tag.tag) || [],
-              noteContent: data,
-            },
-          ], this.settings?.token);
+          refreshSemanticSearch(
+            [
+              {
+                notePath: file.path,
+                noteTags: cache.tags?.map((tag) => tag.tag) || [],
+                noteContent: data,
+              },
+            ],
+            this.settings?.token
+          );
         } catch (e) {
           onGeneralError(e);
           this.unlistenToNoteEvents();
@@ -126,14 +199,17 @@ export default class AvaPlugin extends Plugin {
         if (!cache) return;
         const f = file as TFile;
         try {
-          refreshSemanticSearch([
-            {
-              notePath: f.path,
-              noteTags: cache.tags?.map((tag) => tag.tag) || [],
-              noteContent: data,
-              pathToDelete: oldPath,
-            },
-          ], this.settings?.token);
+          refreshSemanticSearch(
+            [
+              {
+                notePath: f.path,
+                noteTags: cache.tags?.map((tag) => tag.tag) || [],
+                noteContent: data,
+                pathToDelete: oldPath,
+              },
+            ],
+            this.settings?.token
+          );
         } catch (e) {
           onGeneralError(e);
           this.unlistenToNoteEvents();
@@ -142,11 +218,14 @@ export default class AvaPlugin extends Plugin {
     });
     this.eventRefDeleted = this.app.vault.on('delete', (file) => {
       try {
-        refreshSemanticSearch([
-          {
-            pathToDelete: file.path,
-          },
-        ], this.settings?.token);
+        refreshSemanticSearch(
+          [
+            {
+              pathToDelete: file.path,
+            },
+          ],
+          this.settings?.token
+        );
       } catch (e) {
         onGeneralError(e);
         this.unlistenToNoteEvents();
@@ -172,8 +251,7 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.app.workspace.onLayoutReady(async () => {
-      const suggest = new AvaSuggest(this.app, this, 1000, 3);
-      this.openai = suggest.openai;
+      this.updateSearch();
       this.indexWholeVault(); // TODO: maybe should wait a bit?
 
       this.imageAIClient = {
@@ -219,9 +297,7 @@ export default class AvaPlugin extends Plugin {
             promptLength: selection.length,
           });
           if (!selection) {
-            new Notice(
-              'You need to select some text to generate an image',
-            );
+            new Notice('You need to select some text to generate an image');
             return;
           }
 
@@ -241,10 +317,13 @@ export default class AvaPlugin extends Plugin {
           };
           new Notice('Generating image ⏰');
           try {
-            const { imagePaths } = await createImage({
-              prompt: selection,
-              outputDir: outDir,
-            }, this.settings?.token);
+            const { imagePaths } = await createImage(
+              {
+                prompt: selection,
+                outputDir: outDir,
+              },
+              this.settings?.token
+            );
             if (imagePaths.length === 0) {
               onError('No image was generated');
               return;
@@ -279,8 +358,8 @@ export default class AvaPlugin extends Plugin {
             );
             return;
           }
-          this.app.workspace.rightSplit.expand();
-          this.app.workspace.revealLeaf(this.sidebar.leaf);
+
+          this.displayWriteSidebar();
 
           const onSubmit = async (prompt: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
@@ -295,7 +374,6 @@ export default class AvaPlugin extends Plugin {
               store.getState().setPrompt(`Rewrite to ${prompt}`);
               store.getState().setEditorContext(editor);
               store.getState().appendContentToRewrite(payload.choices[0].text);
-
               return;
             });
             source.stream();
@@ -307,60 +385,11 @@ export default class AvaPlugin extends Plugin {
       });
 
       this.addCommand({
-        id: 'semantic-related-topics',
-        name: 'Link Notes',
-        editorCallback: async (editor: Editor, view: ItemView) => {
-          posthog.capture('semantic-related-topics');
-          const file = this.app.workspace.getActiveFile();
-          new Notice('Link - Connecting Related Notes ⏰');
-          this.statusBarItem.render(<StatusBar status="loading" />);
-          let currentText = editor.getValue();
-          let completion = '';
-          const tags =
-            this.app.metadataCache.getFileCache(
-              file,
-            ).tags || [];
-          try {
-            completion = await createSemanticLinks(
-              file.path,
-              currentText,
-              tags.map((tag) => tag.tag),
-              this.settings?.token
-            );
-          } catch (e) {
-            console.error(e);
-            new Notice(
-              'Link - Error connecting related notes. Make sure you started AVA Search API'
-            );
-            this.statusBarItem.render(<StatusBar status="disabled" />);
-            return;
-          }
-
-          if (!completion) {
-            new Notice('Link - No related notes found');
-            this.statusBarItem.render(<StatusBar status="disabled" />);
-            return;
-          }
-
-          const match = '# Related';
-          const matchLength = match.length;
-          const content = `
-${completion}`;
-
-          // if there is a related section, add to it
-          if (!currentText.includes('# Related')) {
-            currentText = `${currentText}
-# Related`;
-          }
-          const insertPos = currentText.indexOf(match) + matchLength;
-          const newText =
-            currentText.slice(0, insertPos) +
-            content +
-            currentText.slice(insertPos);
-
-          editor.setValue(newText);
-          this.statusBarItem.render(<StatusBar status="disabled" />);
-          new Notice('Link - Related Notes Added', 2000);
+        id: 'ava-open-link',
+        name: 'Open AVA Links',
+        callback: async () => {
+          posthog.capture('ava-open-links');
+          this.displayLinkSidebar();
         },
       });
 
@@ -370,71 +399,6 @@ ${completion}`;
         callback: async () => {
           posthog.capture('ava-load-semantic');
           await this.indexWholeVault();
-        },
-      });
-
-      this.addCommand({
-        id: 'semantic-related-tags',
-        name: 'Experimental: Link Tags',
-        editorCallback: async (editor: Editor, view: ItemView) => {
-          posthog.capture('semantic-related-tags');
-          const file = this.app.workspace.getActiveFile();
-          new Notice('Link - Generating Related Tags ⏰');
-          this.statusBarItem.render(<StatusBar status="loading" />);
-          const currentText = editor.getValue();
-          const tags =
-            this.app.metadataCache.getFileCache(
-              file,
-            ).tags || [];
-          let completion = '';
-          try {
-            completion = await createSemanticTags(
-              file.path,
-              currentText,
-              tags.map((tag) => tag.tag),
-              this.settings?.token
-            );
-          } catch (e) {
-            console.error(e);
-            new Notice(
-              'Link - Error generating related tags. Make sure you started AVA Search API'
-            );
-            this.statusBarItem.render(<StatusBar status="disabled" />);
-            return;
-          }
-
-          if (!completion) {
-            new Notice('Link - No related tags found');
-            this.statusBarItem.render(<StatusBar status="disabled" />);
-            return;
-          }
-
-          // add tags after the frontmatter
-          // i.e. second time the --- is found
-          // if no frontmatter, add to the top
-          const match = '---';
-          const matchLength = match.length;
-          const content = `\n[Obsidian AVA](https://github.com/louis030195/obsidian-ava) AI generated tags: ${completion}\n`;
-
-          // find the second match
-          const hasFrontmatter = currentText.includes(match);
-          if (!hasFrontmatter) {
-            editor.setValue(content + currentText);
-          } else {
-            const insertPos =
-              currentText.indexOf(
-                match,
-                currentText.indexOf(match) + matchLength
-              ) + matchLength;
-            const newText =
-              currentText.slice(0, insertPos) +
-              content +
-              currentText.slice(insertPos);
-
-            editor.setValue(newText);
-          }
-          this.statusBarItem.render(<StatusBar status="disabled" />);
-          new Notice('Link - Related Tags Added', 2000);
         },
       });
 
@@ -455,7 +419,7 @@ ${completion}`;
           const completion = await createWikipediaLinks(
             title,
             editor.getSelection(),
-            this,
+            this
           );
           store.getState().reset();
           store.getState().setPrompt(title);
@@ -469,27 +433,24 @@ ${completion}`;
         },
       });
 
-      this.registerEditorSuggest(suggest);
-      this.registerView(VIEW_TYPE_AVA, (leaf: WorkspaceLeaf) => {
-        const sidebar = new AvaSidebarView(leaf, this);
+      this.registerEvent(
+        this.app.workspace.on('file-open', () => {
+          this.updateSearch();
+        })
+      );
 
-        this.sidebar = sidebar;
-
-        return sidebar;
-      });
+      this.registerView(
+        VIEW_TYPE_WRITE,
+        (leaf: WorkspaceLeaf) => new WriteView(leaf, this)
+      );
+      this.registerView(
+        VIEW_TYPE_LINK,
+        (leaf: WorkspaceLeaf) => new LinkView(leaf, this)
+      );
 
       // This adds a settings tab so the user
       // can configure various aspects of the plugin
       this.addSettingTab(new AvaSettingTab(this.app, this));
-      this.initLeaf();
-    });
-  }
-  initLeaf(): void {
-    if (this.app.workspace.getLeavesOfType(VIEW_TYPE_AVA).length) {
-      return;
-    }
-    this.app.workspace.getRightLeaf(false).setViewState({
-      type: VIEW_TYPE_AVA,
     });
   }
 
@@ -503,6 +464,9 @@ ${completion}`;
     await this.saveData(this.settings);
   }
   onunload(): void {
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_LINK);
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_WRITE);
+
     this.unlistenToNoteEvents();
   }
 }

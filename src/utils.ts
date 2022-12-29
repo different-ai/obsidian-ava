@@ -28,7 +28,7 @@ export const createSemanticLinks = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ query: query, vault_id: getObsidianClientID() }),
     }
@@ -40,12 +40,9 @@ export const createSemanticLinks = async (
       !similarity.note_name.includes(title) &&
       similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
   );
-  console.log(similarities);
-  return `${similarities
-    .map(
-      (similarity) => '- [[' + similarity.note_path.replace('.md', '') + ']]'
-    )
-    .join('\n')}`;
+  return similarities.map((similarity) => {
+    return { path: similarity.note_path, similarity: similarity.score };
+  });
 };
 
 export const limitLengthForGPT3 = (markdownFileContent: string) => {
@@ -104,7 +101,6 @@ export const filterTags = (tags: string[]) => {
     .join(',');
 };
 
-
 export const createSemanticTags = async (
   title: string,
   text: string,
@@ -119,7 +115,7 @@ export const createSemanticTags = async (
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ query: query }),
     }
@@ -208,12 +204,15 @@ interface NoteRefresh {
 /**
  * Make a query to /refresh to refresh the semantic search index
  */
-export const refreshSemanticSearch = async (notes: NoteRefresh[], token: string) => {
+export const refreshSemanticSearch = async (
+  notes: NoteRefresh[],
+  token: string
+) => {
   const response = await fetch(`${API_HOST}/v1/search/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       vault_id: getObsidianClientID(),
