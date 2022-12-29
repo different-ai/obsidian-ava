@@ -71,7 +71,6 @@ export default class AvaPlugin extends Plugin {
     posthog.capture('semantic-related-topics');
     const file = this.app.workspace.getActiveFile();
     new Notice('Link - Connecting Related Notes ⏰');
-    this.statusBarItem.render(<StatusBar status="loading" />);
     const currentText = await this.app.vault.read(file);
     let completion = null;
     const tags = this.app.metadataCache.getFileCache(file).tags || [];
