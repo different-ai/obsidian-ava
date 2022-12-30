@@ -124,7 +124,6 @@ export default class AvaPlugin extends Plugin {
   async updateSearch() {
     this.statusBarItem.render(<StatusBar status="loading" />);
 
-    if (false) return;
     const results = await this.link();
     if (results) {
       store.setState({ embeds: results });
