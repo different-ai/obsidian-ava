@@ -13,6 +13,9 @@ export interface ISimilarFile {
   note_content: string;
   note_tags: string[];
 }
+
+// this is so that the model can complete something at least of equal length
+export const REWRITE_CHAR_LIMIT = 5800;
 export const search = async (query: string, token: string) => {
   const response: { similarities: ISimilarFile[] } = await fetch(
     `${API_HOST}/v1/search`,
@@ -187,7 +190,7 @@ export const rewrite = async (
     method: 'POST',
     payload: JSON.stringify({
       frequency_penalty: 0,
-      max_tokens: text.length + 1400,
+      max_tokens: 2000,
       model: 'text-davinci-003',
       presence_penalty: 0,
       prompt: prompt,

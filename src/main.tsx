@@ -27,6 +27,7 @@ import {
   getCompleteFiles,
   refreshSemanticSearch,
   rewrite,
+  REWRITE_CHAR_LIMIT,
   userMessage,
 } from './utils';
 
@@ -356,6 +357,12 @@ export default class AvaPlugin extends Plugin {
           if (editor.somethingSelected() === false) {
             new Notice(
               '🧙 Obsidian AI - Select some text to rewrite and try again :)'
+            );
+            return;
+          }
+          if (editor.getSelection().length > REWRITE_CHAR_LIMIT) {
+            new Notice(
+              '🧙 Obsidian AI - Selection is too long, please select less than 5800 characters ~1200 words'
             );
             return;
           }
