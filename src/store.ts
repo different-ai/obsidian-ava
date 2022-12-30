@@ -1,9 +1,14 @@
 import { Editor } from 'obsidian';
 import create from 'zustand/vanilla';
 
+export type Embed = {
+  path: string;
+  similarity: number;
+};
+
 //     return { path: similarity.note_path, similarity: similarity.score };
 type State = {
-  embeds: { path: string; similarity: number }[];
+  embeds: Embed[];
   content: string;
   editorContext: Editor;
   appendContentToRewrite: (content: string) => void;

@@ -35,6 +35,7 @@ import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { LinkView, VIEW_TYPE_LINK } from './linkView';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
+import { SearchModal } from './searchModal';
 import { store } from './store';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
 
@@ -122,6 +123,7 @@ export default class AvaPlugin extends Plugin {
   async updateSearch() {
     this.statusBarItem.render(<StatusBar status="loading" />);
 
+    if (false) return;
     const results = await this.link();
     if (results) {
       store.setState({ embeds: results });
@@ -389,6 +391,15 @@ export default class AvaPlugin extends Plugin {
         callback: async () => {
           posthog.capture('ava-open-links');
           this.displayLinkSidebar();
+        },
+      });
+
+      this.addCommand({
+        id: 'ava-search',
+        name: 'Search',
+        callback: async () => {
+          posthog.capture('ava-search');
+          new SearchModal(this.app, this.settings.token).open();
         },
       });
 

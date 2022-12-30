@@ -13,15 +13,7 @@ export interface ISimilarFile {
   note_content: string;
   note_tags: string[];
 }
-
-export const createSemanticLinks = async (
-  title: string,
-  text: string,
-  tags: string[],
-  token: string
-) => {
-  const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
-  console.log('Query:', query);
+export const search = async (query: string, token: string) => {
   const response: { similarities: ISimilarFile[] } = await fetch(
     `${API_HOST}/v1/search`,
     {
@@ -33,6 +25,19 @@ export const createSemanticLinks = async (
       body: JSON.stringify({ query: query, vault_id: getObsidianClientID() }),
     }
   ).then((response) => response.json());
+  return response;
+};
+
+export const createSemanticLinks = async (
+  title: string,
+  text: string,
+  tags: string[],
+  token: string
+) => {
+  const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
+  console.log('Query:', query);
+  const response = await search(query, token);
+
   console.log('response', response);
   const similarities = response.similarities.filter(
     (similarity) =>

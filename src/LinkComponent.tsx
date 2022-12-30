@@ -48,7 +48,7 @@ export function LinkComponent() {
   }
 
   if (results.length === 0) {
-    return <div>🧙 AVA Links - no links found</div>;
+    return <div>🧙 Links - no links found</div>;
   }
 
   const textToInsert = `${results
