@@ -177,8 +177,8 @@ export const rewrite = async (
   plugin: AvaPlugin
 ) => {
   const prompt = `\n Rewrite
-  "${text}" 
-  ${alteration}} 
+  "${text}"
+  ${alteration}}
   \n. Of course, here it is: \n`;
   console.log('Prompt:', prompt);
   const source = new SSE(`${API_HOST}/v1/text/create`, {
