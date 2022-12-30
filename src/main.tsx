@@ -123,13 +123,18 @@ export default class AvaPlugin extends Plugin {
 
   async updateSearch() {
     this.statusBarItem.render(<StatusBar status="loading" />);
-
-    const results = await this.link();
-    if (results) {
-      store.setState({ embeds: results });
-    }
-
-    this.statusBarItem.render(<StatusBar status="disabled" />);
+    this.app.workspace.iterateAllLeaves(async (leaft) => {
+      console.log('link view', leaft);
+      const view = this.app.workspace.getLeavesOfType(VIEW_TYPE_LINK)[0]?.view;
+      if (view instanceof LinkView) {
+        // update the view
+        const results = await this.link();
+        if (results) {
+          store.setState({ embeds: results });
+        }
+      }
+      this.statusBarItem.render(<StatusBar status="disabled" />);
+    });
   }
 
   private async indexWholeVault() {
