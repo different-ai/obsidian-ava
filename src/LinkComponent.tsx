@@ -2,6 +2,7 @@ import { posthog } from 'posthog-js';
 import * as React from 'react';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { useApp } from './hooks';
+import { InsertButton } from './InsertButton';
 import { store } from './store';
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -67,6 +68,7 @@ export function LinkComponent() {
       <div className="search-result-container">
         {results.map((result) => (
           <a
+            key={result.path}
             href={result.path}
             className="tree-item-self is-clickable outgoing-link-item"
             data-path={result.path}
@@ -88,6 +90,7 @@ export function LinkComponent() {
       </div>
       <div className="flex gap-3">
         <CopyToClipboardButton text={textToInsert} extraOnClick={trackCopy} />
+        <InsertButton text={textToInsert} editorContext={state.editorContext} />
       </div>
     </div>
   );

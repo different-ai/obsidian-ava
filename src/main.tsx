@@ -24,6 +24,7 @@ import {
   createParagraph,
   createSemanticLinks,
   createWikipediaLinks,
+  EMBED_CHAR_LIMIT,
   getCompleteFiles,
   refreshSemanticSearch,
   rewrite,
@@ -74,7 +75,14 @@ export default class AvaPlugin extends Plugin {
     if (!file) return;
     posthog.capture('semantic-related-topics');
     new Notice('Link - Connecting Related Notes ⏰');
+    console.log('hello');
     const currentText = await this.app.vault.read(file);
+    if (currentText.length > EMBED_CHAR_LIMIT) {
+      new Notice(
+        'Link - Note is too long. 🧙 AVA  only supports notes that are up to 25k characters'
+      );
+      return;
+    }
     let completion = null;
     const tags = this.app.metadataCache.getFileCache(file).tags || [];
     try {
@@ -125,18 +133,12 @@ export default class AvaPlugin extends Plugin {
 
   async updateSearch() {
     this.statusBarItem.render(<StatusBar status="loading" />);
-    this.app.workspace.iterateAllLeaves(async (leaft) => {
-      console.log('link view', leaft);
-      const view = this.app.workspace.getLeavesOfType(VIEW_TYPE_LINK)[0]?.view;
-      if (view instanceof LinkView) {
-        // update the view
-        const results = await this.link();
-        if (results) {
-          store.setState({ embeds: results });
-        }
-      }
-      this.statusBarItem.render(<StatusBar status="disabled" />);
-    });
+    // update the view
+    const results = await this.link();
+    if (results) {
+      store.setState({ embeds: results });
+    }
+    this.statusBarItem.render(<StatusBar status="disabled" />);
   }
 
   private async indexWholeVault() {
@@ -275,6 +277,7 @@ export default class AvaPlugin extends Plugin {
         name: 'Write Paragraph',
         editorCallback: (editor: Editor) => {
           posthog.capture('ava-write-paragraph');
+          new Notice('🧙 Writing Paragraph', 2000);
 
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
@@ -403,15 +406,6 @@ export default class AvaPlugin extends Plugin {
       });
 
       this.addCommand({
-        id: 'ava-open-link',
-        name: 'Open AVA Links',
-        callback: async () => {
-          posthog.capture('ava-open-links');
-          this.displayLinkSidebar();
-        },
-      });
-
-      this.addCommand({
         id: 'ava-search',
         name: 'Search',
         callback: async () => {
@@ -430,6 +424,15 @@ export default class AvaPlugin extends Plugin {
         callback: async () => {
           posthog.capture('ava-load-semantic');
           await this.indexWholeVault();
+        },
+      });
+      this.addCommand({
+        id: 'ava-generate-link',
+        name: 'Generate Link',
+        editorCallback: async (editor: Editor) => {
+          this.displayLinkSidebar();
+          store.setState({ editorContext: editor });
+          this.updateSearch();
         },
       });
 
@@ -464,11 +467,11 @@ export default class AvaPlugin extends Plugin {
         },
       });
 
-      this.registerEvent(
-        this.app.workspace.on('file-open', () => {
-          this.updateSearch();
-        })
-      );
+      // this.registerEvent(
+      //   this.app.workspace.on('file-open', () => {
+      //     this.updateSearch();
+      //   })
+      // );
 
       this.registerView(
         VIEW_TYPE_WRITE,

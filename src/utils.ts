@@ -14,7 +14,7 @@ export interface ISimilarFile {
   note_tags: string[];
 }
 interface SearchRequest {
-  query?: string
+  query?: string;
   note?: {
     note_path: string;
     note_content: string;
@@ -24,7 +24,12 @@ interface SearchRequest {
 
 // this is so that the model can complete something at least of equal length
 export const REWRITE_CHAR_LIMIT = 5800;
-export const search = async (request: SearchRequest, token: string, vaultId: string) => {
+export const EMBED_CHAR_LIMIT = 25000;
+export const search = async (
+  request: SearchRequest,
+  token: string,
+  vaultId: string
+) => {
   const response: { similarities: ISimilarFile[] } = await fetchWithTimeout(
     `${API_HOST}/v1/search`,
     {
@@ -46,13 +51,17 @@ export const createSemanticLinks = async (
   token: string,
   vaultId: string
 ) => {
-  const response = await search({
-    note: {
-      note_path: title,
-      note_content: text,
-      note_tags: tags,
+  const response = await search(
+    {
+      note: {
+        note_path: title,
+        note_content: text,
+        note_tags: tags,
+      },
     },
-  }, token, vaultId);
+    token,
+    vaultId
+  );
 
   console.log('response', response);
   if (!response.similarities) {
@@ -110,7 +119,6 @@ export const createWikipediaLinks = async (
   const completion = response.choices[0].text;
   return `- ${completion}`;
 };
-
 
 export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   const prompt = `Write a paragraph about ${text}`;
@@ -304,13 +312,15 @@ export const userMessage = (e: any) =>
     ? '❗️ You need to have a "hobby" or "pro" plan to use this feature ❗️'
     : '❗️ Something wrong happened. ❗️ \n ⚙️ Please make sure you connected your account in the settings ⚙️';
 
-async function fetchWithTimeout(url: string, options: RequestInit & {timeout?: number}) {
-  
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit & { timeout?: number }
+) {
   const controller = new AbortController();
   const id = setTimeout(() => controller.abort(), options.timeout || 10_000);
   const response = await fetch(url, {
     ...options,
-    signal: controller.signal  
+    signal: controller.signal,
   });
   clearTimeout(id);
   return response;
