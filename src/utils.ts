@@ -262,7 +262,14 @@ export const getCompleteFiles = async (app: App) => {
 // used to uniquely identify the obsidian vault
 export const getVaultId = (plugin: AvaPlugin) => {
   let vaultId = plugin.settings.vaultId;
+  const legacyVaultId = window.localStorage.getItem('rw-ObsidianClientId');
   if (vaultId) {
+    return vaultId;
+    // else if should be removed by 22 of Jan 2023
+  } else if (legacyVaultId) {
+    // used to be stored in localStorage, but we moved it to the settings object
+    plugin.settings.vaultId = legacyVaultId;
+    plugin.saveSettings();
     return vaultId;
   } else {
     vaultId = Math.random().toString(36).substring(2, 15);
@@ -316,7 +323,7 @@ export async function getUserAuthToken(vaultId: string, attempt = 0) {
     return;
   }
   if (data.token) {
-    data.token;
+    return data.token;
   } else {
     if (attempt > 20) {
       console.log(
