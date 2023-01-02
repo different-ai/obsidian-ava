@@ -70,8 +70,9 @@ export default class AvaPlugin extends Plugin {
   private eventRefDeleted: EventRef;
 
   private async link() {
-    posthog.capture('semantic-related-topics');
     const file = this.app.workspace.getActiveFile();
+    if (!file) return;
+    posthog.capture('semantic-related-topics');
     new Notice('Link - Connecting Related Notes ⏰');
     const currentText = await this.app.vault.read(file);
     let completion = null;

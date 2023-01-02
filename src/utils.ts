@@ -13,11 +13,19 @@ export interface ISimilarFile {
   note_content: string;
   note_tags: string[];
 }
+interface SearchRequest {
+  query?: string
+  note?: {
+    note_path: string;
+    note_content: string;
+    note_tags: string[];
+  };
+}
 
 // this is so that the model can complete something at least of equal length
 export const REWRITE_CHAR_LIMIT = 5800;
-export const search = async (query: string, token: string, vaultId: string) => {
-  const response: { similarities: ISimilarFile[] } = await fetch(
+export const search = async (request: SearchRequest, token: string, vaultId: string) => {
+  const response: { similarities: ISimilarFile[] } = await fetchWithTimeout(
     `${API_HOST}/v1/search`,
     {
       method: 'POST',
@@ -25,7 +33,7 @@ export const search = async (query: string, token: string, vaultId: string) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ query: query, vault_id: vaultId }),
+      body: JSON.stringify({ ...request, vault_id: vaultId }),
     }
   ).then((response) => response.json());
   return response;
@@ -38,11 +46,18 @@ export const createSemanticLinks = async (
   token: string,
   vaultId: string
 ) => {
-  const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
-  console.log('Query:', query);
-  const response = await search(query, token, vaultId);
+  const response = await search({
+    note: {
+      note_path: title,
+      note_content: text,
+      note_tags: tags,
+    },
+  }, token, vaultId);
 
   console.log('response', response);
+  if (!response.similarities) {
+    return [];
+  }
   const similarities = response.similarities.filter(
     (similarity) =>
       similarity.note_path !== title &&
@@ -76,7 +91,7 @@ export const createWikipediaLinks = async (
     text +
     '\nWikipedia links of similar topics:\n\n - https://';
   console.log('Prompt:', prompt);
-  const response = await fetch(`${API_HOST}/v1/text/create`, {
+  const response = await fetchWithTimeout(`${API_HOST}/v1/text/create`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -96,58 +111,6 @@ export const createWikipediaLinks = async (
   return `- ${completion}`;
 };
 
-const ignoredTags = [
-  // TODO: make it configurable in the settings
-  '#shower-thought',
-  '#godel-uncertain',
-  '#todo',
-  '#to-digest',
-];
-export const filterTags = (tags: string[]) => {
-  return tags
-    .filter((t) => !ignoredTags.includes(t))
-    .map((tag) => tag.replace('#', ''))
-    .join(',');
-};
-
-export const createSemanticTags = async (
-  title: string,
-  text: string,
-  tags: string[],
-  token: string
-) => {
-  const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
-  console.log('Query:', query);
-  const response: { similarities: ISimilarFile[] } = await fetch(
-    `${API_HOST}/v1/text/create`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ query: query }),
-    }
-  ).then((response) => response.json());
-
-  // tags not already in the file - unique
-  const newTags = response.similarities
-    .filter(
-      (similarity) =>
-        similarity.note_path !== title &&
-        similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
-    )
-    .flatMap((similarity) => similarity.note_tags.map((tag) => '#' + tag))
-    .filter(
-      (tag) =>
-        !tags.includes(tag) &&
-        !ignoredTags.includes(tag) &&
-        // only accept "#" and alphanumeric characters in tags
-        // TODO: related to https://github.com/mfarragher/obsidiantools/issues/24
-        tag.match(/^#[a-zA-Z0-9]+$/)
-    );
-  return [...new Set(newTags)].join(' ');
-};
 
 export const createParagraph = async (text: string, plugin: AvaPlugin) => {
   const prompt = `Write a paragraph about ${text}`;
@@ -216,7 +179,8 @@ export const refreshSemanticSearch = async (
   token: string,
   vaultId: string
 ) => {
-  const response = await fetch(`${API_HOST}/v1/search/refresh`, {
+  const response = await fetchWithTimeout(`${API_HOST}/v1/search/refresh`, {
+    timeout: 30_000,
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -339,3 +303,15 @@ export const userMessage = (e: any) =>
   e.toString().includes('subscription')
     ? '❗️ You need to have a "hobby" or "pro" plan to use this feature ❗️'
     : '❗️ Something wrong happened. ❗️ \n ⚙️ Please make sure you connected your account in the settings ⚙️';
+
+async function fetchWithTimeout(url: string, options: RequestInit & {timeout?: number}) {
+  
+  const controller = new AbortController();
+  const id = setTimeout(() => controller.abort(), options.timeout || 10_000);
+  const response = await fetch(url, {
+    ...options,
+    signal: controller.signal  
+  });
+  clearTimeout(id);
+  return response;
+}
