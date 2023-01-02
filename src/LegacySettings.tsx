@@ -39,6 +39,7 @@ export interface AvaSettings {
   debug: boolean;
   openai: OpenAISettings;
   token: string;
+  vaultId: string;
 }
 type CompletionConfig = Omit<
   CreateCompletionRequest,
@@ -67,6 +68,7 @@ export const DEFAULT_SETTINGS: AvaSettings = {
     organization: '',
   },
   token: '',
+  vaultId: undefined,
 };
 
 interface CustomSettingsProps {

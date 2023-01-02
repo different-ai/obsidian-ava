@@ -81,7 +81,8 @@ export default class AvaPlugin extends Plugin {
         file.path,
         currentText,
         tags.map((tag) => tag.tag),
-        this.settings?.token
+        this.settings?.token,
+        this.settings.vaultId
       );
 
       this.statusBarItem.render(<StatusBar status="disabled" />);
@@ -156,7 +157,8 @@ export default class AvaPlugin extends Plugin {
           noteTags: file.tags,
           noteContent: file.content,
         })),
-        this.settings?.token
+        this.settings?.token,
+        this.settings?.vaultId
       );
       this.listenToNoteEvents();
       new Notice('Search - Vault indexed successfully', 2000);
@@ -188,7 +190,8 @@ export default class AvaPlugin extends Plugin {
                 noteContent: data,
               },
             ],
-            this.settings?.token
+            this.settings?.token,
+            this.settings?.vaultId
           );
         } catch (e) {
           onGeneralError(e);
@@ -214,7 +217,8 @@ export default class AvaPlugin extends Plugin {
                 pathToDelete: oldPath,
               },
             ],
-            this.settings?.token
+            this.settings?.token,
+            this.settings?.vaultId
           );
         } catch (e) {
           onGeneralError(e);
@@ -230,7 +234,8 @@ export default class AvaPlugin extends Plugin {
               pathToDelete: file.path,
             },
           ],
-          this.settings?.token
+          this.settings?.token,
+          this.settings.vaultId
         );
       } catch (e) {
         onGeneralError(e);
@@ -410,7 +415,11 @@ export default class AvaPlugin extends Plugin {
         name: 'Search',
         callback: async () => {
           posthog.capture('ava-search');
-          new SearchModal(this.app, this.settings.token).open();
+          new SearchModal(
+            this.app,
+            this.settings.token,
+            this.settings.vaultId
+          ).open();
         },
       });
 

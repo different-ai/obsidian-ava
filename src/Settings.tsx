@@ -3,7 +3,7 @@ import * as React from 'react';
 import { PrimaryButton } from './Button';
 import { AdvancedSettings, LegacySettings } from './LegacySettings';
 import AvaPlugin from './main';
-import { getUserAuthToken } from './utils';
+import { getUserAuthToken, getVaultId } from './utils';
 
 const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
   const [isConnected, setIsConnected] = React.useState(false);
@@ -11,9 +11,12 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
   React.useEffect(() => {
     setIsConnected(plugin?.settings?.token !== '');
   }, [plugin.settings]);
+
   const handleConnect = async () => {
     posthog.capture('ava-connect');
-    const token = await getUserAuthToken();
+    const vaultId = getVaultId(plugin);
+
+    const token = await getUserAuthToken(vaultId);
     plugin.settings.token = token;
     plugin.saveSettings();
     setIsConnected(true);

@@ -16,7 +16,7 @@ export interface ISimilarFile {
 
 // this is so that the model can complete something at least of equal length
 export const REWRITE_CHAR_LIMIT = 5800;
-export const search = async (query: string, token: string) => {
+export const search = async (query: string, token: string, vaultId: string) => {
   const response: { similarities: ISimilarFile[] } = await fetch(
     `${API_HOST}/v1/search`,
     {
@@ -25,7 +25,7 @@ export const search = async (query: string, token: string) => {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({ query: query, vault_id: getObsidianClientID() }),
+      body: JSON.stringify({ query: query, vault_id: vaultId }),
     }
   ).then((response) => response.json());
   return response;
@@ -35,11 +35,12 @@ export const createSemanticLinks = async (
   title: string,
   text: string,
   tags: string[],
-  token: string
+  token: string,
+  vaultId: string
 ) => {
   const query = `File:\n${title}\nTags:\n${tags}\nContent:\n${text}`;
   console.log('Query:', query);
-  const response = await search(query, token);
+  const response = await search(query, token, vaultId);
 
   console.log('response', response);
   const similarities = response.similarities.filter(
@@ -212,7 +213,8 @@ interface NoteRefresh {
  */
 export const refreshSemanticSearch = async (
   notes: NoteRefresh[],
-  token: string
+  token: string,
+  vaultId: string
 ) => {
   const response = await fetch(`${API_HOST}/v1/search/refresh`, {
     method: 'POST',
@@ -221,7 +223,7 @@ export const refreshSemanticSearch = async (
       Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
-      vault_id: getObsidianClientID(),
+      vault_id: vaultId,
       notes: notes.map((note) => ({
         // snake_case to match the API
         note_path: note.notePath,
@@ -257,15 +259,16 @@ export const getCompleteFiles = async (app: App) => {
   return filesData;
 };
 
-// used to uniquely identify the user
-export const getObsidianClientID = () => {
-  let obsidianClientId = window.localStorage.getItem('rw-ObsidianClientId');
-  if (obsidianClientId) {
-    return obsidianClientId;
+// used to uniquely identify the obsidian vault
+export const getVaultId = (plugin: AvaPlugin) => {
+  let vaultId = plugin.settings.vaultId;
+  if (vaultId) {
+    return vaultId;
   } else {
-    obsidianClientId = Math.random().toString(36).substring(2, 15);
-    window.localStorage.setItem('rw-ObsidianClientId', obsidianClientId);
-    return obsidianClientId;
+    vaultId = Math.random().toString(36).substring(2, 15);
+    plugin.settings.vaultId = vaultId;
+    plugin.saveSettings();
+    return vaultId;
   }
 };
 
@@ -280,18 +283,16 @@ export function getAuthHeaders() {
 const baseURL = 'https://app.anotherai.co';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-export async function getUserAuthToken(attempt = 0) {
-  const uuid = getObsidianClientID();
-
+export async function getUserAuthToken(vaultId: string, attempt = 0) {
   if (attempt === 0) {
-    window.open(`${baseURL}/signup?token=${uuid}&service=obsidian`);
+    window.open(`${baseURL}/signup?token=${vaultId}&service=obsidian`);
   }
   // wait  little to be sure that the user has time to authorize
   await wait(1000);
 
   let response, data;
   try {
-    response = await fetch(`${baseURL}/api/auth?token=${uuid}`, {
+    response = await fetch(`${baseURL}/api/auth?token=${vaultId}`, {
       headers: {
         'Content-Type': 'application/json',
         mode: 'cors',
@@ -329,7 +330,7 @@ export async function getUserAuthToken(attempt = 0) {
       })`
     );
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    await getUserAuthToken(attempt + 1);
+    await getUserAuthToken(vaultId, attempt + 1);
   }
   return data.token;
 }

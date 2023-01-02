@@ -4,9 +4,12 @@ import { search } from './utils';
 
 export class SearchModal extends SuggestModal<Embed> {
   private token: string;
-  constructor(app: App, token: string) {
+  private vaultId: string;
+
+  constructor(app: App, token: string, vaultId: string) {
     super(app);
     this.token = token;
+    this.vaultId = vaultId;
   }
   private results: Embed[];
 
@@ -16,7 +19,7 @@ export class SearchModal extends SuggestModal<Embed> {
     // would be nice to start with text-based search and then switch to semantic search above a certain length
     if (query.length < 2) return;
 
-    const res = await search(query, this.token);
+    const res = await search(query, this.token, this.vaultId);
     console.log('modal', res);
 
     return res.similarities.map((similarity) => {
