@@ -5,7 +5,9 @@ import {
 import * as React from 'react';
 import { PrimaryButton } from './Button';
 
-export const CopyToClipboardButton = ({ text }: { text: string }) => {
+export const CopyToClipboardButton = ({ text, extraOnClick }: {
+  text: string, extraOnClick?: (text: string) => void
+}) => {
   const [isCopied, setIsCopied] = React.useState(false);
 
   React.useEffect(() => {
@@ -17,6 +19,7 @@ export const CopyToClipboardButton = ({ text }: { text: string }) => {
 
   const handleCopy = () => {
     navigator.clipboard.writeText(text);
+    extraOnClick?.(text);
     setIsCopied(true);
   };
 
