@@ -279,13 +279,6 @@ export const getVaultId = (plugin: AvaPlugin) => {
   }
 };
 
-export function getAuthHeaders() {
-  return {
-    AUTHORIZATION: `Token ${this.settings.token}`,
-    'Obsidian-Client': `${this.getObsidianClientID()}`,
-  };
-}
-
 // const baseURL = 'http:/localhost:3001';
 const baseURL = 'https://app.anotherai.co';
 
