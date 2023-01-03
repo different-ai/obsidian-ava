@@ -410,6 +410,10 @@ export default class AvaPlugin extends Plugin {
         name: 'Search',
         callback: async () => {
           posthog.capture('ava-search');
+          if (!this.settings.token) {
+            new Notice('Link - You need to login to use this feature');
+            return;
+          }
           new SearchModal(
             this.app,
             this.settings.token,
@@ -423,6 +427,10 @@ export default class AvaPlugin extends Plugin {
         name: 'Search API - Load vault',
         callback: async () => {
           posthog.capture('ava-load-semantic');
+          if (!this.settings.token) {
+            new Notice('Link - You need to login to use this feature');
+            return;
+          }
           await this.indexWholeVault();
         },
       });
