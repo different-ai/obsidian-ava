@@ -1,3 +1,4 @@
+import posthog from 'posthog-js';
 import * as React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -13,6 +14,13 @@ export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 export const WriteComponent = () => {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const hideButtons = state.content === '';
+
+  const trackCopy = () => {
+    posthog.capture('copy-write');
+  };
+  const trackInsert = () => {
+    posthog.capture('insert-write');
+  };
 
   return (
     <div className="select-text">
@@ -30,10 +38,11 @@ export const WriteComponent = () => {
       </ReactMarkdown>
       {hideButtons ? null : (
         <div className="flex gap-3">
-          <CopyToClipboardButton text={state.content} />
+          <CopyToClipboardButton text={state.content} extraOnClick={trackCopy} />
           <InsertButton
             editorContext={state.editorContext}
             text={state.content}
+            extraOnClick={trackInsert}
           />
         </div>
       )}

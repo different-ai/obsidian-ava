@@ -22,6 +22,9 @@ export function LinkComponent() {
   const trackCopy = () => {
     posthog.capture('copy-links');
   };
+  const trackInsert = () => {
+    posthog.capture('insert-links');
+  };
 
   React.useEffect(() => {
     if (!embeds) {
@@ -90,7 +93,7 @@ export function LinkComponent() {
       </div>
       <div className="flex gap-3">
         <CopyToClipboardButton text={textToInsert} extraOnClick={trackCopy} />
-        <InsertButton text={textToInsert} editorContext={state.editorContext} />
+        <InsertButton text={textToInsert} editorContext={state.editorContext} extraOnClick={trackInsert} />
       </div>
     </div>
   );
