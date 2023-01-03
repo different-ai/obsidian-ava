@@ -243,55 +243,20 @@ export const getVaultId = (plugin: AvaPlugin) => {
 const baseURL = 'https://app.anotherai.co';
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-export async function getUserAuthToken(vaultId: string, attempt = 0) {
-  if (attempt === 0) {
-    window.open(`${baseURL}/signup?token=${vaultId}&service=obsidian`);
-  }
-  // wait  little to be sure that the user has time to authorize
-  await wait(1000);
 
-  let response, data;
-  try {
-    response = await fetch(`${baseURL}/api/auth?token=${vaultId}`, {
-      headers: {
-        'Content-Type': 'application/json',
-        mode: 'cors',
-      },
-    });
-  } catch (e) {
-    console.log('Obsidian AVA plugin: fetch failed in getUserAuthToken: ', e);
-  }
-  if (response && response.ok) {
-    data = await response.json();
-  } else {
-    console.log(
-      'Obsidian AVA plugin: bad response in getUserAuthToken: ',
-      response
-    );
-    // this.showInfoStatus(
-    //   button.parentElement,
-    //   'Authorization failed. Try again',
-    //   'rw-error'
-    // );
-    return;
-  }
-  if (data.token) {
-    return data.token;
-  } else {
-    if (attempt > 20) {
-      console.log(
-        'Obsidian AVA plugin: reached attempt limit in getUserAuthToken'
-      );
-      return;
-    }
-    console.log(
-      `Obsidian AVA plugin: didn't get token data, retrying (attempt ${
-        attempt + 1
-      })`
-    );
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    await getUserAuthToken(vaultId, attempt + 1);
-  }
+export const openApp = async (vaultId: string) => {
+  window.open(`${baseURL}/signup?token=${vaultId}&service=obsidian`);
+};
+
+export async function getUserAuthToken(vaultId: string) {
+  await wait(1000);
+  const response = await fetch(`${baseURL}/api/auth?token=${vaultId}`, {
+    headers: {
+      'Content-Type': 'application/json',
+      mode: 'cors',
+    },
+  });
+  const data = await response.json();
   return data.token;
 }
 
