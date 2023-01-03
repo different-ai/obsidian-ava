@@ -1,11 +1,12 @@
 import { App, Modal, Setting, TextComponent } from 'obsidian';
 
 const suggestions = [
-  'Keep email addresses seperated by a comma',
-  'And explain it like I am 5',
-  'To translate to german',
-  'To use the metric system',
-  'Format this as a markdown table',
+  'keep email addresses seperated by a comma',
+  'explain it like I am 5',
+  'translate to german',
+  'use the metric system',
+  'format this as a markdown table',
+  'fix grammar',
 ];
 
 export class RewriteModal extends Modal {
@@ -35,7 +36,7 @@ export class RewriteModal extends Modal {
     new Setting(form).setName('Rewrite text').addText((textfield) => {
       textfield
         .setPlaceholder(
-          'Remove all email addresses / Make it sound more like [paste text] / Make it more polite'
+          'remove all email addresses / make it sound more like [paste text] / make it more polite'
         )
         .setValue(this.text)
         .onChange((value) => {
@@ -59,6 +60,7 @@ export class RewriteModal extends Modal {
       }).onclick = () => {
         this.text = suggestion;
         this.textfield.setValue(suggestion);
+        this.search(new Event('submit'));
       };
     });
 
