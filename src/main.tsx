@@ -266,7 +266,6 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.app.workspace.onLayoutReady(async () => {
-      this.updateSearch();
       // ignore on dev otherwise it will index the whole vault every code change
       if (process.env.NODE_ENV !== 'development') this.indexWholeVault();
 
