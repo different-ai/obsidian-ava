@@ -577,10 +577,16 @@ export default class AvaPlugin extends Plugin {
   // eslint-disable-next-line require-jsdoc
   async loadSettings() {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
+
+    // used to sync the store with the plugin settings / useful for react components
+    store.setState({ settings: this.settings });
   }
 
   // eslint-disable-next-line require-jsdoc
   async saveSettings() {
+    // used to have react update its state
+    store.setState({ settings: this.settings });
+
     await this.saveData(this.settings);
   }
   onunload(): void {

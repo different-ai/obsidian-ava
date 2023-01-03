@@ -2,6 +2,7 @@ import { Notice } from 'obsidian';
 import { posthog } from 'posthog-js';
 import * as React from 'react';
 import AvaPlugin from './main';
+import { store } from './store';
 
 export interface AvaSettings {
   debug: boolean;
@@ -16,7 +17,8 @@ export const DEFAULT_SETTINGS: AvaSettings = {
 };
 
 export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
-  const [isDebug, setDebug] = React.useState(plugin.settings.debug);
+  const state = React.useSyncExternalStore(store.subscribe, store.getState);
+  const [isDebug, setDebug] = React.useState(state.settings.debug);
   const showAdvancedSettings = isDebug;
 
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -24,6 +26,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.settings.debug = checked;
     plugin.saveSettings();
     setDebug(checked);
+    plugin.loadSettings();
     checked && posthog.opt_out_capturing();
   };
   // this will not refresh the ui but it will clear the cache
@@ -31,6 +34,8 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.settings.token = undefined;
     plugin.settings.vaultId = undefined;
     plugin.saveSettings();
+
+    plugin.loadSettings();
     new Notice('Cache cleared');
   };
 
@@ -61,9 +66,9 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
         <div className="overflow-x-auto mt-6">
           <div>
             <div>Token</div>
-            <pre className="select-text">{plugin.settings.token}</pre>
+            <pre className="select-text">{state?.settings?.token}</pre>
             <div>Vault</div>
-            <pre className="select-text">{plugin.settings.vaultId}</pre>
+            <pre className="select-text">{state?.settings?.vaultId}</pre>
           </div>
         </div>
       )}

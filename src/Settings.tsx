@@ -3,14 +3,12 @@ import * as React from 'react';
 import { PrimaryButton } from './Button';
 import { AdvancedSettings } from './LegacySettings';
 import AvaPlugin from './main';
+import { store } from './store';
 import { getUserAuthToken, getVaultId } from './utils';
 
 const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
-  const [isConnected, setIsConnected] = React.useState(false);
-
-  React.useEffect(() => {
-    setIsConnected(plugin?.settings?.token !== '');
-  }, [plugin.settings]);
+  const state = React.useSyncExternalStore(store.subscribe, store.getState);
+  const isConnected = !!state?.settings?.token;
 
   const handleConnect = async () => {
     posthog.capture('ava-connect');
@@ -19,14 +17,12 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
     const token = await getUserAuthToken(vaultId);
     plugin.settings.token = token;
     plugin.saveSettings();
-    setIsConnected(true);
   };
 
   const handleDisconnect = () => {
     posthog.capture('ava-disconnect');
     plugin.settings.token = '';
     plugin.saveSettings();
-    setIsConnected(false);
   };
 
   if (!isConnected) {

@@ -1,5 +1,6 @@
 import { Editor } from 'obsidian';
 import create from 'zustand/vanilla';
+import { AvaSettings } from './LegacySettings';
 
 export type Embed = {
   path: string;
@@ -16,9 +17,15 @@ type State = {
   prompt: string;
   reset: () => void;
   setPrompt: (prompt: string) => void;
+  settings: AvaSettings;
 };
 
 export const store = create<State>((set) => ({
+  settings: {
+    debug: false,
+    token: '',
+    vaultId: '',
+  },
   embeds: [],
   setEmbeds: (embeds: { path: string; similarity: number }[]) => {
     set(() => ({ embeds: embeds }));
@@ -32,10 +39,10 @@ export const store = create<State>((set) => ({
   setEditorContext: (editor: Editor) => {
     set(() => ({ editorContext: editor }));
   },
+  prompt: '',
   setPrompt: (prompt: string) => {
     set(() => ({ prompt: prompt }));
   },
-  prompt: '',
   reset: () => {
     set(() => ({ content: '', prompt: '' }));
   },

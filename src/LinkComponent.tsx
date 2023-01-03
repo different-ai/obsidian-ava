@@ -93,7 +93,11 @@ export function LinkComponent() {
       </div>
       <div className="flex gap-3">
         <CopyToClipboardButton text={textToInsert} extraOnClick={trackCopy} />
-        <InsertButton text={textToInsert} editorContext={state.editorContext} extraOnClick={trackInsert} />
+        <InsertButton
+          text={textToInsert}
+          editorContext={state.editorContext}
+          extraOnClick={trackInsert}
+        />
       </div>
     </div>
   );
