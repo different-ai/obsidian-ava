@@ -19,7 +19,7 @@ import {
   RequestImageCreate,
   ResponseImageCreate,
 } from './stableDiffusion';
-import { StatusBar } from './suggest';
+import { StatusBar } from './StatusBar';
 import {
   complete,
   createParagraph,
@@ -455,7 +455,7 @@ export default class AvaPlugin extends Plugin {
           const completion = await createWikipediaLinks(
             title,
             editor.getSelection(),
-            this.settings.token,
+            this.settings.token
           );
           store.getState().reset();
           store.getState().setPrompt(title);
@@ -468,7 +468,6 @@ export default class AvaPlugin extends Plugin {
           new Notice('Generated Wikipedia Links check out your sidebar🔥');
         },
       });
-
 
       this.addCommand({
         id: 'ava-complete',
@@ -496,10 +495,13 @@ export default class AvaPlugin extends Plugin {
           const text = editor.getSelection();
           const lines = text.split('\n');
           // set cursor at the end of the selection
-          editor.setCursor({line: editor.getCursor().line + lines.length - 1,
-            ch: lines[lines.length - 1].length
+          editor.setCursor({
+            line: editor.getCursor().line + lines.length - 1,
+            ch: lines[lines.length - 1].length,
           });
-          const source = await complete(text, this.settings.token, {stream: true});
+          const source = await complete(text, this.settings.token, {
+            stream: true,
+          });
           // TODO: display information message
           // TODO: when the completion is null (i.e. when prompt end by . for example)
           source.addEventListener('message', function (e: any) {
@@ -510,19 +512,16 @@ export default class AvaPlugin extends Plugin {
             const completion = payload.choices[0].text;
             editor.setCursor({
               line: currentLine,
-              ch: lastChar + (completion === '\n' ? 10 : 0)
+              ch: lastChar + (completion === '\n' ? 10 : 0),
             });
             // if \n then jump to next line
             if (completion === '\n') {
               editor.setCursor({
                 line: currentLine + 1,
-                ch: 0
+                ch: 0,
               });
             }
-            editor.replaceRange(
-              completion,
-              editor.getCursor()
-            );
+            editor.replaceRange(completion, editor.getCursor());
           });
           source.addEventListener('error', onSSEError);
           source.stream();
