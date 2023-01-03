@@ -1,7 +1,7 @@
 import { posthog } from 'posthog-js';
 import * as React from 'react';
 import { PrimaryButton } from './Button';
-import { AdvancedSettings, LegacySettings } from './LegacySettings';
+import { AdvancedSettings } from './LegacySettings';
 import AvaPlugin from './main';
 import { getUserAuthToken, getVaultId } from './utils';
 
@@ -45,13 +45,6 @@ export const CustomSettings = ({ plugin }: { plugin: AvaPlugin }) => {
         <Connect plugin={plugin} />
       </div>
       <AdvancedSettings plugin={plugin} />
-      {plugin.settings.debug && (
-        <>
-          <h2 className="text-3xl mt-4">Legacy Settings </h2>
-          <div className="text-red-400">You probably don't need this</div>
-          <LegacySettings plugin={plugin} />
-        </>
-      )}
     </div>
   );
 };
