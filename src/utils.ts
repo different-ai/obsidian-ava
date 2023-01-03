@@ -98,7 +98,9 @@ interface ICompletion {
   stream?: boolean;
 }
 export const complete = async (
-  prompt: string, token: string, options?: ICompletion
+  prompt: string,
+  token: string,
+  options?: ICompletion
   // TODO how to use SSE type?
 ): Promise<any | string> => {
   // TODO: back-end
@@ -147,11 +149,7 @@ export const createParagraph = (text: string, token: string) => {
   return complete(prompt, token);
 };
 
-export const rewrite = (
-  text: string,
-  alteration: string,
-  token: string
-) => {
+export const rewrite = (text: string, alteration: string, token: string) => {
   const prompt = `Rewrite
 "${text}"
 ${alteration}`;
@@ -220,15 +218,9 @@ export const getCompleteFiles = async (app: App) => {
 // used to uniquely identify the obsidian vault
 export const getVaultId = (plugin: AvaPlugin) => {
   let vaultId = plugin.settings.vaultId;
-  const legacyVaultId = window.localStorage.getItem('rw-ObsidianClientId');
   if (vaultId) {
     return vaultId;
     // else if should be removed by 22 of Jan 2023
-  } else if (legacyVaultId) {
-    // used to be stored in localStorage, but we moved it to the settings object
-    plugin.settings.vaultId = legacyVaultId;
-    plugin.saveSettings();
-    return vaultId;
   } else {
     vaultId = Math.random().toString(36).substring(2, 15);
     plugin.settings.vaultId = vaultId;
