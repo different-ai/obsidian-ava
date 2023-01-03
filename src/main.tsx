@@ -72,11 +72,10 @@ export default class AvaPlugin extends Plugin {
   private eventRefDeleted: EventRef;
 
   private async link() {
+    posthog.capture('semantic-related-topics');
+
     const file = this.app.workspace.getActiveFile();
     if (!file) return;
-    posthog.capture('semantic-related-topics');
-    new Notice('Link - Connecting Related Notes ⏰');
-    console.log('hello');
     const currentText = await this.app.vault.read(file);
     if (currentText.length > EMBED_CHAR_LIMIT) {
       new Notice(
@@ -99,9 +98,7 @@ export default class AvaPlugin extends Plugin {
       return completion;
     } catch (e) {
       console.error(e);
-      new Notice(
-        'Link - Error connecting related notes. Make sure you started AVA Search API'
-      );
+      new Notice('Link - Error connecting related notes');
       this.statusBarItem.render(<StatusBar status="disabled" />);
       return;
     }
@@ -130,16 +127,6 @@ export default class AvaPlugin extends Plugin {
     this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(VIEW_TYPE_LINK)[0]
     );
-  }
-
-  async updateSearch() {
-    this.statusBarItem.render(<StatusBar status="loading" />);
-    // update the view
-    const results = await this.link();
-    if (results) {
-      store.setState({ embeds: results });
-    }
-    this.statusBarItem.render(<StatusBar status="disabled" />);
   }
 
   private async indexWholeVault() {
@@ -279,6 +266,10 @@ export default class AvaPlugin extends Plugin {
         editorCallback: (editor: Editor) => {
           posthog.capture('ava-write-paragraph');
           new Notice('🧙 Writing Paragraph', 2000);
+          if (!this.settings.token) {
+            new Notice('🧙 You need to login to use this feature', 2000);
+            return;
+          }
 
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
@@ -307,11 +298,16 @@ export default class AvaPlugin extends Plugin {
         name: 'Generate Image',
         editorCallback: async (editor: Editor) => {
           const selection = editor.getSelection();
-
           posthog.capture('ava-generate-image', {
             // capture prompt length (i.e. might create GPT3 post-processing for newbies)
             promptLength: selection.length,
           });
+
+          if (!this.settings.token) {
+            new Notice('🧙 You need to login to use this feature', 2000);
+            return;
+          }
+
           if (!selection) {
             new Notice('You need to select some text to generate an image');
             return;
@@ -367,7 +363,10 @@ export default class AvaPlugin extends Plugin {
         name: 'Rewrite Selection',
         editorCallback: (editor: Editor) => {
           posthog.capture('ava-rewrite-prompt');
-
+          if (!this.settings.token) {
+            new Notice('🧙 You need to login to use this feature', 2000);
+            return;
+          }
           if (editor.somethingSelected() === false) {
             new Notice(
               '🧙 Obsidian AI - Select some text to rewrite and try again :)'
@@ -431,9 +430,19 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-generate-link',
         name: 'Generate Link',
         editorCallback: async (editor: Editor) => {
+          if (!this.settings.token) {
+            new Notice('🧙 You need to login to use this feature', 2000);
+            return;
+          }
+          new Notice('Link - Connecting Related Notes ⏰');
           this.displayLinkSidebar();
           store.setState({ editorContext: editor });
-          this.updateSearch();
+          this.statusBarItem.render(<StatusBar status="loading" />);
+          const results = await this.link();
+          if (results) {
+            store.setState({ embeds: results });
+          }
+          this.statusBarItem.render(<StatusBar status="disabled" />);
         },
       });
 
@@ -442,6 +451,10 @@ export default class AvaPlugin extends Plugin {
         name: 'Get Wikipedia Suggestions',
         editorCallback: async (editor: Editor, view: ItemView) => {
           posthog.capture('get-wikipedia-suggestions');
+          if (!this.settings.token) {
+            new Notice('Link - You need to login to use this feature');
+            return;
+          }
           const title = this.app.workspace.getActiveFile()?.basename;
 
           new Notice('Generating Wikipedia Links ⏰');
@@ -473,6 +486,10 @@ export default class AvaPlugin extends Plugin {
         name: 'Complete Selection',
         editorCallback: async (editor: Editor) => {
           posthog.capture('ava-complete');
+          if (!this.settings.token) {
+            new Notice('Link - You need to login to use this feature');
+            return;
+          }
 
           if (editor.somethingSelected() === false) {
             new Notice(

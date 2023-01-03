@@ -171,6 +171,16 @@ export const refreshSemanticSearch = async (
   token: string,
   vaultId: string
 ) => {
+  console.log('try', token, vaultId);
+  // stop silently not necessiraly need to span the user
+  if (!token) {
+    console.log('Tried to call refresh without a token');
+    return;
+  }
+  if (!vaultId) {
+    console.log('Tried to call refresh without a token');
+    return;
+  }
   const response = await fetchWithTimeout(`${API_HOST}/v1/search/refresh`, {
     timeout: 30_000,
     method: 'POST',
