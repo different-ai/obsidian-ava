@@ -78,20 +78,10 @@ export const createSemanticLinks = async (
   });
 };
 
-export const limitLengthForGPT3 = (markdownFileContent: string) => {
-  let text = markdownFileContent;
-  const maxWordLength = 300;
-  // If text is too long, take the last 300 words
-  if (text.split(' ').length > maxWordLength) {
-    text = text.split(' ').slice(-maxWordLength).join(' ');
-  }
-  return text;
-};
-
 export const createWikipediaLinks = async (
   title: string,
   text: string,
-  plugin: AvaPlugin
+  token: string
 ) => {
   const prompt =
     'Title: ' +
@@ -100,77 +90,73 @@ export const createWikipediaLinks = async (
     text +
     '\nWikipedia links of similar topics:\n\n - https://';
   console.log('Prompt:', prompt);
-  const response = await fetchWithTimeout(`${API_HOST}/v1/text/create`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${plugin.settings.token}`,
-    },
-    body: JSON.stringify({
-      model: 'text-davinci-003',
-      prompt: prompt,
-      temperature: 0.7,
-      max_tokens: text.length + 200,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
-    }),
-  }).then((response) => response.json());
-  const completion = response.choices[0].text;
+  const completion = await complete(prompt, token, { stream: false });
   return `- ${completion}`;
 };
 
-export const createParagraph = async (text: string, plugin: AvaPlugin) => {
-  const prompt = `Write a paragraph about ${text}`;
+interface ICompletion {
+  stream?: boolean;
+}
+export const complete = async (
+  prompt: string, token: string, options?: ICompletion
+  // TODO how to use SSE type?
+): Promise<any | string> => {
+  // TODO: back-end
+  prompt = prompt.trim();
   console.log('Prompt:', prompt);
-  const source = new SSE(`${API_HOST}/v1/text/create`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${plugin.settings.token}`,
-    },
-    method: 'POST',
-    payload: JSON.stringify({
-      frequency_penalty: 0,
-      max_tokens: text.length + 300,
-      model: 'text-davinci-003',
-      presence_penalty: 0,
-      prompt: prompt,
-      stream: true,
-      temperature: 0.7,
-      top_p: 1,
-    }),
-  });
-  return source;
+  const stream = options?.stream !== undefined ? options?.stream : true;
+  console.log('Options:', options, 'Stream:', stream);
+
+  const body = {
+    frequency_penalty: 0,
+    max_tokens: 2000,
+    model: 'text-davinci-003',
+    presence_penalty: 0,
+    prompt: prompt,
+    stream: stream,
+    temperature: 0.7,
+    top_p: 1,
+  };
+  if (stream) {
+    const source = new SSE(`${API_HOST}/v1/text/create`, {
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      method: 'POST',
+      payload: JSON.stringify(body),
+    });
+    return source;
+  } else {
+    const response = await fetchWithTimeout(`${API_HOST}/v1/text/create`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(body),
+    }).then((response) => response.json());
+    console.log('Response:', response);
+    const completion = response.choices[0].text;
+    return completion;
+  }
 };
 
-export const rewrite = async (
+export const createParagraph = (text: string, token: string) => {
+  const prompt = `Write a paragraph about ${text}`;
+  return complete(prompt, token);
+};
+
+export const rewrite = (
   text: string,
   alteration: string,
-  plugin: AvaPlugin
+  token: string
 ) => {
   const prompt = `Rewrite
 "${text}"
 ${alteration}`;
   console.log('Prompt:', prompt);
-  const source = new SSE(`${API_HOST}/v1/text/create`, {
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${plugin.settings.token}`,
-    },
-
-    method: 'POST',
-    payload: JSON.stringify({
-      frequency_penalty: 0,
-      max_tokens: 2000,
-      model: 'text-davinci-003',
-      presence_penalty: 0,
-      prompt: prompt,
-      stream: true,
-      temperature: 0.7,
-      top_p: 1,
-    }),
-  });
-  return source;
+  return complete(prompt, token);
 };
 
 interface NoteRefresh {

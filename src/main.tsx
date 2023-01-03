@@ -21,6 +21,7 @@ import {
 } from './stableDiffusion';
 import { StatusBar } from './suggest';
 import {
+  complete,
   createParagraph,
   createSemanticLinks,
   createWikipediaLinks,
@@ -28,7 +29,7 @@ import {
   getCompleteFiles,
   refreshSemanticSearch,
   rewrite,
-  REWRITE_CHAR_LIMIT,
+  REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
   userMessage,
 } from './utils';
 
@@ -266,7 +267,8 @@ export default class AvaPlugin extends Plugin {
 
     this.app.workspace.onLayoutReady(async () => {
       this.updateSearch();
-      this.indexWholeVault(); // TODO: maybe should wait a bit?
+      // ignore on dev otherwise it will index the whole vault every code change
+      if (process.env.NODE_ENV !== 'development') this.indexWholeVault();
 
       this.imageAIClient = {
         createImage,
@@ -281,7 +283,7 @@ export default class AvaPlugin extends Plugin {
 
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
-            const source = await createParagraph(text, this);
+            const source = await createParagraph(text, this.settings.token);
             source.addEventListener('message', function (e: any) {
               const payload = JSON.parse(e.data);
               console.log(payload);
@@ -373,7 +375,7 @@ export default class AvaPlugin extends Plugin {
             );
             return;
           }
-          if (editor.getSelection().length > REWRITE_CHAR_LIMIT) {
+          if (editor.getSelection().length > TEXT_CREATE_CHAR_LIMIT) {
             new Notice(
               '🧙 Obsidian AI - Selection is too long, please select less than 5800 characters ~1200 words'
             );
@@ -385,7 +387,7 @@ export default class AvaPlugin extends Plugin {
           const onSubmit = async (prompt: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
-            const source = await rewrite(text, prompt, this);
+            const source = await rewrite(text, prompt, this.settings.token);
             source.addEventListener('error', onSSEError);
             store.getState().reset();
             // go to the next line
@@ -453,7 +455,7 @@ export default class AvaPlugin extends Plugin {
           const completion = await createWikipediaLinks(
             title,
             editor.getSelection(),
-            this
+            this.settings.token,
           );
           store.getState().reset();
           store.getState().setPrompt(title);
@@ -464,6 +466,67 @@ export default class AvaPlugin extends Plugin {
           this.statusBarItem.render(<StatusBar status="disabled" />);
 
           new Notice('Generated Wikipedia Links check out your sidebar🔥');
+        },
+      });
+
+
+      this.addCommand({
+        id: 'ava-complete',
+        name: 'Complete Selection',
+        editorCallback: async (editor: Editor) => {
+          posthog.capture('ava-complete');
+
+          if (editor.somethingSelected() === false) {
+            new Notice(
+              '🧙 Obsidian AI - Select some text to rewrite and try again :)'
+            );
+            return;
+          }
+          if (editor.getSelection().length > TEXT_CREATE_CHAR_LIMIT) {
+            new Notice(
+              '🧙 Obsidian AI - Selection is too long, please select less than 5800 characters ~1200 words'
+            );
+            return;
+          }
+          new Notice(
+            '🧙 Obsidian AI - Completing selection, this may take a few seconds'
+          );
+
+          this.statusBarItem.render(<StatusBar status="loading" />);
+          const text = editor.getSelection();
+          const lines = text.split('\n');
+          // set cursor at the end of the selection
+          editor.setCursor({line: editor.getCursor().line + lines.length - 1,
+            ch: lines[lines.length - 1].length
+          });
+          const source = await complete(text, this.settings.token, {stream: true});
+          // TODO: display information message
+          // TODO: when the completion is null (i.e. when prompt end by . for example)
+          source.addEventListener('message', function (e: any) {
+            const payload = JSON.parse(e.data);
+            console.log(payload);
+            const currentLine = editor.getCursor().line;
+            const lastChar = editor.getLine(currentLine).length;
+            const completion = payload.choices[0].text;
+            editor.setCursor({
+              line: currentLine,
+              ch: lastChar + (completion === '\n' ? 10 : 0)
+            });
+            // if \n then jump to next line
+            if (completion === '\n') {
+              editor.setCursor({
+                line: currentLine + 1,
+                ch: 0
+              });
+            }
+            editor.replaceRange(
+              completion,
+              editor.getCursor()
+            );
+          });
+          source.addEventListener('error', onSSEError);
+          source.stream();
+          this.statusBarItem.render(<StatusBar status="success" />);
         },
       });
 
