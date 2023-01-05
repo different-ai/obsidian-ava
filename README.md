@@ -12,6 +12,9 @@ Unlock the full potential of Obsidian Notes and take your productivity to the ne
 - [Link related notes](https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-89c8-ed2f3277df72.mp4) (only tested on macos)
 - Generate stunning visualizations
 
+https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-9c23-7f6d97252edb.mp4
+
+
 ### Generate meaningful text from your notes.
 > **Get out of a writing slump. Obsidian AI helps you generate content for your next article. From a small paragraph to an entire blog post - we've got you covered.**
 
