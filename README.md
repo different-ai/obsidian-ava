@@ -94,7 +94,6 @@ Unlock the full potential of Obsidian Notes and take your productivity to the ne
 - [x] fix(addRelatedLinks) `[[` appearing at beginning of the "Related Topcis"
 - [x] fix(addRelatedLinks):"Related topics" is being added each time that the command is launched -> we should look for a "Related" tag and append notes if already exists ✅ 2022-12-07
 - [x] fix(general): should block usage and notify user if  NO API key is set ✅ 2022-12-07
-- [x] fix(wikipedia):  "Loading" is appended each time ✅ 2022-12-07
 - [x] feat: Add link to page that generated wkipedia come from ✅ 2022-12-07
 - [x] feat: add an icon in the sidebar to show that the api is ready/not ready ✅ 2022-12-15
 - [x] clean up ✅ 2022-12-15

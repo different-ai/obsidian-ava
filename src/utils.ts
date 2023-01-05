@@ -78,21 +78,6 @@ export const createSemanticLinks = async (
   });
 };
 
-export const createWikipediaLinks = async (
-  title: string,
-  text: string,
-  token: string
-) => {
-  const prompt =
-    'Title: ' +
-    title +
-    '\n' +
-    text +
-    '\nWikipedia links of similar topics:\n\n - https://';
-  console.log('Prompt:', prompt);
-  const completion = await complete(prompt, token, { stream: false });
-  return `- ${completion}`;
-};
 
 interface ICompletion {
   stream?: boolean;

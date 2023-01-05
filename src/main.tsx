@@ -2,7 +2,6 @@ import {
   App,
   Editor,
   EventRef,
-  ItemView,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -25,7 +24,6 @@ import {
   complete,
   createParagraph,
   createSemanticLinks,
-  createWikipediaLinks,
   EMBED_CHAR_LIMIT,
   getCompleteFiles,
   refreshSemanticSearch,
@@ -483,40 +481,6 @@ export default class AvaPlugin extends Plugin {
         },
       });
 
-      this.addCommand({
-        id: 'get-wikipedia-suggestions',
-        name: 'Get Wikipedia Suggestions',
-        editorCallback: async (editor: Editor, view: ItemView) => {
-          posthog.capture('get-wikipedia-suggestions');
-          if (!this.settings.token) {
-            new Notice('Link - You need to login to use this feature');
-            return;
-          }
-          const title = this.app.workspace.getActiveFile()?.basename;
-
-          new Notice('Generating Wikipedia Links ⏰');
-          if (editor.somethingSelected() === false) {
-            new Notice('🧙 Obsidian AI - Select some text and try again :)');
-            return;
-          }
-
-          this.statusBarItem.render(<StatusBar status="loading" />);
-          const completion = await createWikipediaLinks(
-            title,
-            editor.getSelection(),
-            this.settings.token
-          );
-          store.getState().reset();
-          store.getState().setPrompt(title);
-          this.app.workspace.rightSplit.expand();
-          this.app.workspace.revealLeaf(this.sidebar.leaf);
-          store.getState().setEditorContext(editor);
-          store.getState().appendContentToRewrite(completion);
-          this.statusBarItem.render(<StatusBar status="disabled" />);
-
-          new Notice('Generated Wikipedia Links check out your sidebar🔥');
-        },
-      });
 
       this.addCommand({
         id: 'ava-complete',
