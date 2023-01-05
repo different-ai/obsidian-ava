@@ -30,7 +30,7 @@ export const search = async (
   token: string,
   vaultId: string
 ) => {
-  const response: { similarities: ISimilarFile[] } = await fetchWithTimeout(
+  const response: { similarities: ISimilarFile[] } = await fetch(
     `${API_HOST}/v1/search`,
     {
       method: 'POST',
@@ -130,7 +130,7 @@ export const complete = async (
     });
     return source;
   } else {
-    const response = await fetchWithTimeout(`${API_HOST}/v1/text/create`, {
+    const response = await fetch(`${API_HOST}/v1/text/create`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -181,8 +181,8 @@ export const refreshSemanticSearch = async (
     console.log('Tried to call refresh without a token');
     return;
   }
-  const response = await fetchWithTimeout(`${API_HOST}/v1/search/refresh`, {
-    timeout: 30_000,
+  console.log('refreshing', notes.length, 'notes');
+  const response = await fetch(`${API_HOST}/v1/search/refresh`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -204,6 +204,25 @@ export const refreshSemanticSearch = async (
   }
   const json = await response.json();
   console.log('Refresh response:', json);
+  return json;
+};
+
+export const clearIndex = async (token: string, vaultId: string) => {
+  const response = await fetch(`${API_HOST}/v1/search/clear`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      vault_id: vaultId,
+    }),
+  });
+  if (response.status !== 200) {
+    throw new Error(`Error clearing semantic search: ${response.statusText}`);
+  }
+  const json = await response.json();
+  console.log('Clear response:', json);
   return json;
 };
 
@@ -265,16 +284,4 @@ export const userMessage = (e: any) =>
     ? '❗️ You need to have a "hobby" or "pro" plan to use this feature ❗️'
     : '❗️ Something wrong happened. ❗️ \n ⚙️ Please make sure you connected your account in the settings ⚙️';
 
-async function fetchWithTimeout(
-  url: string,
-  options: RequestInit & { timeout?: number }
-) {
-  const controller = new AbortController();
-  const id = setTimeout(() => controller.abort(), options.timeout || 10_000);
-  const response = await fetch(url, {
-    ...options,
-    signal: controller.signal,
-  });
-  clearTimeout(id);
-  return response;
-}
+

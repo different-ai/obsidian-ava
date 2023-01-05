@@ -21,6 +21,7 @@ import {
 } from './stableDiffusion';
 import { StatusBar } from './StatusBar';
 import {
+  clearIndex,
   complete,
   createParagraph,
   createSemanticLinks,
@@ -134,23 +135,51 @@ export default class AvaPlugin extends Plugin {
       const files = await getCompleteFiles(this.app);
       console.log('Ava - Indexing vault with', files);
       // display message estimating indexing time according to number of notes
+      // 1000 notes = 4 seconds
+      // 2500 notes = 10 seconds
+      // 5000 notes = 20 seconds
+      // 10000 notes = 40 seconds
       new Notice(
         'Search - Indexing vault...' +
           (files.length > 1000
-            ? ' (your vault is large, this may take a while)'
+            ? ' (your vault is large, this may take a while,' +
+            // display in seconds
+            `estimated time: ${Math.round(files.length / 250)}s)`
             : ''),
         2000
       );
-
-      await refreshSemanticSearch(
-        files.map((file) => ({
-          notePath: file.path,
-          noteTags: file.tags,
-          noteContent: file.content,
-        })),
-        this.settings?.token,
-        this.settings?.vaultId
+      // first clear index
+      await clearIndex(this.settings?.token, this.settings?.vaultId);
+      // 2000 = approx 13s - tune it for optimal user feedback / indexing time
+      const batchSize = 2000;
+      // execute in parallel batches split of batchSize size
+      await Promise.all(
+        // split in batches of batchSize
+        files.reduce((acc, file, i) => {
+          if (i % batchSize === 0) {
+            acc.push(files.slice(i, i + batchSize));
+          }
+          return acc;
+        }, []).map((batch) =>
+          refreshSemanticSearch(
+            batch.map((file: any) => ({
+              notePath: file.path,
+              noteTags: file.tags,
+              noteContent: file.content,
+            })),
+            this.settings?.token,
+            this.settings?.vaultId
+          ).then(() => {
+            new Notice(
+              'Search - Vault indexing in progress, ' +
+                batch.length +
+                ' files indexed',
+              2000
+            );
+          })
+        )
       );
+
       this.listenToNoteEvents();
       new Notice('Search - Vault indexed successfully', 2000);
     } catch (e) {
