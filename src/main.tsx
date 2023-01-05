@@ -138,8 +138,8 @@ export default class AvaPlugin extends Plugin {
         'Search - Indexing vault...' +
           (files.length > 1000
             ? ' (your vault is large, this may take a while,' +
-            // display in seconds
-            `estimated time: ${Math.round(files.length / 250)}s)`
+              // display in seconds
+              `estimated time: ${Math.round(files.length / 250)}s)`
             : ''),
         2000
       );
@@ -150,29 +150,31 @@ export default class AvaPlugin extends Plugin {
       // execute in parallel batches split of batchSize size
       await Promise.all(
         // split in batches of batchSize
-        files.reduce((acc, file, i) => {
-          if (i % batchSize === 0) {
-            acc.push(files.slice(i, i + batchSize));
-          }
-          return acc;
-        }, []).map((batch) =>
-          refreshSemanticSearch(
-            batch.map((file: any) => ({
-              notePath: file.path,
-              noteTags: file.tags,
-              noteContent: file.content,
-            })),
-            this.settings?.token,
-            this.settings?.vaultId
-          ).then(() => {
-            new Notice(
-              'Search - Vault indexing in progress, ' +
-                batch.length +
-                ' files indexed',
-              2000
-            );
-          })
-        )
+        files
+          .reduce((acc, file, i) => {
+            if (i % batchSize === 0) {
+              acc.push(files.slice(i, i + batchSize));
+            }
+            return acc;
+          }, [])
+          .map((batch) =>
+            refreshSemanticSearch(
+              batch.map((file: any) => ({
+                notePath: file.path,
+                noteTags: file.tags,
+                noteContent: file.content,
+              })),
+              this.settings?.token,
+              this.settings?.vaultId
+            ).then(() => {
+              new Notice(
+                'Search - Vault indexing in progress, ' +
+                  batch.length +
+                  ' files indexed',
+                2000
+              );
+            })
+          )
       );
 
       this.listenToNoteEvents();
@@ -474,10 +476,9 @@ export default class AvaPlugin extends Plugin {
           if (results) {
             store.setState({ embeds: results });
           }
-          this.statusBarItem.render(<StatusBar status="disabled" />);
+          this.statusBarItem.render(<StatusBar status="success" />);
         },
       });
-
 
       this.addCommand({
         id: 'ava-complete',

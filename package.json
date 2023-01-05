@@ -7,7 +7,7 @@
     "version": "node version-bump.mjs && git add manifest.json versions.json",
     "lint-fix": "eslint --ext .tsx . --fix",
     "dev:esbuild": "node scripts/esbuild.config.mjs",
-    "build:esbuild": "tsc -noEmit -skipLibCheck && node scripts/esbuild.config.mjs production",
+    "build:esbuild": "tsc -noEmit -skipLibCheck && node scripts/esbuild.config.mjs production ",
     "build:css": "npx tailwindcss -i ./main.css  -o ./styles.css --minify",
     "build": "npm run build:esbuild && npm run build:css",
     "dev:css": "npx tailwindcss -i ./main.css -o ./styles.css --watch",
@@ -18,9 +18,6 @@
   "license": "MIT",
   "dependencies": {
     "@heroicons/react": "^2.0.13",
-    "@mui/icons-material": "^5.10.16",
-    "@mui/material": "^5.10.16",
-    "@tailwindcss/forms": "^0.5.3",
     "posthog-js": "^1.37.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
@@ -29,6 +26,7 @@
     "zustand": "^4.1.5"
   },
   "devDependencies": {
+    "@tailwindcss/forms": "^0.5.3",
     "@types/node": "^18.11.10",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",
