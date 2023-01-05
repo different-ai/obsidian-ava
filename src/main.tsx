@@ -8,7 +8,6 @@ import {
   TFile,
   WorkspaceLeaf,
 } from 'obsidian';
-import { OpenAIApi } from 'openai';
 
 import * as React from 'react';
 import { createRoot, Root } from 'react-dom/client';
@@ -63,9 +62,7 @@ const onSSEError = (e: any) => {
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
   statusBarItem: Root;
-  openai: OpenAIApi;
   imageAIClient: ImageAIClient;
-  private sidebar: WriteView;
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;

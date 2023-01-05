@@ -1,6 +1,6 @@
 {
   "name": "ava",
-  "version": "2.10.2",
+  "version": "2.10.3",
   "description": "AI assistant for Obsidian",
   "main": "main.js",
   "scripts": {
@@ -57,7 +57,6 @@
     "mime": "^3.0.0",
     "node-glob": "^1.2.0",
     "obsidian-vault-parser": "^0.4.1",
-    "openai": "^3.1.0",
     "posthog-js": "^1.37.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
