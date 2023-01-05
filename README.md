@@ -106,11 +106,11 @@ https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-
 - [x] feat: Generate tags for your notes based on your pattern of tagging notes ✅ 2022-12-13
 	
 ### Phase 1 - Power to the people
-- [ ] Create a hosted version
-- [ ] Lower barrier to entry: improve installation process
+- [x] Create a hosted version
+- [x] Lower barrier to entry: improve installation process
 
 ## Phase 2 - Beyond
-- [ ] **🧙 AI Search**: A search bar that uses AVA Search API
+- [x] **🧙 AI Search**: A search bar that uses AVA Search API
 - [ ] **🧙 AI Do**: Display events that help you engage with what you learn
 - [ ] 🧙 **AI Repeat**: Integrate with spaced repetition platform
 
