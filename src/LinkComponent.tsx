@@ -74,7 +74,6 @@ const ListItem = ({
   );
 };
 
-//     return { path: similarity.note_path, similarity: similarity.score };
 export function LinkComponent() {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const [error, setError] = React.useState(false);

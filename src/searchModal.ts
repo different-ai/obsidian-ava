@@ -23,7 +23,7 @@ export class SearchModal extends SuggestModal<Embed> {
     console.log('modal', res);
 
     return res.similarities.map((similarity) => {
-      return { path: similarity.note_path, similarity: similarity.score };
+      return { path: similarity.notePath, similarity: similarity.score };
     });
   }
 

@@ -7,7 +7,6 @@ export type Embed = {
   similarity: number;
 };
 
-//     return { path: similarity.note_path, similarity: similarity.score };
 type State = {
   embeds: Embed[];
   content: string;
