@@ -346,7 +346,7 @@ export default class AvaPlugin extends Plugin {
         createImage,
       };
       this.createImage = (req) => createImage(req, this.settings.token);
-      this.complete = (req) => complete(req, this.settings.token);
+      this.complete = (p, options) => complete(p, this.settings.token, options);
       this.search = (req) => search(req, this.settings.token, this.settings.vaultId);
 
       this.addCommand({

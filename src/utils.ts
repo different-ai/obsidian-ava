@@ -95,6 +95,7 @@ export const createSemanticLinks = async (
 
 export interface ICompletion {
   stream?: boolean;
+  stop?: string[];
 }
 export const complete = async (
   prompt: string,
@@ -108,7 +109,8 @@ export const complete = async (
   const stream = options?.stream !== undefined ? options?.stream : true;
   console.log('Options:', options, 'Stream:', stream);
 
-  const body = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const body: any = {
     frequency_penalty: 0,
     max_tokens: 2000,
     model: 'text-davinci-003',
@@ -118,6 +120,7 @@ export const complete = async (
     temperature: 0.7,
     top_p: 1,
   };
+  if (options?.stop) body.stop = options.stop;
   if (stream) {
     const source = new SSE(`${API_HOST}/v1/text/create`, {
       headers: {
