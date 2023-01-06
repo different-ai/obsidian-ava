@@ -25,9 +25,13 @@ import {
   createSemanticLinks,
   EMBED_CHAR_LIMIT,
   getCompleteFiles,
+  ICompletion,
+  ISearchRequest,
+  ISearchResponse,
   refreshSemanticSearch,
   rewrite,
   REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
+  search,
 } from './utils';
 
 import posthog from 'posthog-js';
@@ -56,7 +60,68 @@ const onSSEError = (e: any) => {
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
   statusBarItem: Root;
+  /**
+   * @deprecated You should now use createImage instead
+   */
   imageAIClient: ImageAIClient;
+  /**
+   * Create an image using based on a text
+   * Example:
+    ```ts
+    const { imagePaths } = await createImage(
+      {
+        prompt: "foobar",
+        outputDir: outDir,
+      },
+      this.settings?.token
+    );
+    if (imagePaths.length === 0) {
+      console.error('No image was generated');
+      return;
+    }
+    // append image below
+    editor.replaceSelection(
+      `foobar\n\n![[${imagePaths[0].split('/').pop()}]]\n\n`
+    );
+    ```
+   */
+  createImage: (
+    request: RequestImageCreate,
+  ) => Promise<ResponseImageCreate>;
+  /**
+   * Complete a sentence
+   * Example:
+    ```ts
+    const completion = await complete(
+      'The white horse of Henry VIII is of colour',
+    );
+    console.log(completion);
+    // result: "white"
+    ```
+   */
+  complete: (
+    prompt: string,
+    options?: ICompletion
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  ) => Promise<any | string>
+  /**
+   * Semantically search your vault
+   * Example:
+   ```ts
+    const response = await search({
+      note: {
+        notePath: 'path/to/note.md',
+        noteContent: 'text of the note',
+        noteTags: ['tag1', 'tag2'],
+      },
+    });
+    console.log(response);
+  ```
+  */
+
+  search: (
+    request: ISearchRequest,
+  ) => Promise<ISearchResponse>;
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
@@ -280,6 +345,9 @@ export default class AvaPlugin extends Plugin {
       this.imageAIClient = {
         createImage,
       };
+      this.createImage = (req) => createImage(req, this.settings.token);
+      this.complete = (req) => complete(req, this.settings.token);
+      this.search = (req) => search(req, this.settings.token, this.settings.vaultId);
 
       this.addCommand({
         id: 'ava-add-prompt',

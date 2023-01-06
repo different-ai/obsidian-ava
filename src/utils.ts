@@ -13,20 +13,23 @@ export interface ISimilarFile {
   note_content: string;
   note_tags: string[];
 }
-interface SearchRequest {
+export interface ISearchRequest {
   query?: string;
   note?: {
-    note_path: string;
-    note_content: string;
-    note_tags: string[];
+    notePath: string;
+    noteContent: string;
+    noteTags: string[];
   };
 }
 
+export interface ISearchResponse {
+  similarities: ISimilarFile[];
+}
 // this is so that the model can complete something at least of equal length
 export const REWRITE_CHAR_LIMIT = 5800;
 export const EMBED_CHAR_LIMIT = 25000;
 export const search = async (
-  request: SearchRequest,
+  request: ISearchRequest,
   token: string,
   vaultId: string
 ) => {
@@ -36,7 +39,15 @@ export const search = async (
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`,
     },
-    body: JSON.stringify({ ...request, vault_id: vaultId }),
+    body: JSON.stringify({
+      query: request.query,
+      note: {
+        note_path: request.note?.notePath,
+        note_content: request.note?.noteContent,
+        note_tags: request.note?.noteTags,
+      },
+      vault_id: vaultId 
+    }),
   });
   if (response.status !== 200) {
     const data = await response.json();
@@ -57,9 +68,9 @@ export const createSemanticLinks = async (
   const response = await search(
     {
       note: {
-        note_path: title,
-        note_content: text,
-        note_tags: tags,
+        notePath: title,
+        noteContent: text,
+        noteTags: tags,
       },
     },
     token,
@@ -81,7 +92,8 @@ export const createSemanticLinks = async (
   });
 };
 
-interface ICompletion {
+
+export interface ICompletion {
   stream?: boolean;
 }
 export const complete = async (
