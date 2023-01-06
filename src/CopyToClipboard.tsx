@@ -5,8 +5,14 @@ import {
 import * as React from 'react';
 import { PrimaryButton } from './Button';
 
-export const CopyToClipboardButton = ({ text, extraOnClick }: {
-  text: string, extraOnClick?: (text: string) => void
+export const CopyToClipboardButton = ({
+  text,
+  extraOnClick,
+  small = false,
+}: {
+  text: string;
+  extraOnClick?: (text: string) => void;
+  small?: boolean;
 }) => {
   const [isCopied, setIsCopied] = React.useState(false);
 
@@ -22,6 +28,18 @@ export const CopyToClipboardButton = ({ text, extraOnClick }: {
     extraOnClick?.(text);
     setIsCopied(true);
   };
+
+  if (small) {
+    return isCopied ? (
+      <ClipboardDocumentCheckIcon height={14} />
+    ) : (
+      <ClipboardDocumentListIcon
+        height={14}
+        onClick={handleCopy}
+        className="cursor-pointer"
+      />
+    );
+  }
 
   return (
     <PrimaryButton onClick={handleCopy}>

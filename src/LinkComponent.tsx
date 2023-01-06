@@ -30,7 +30,7 @@ const ListItem = ({
     getFileText(result.path);
   }, [result]);
   return (
-    <>
+    <div className="flex gap-2 items-center">
       <div className="flex items-center">
         {isExpanded && (
           <ChevronDownIcon
@@ -69,7 +69,8 @@ const ListItem = ({
           <ReactMarkdown>{fileText}</ReactMarkdown>
         </div>
       )}
-    </>
+      <CopyToClipboardButton text={`[[${result.name}]]`} small />
+    </div>
   );
 };
 
