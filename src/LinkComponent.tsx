@@ -1,5 +1,7 @@
+import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { posthog } from 'posthog-js';
 import * as React from 'react';
+import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { useApp } from './hooks';
 import { InsertButton } from './InsertButton';
@@ -9,6 +11,67 @@ export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   disabled?: boolean;
 }
+const ListItem = ({
+  result,
+}: {
+  result: { path: string; similarity: number };
+}) => {
+  const [isExpanded, setIsExpanded] = React.useState(false);
+  const app = useApp();
+  const [fileText, setFileText] = React.useState('');
+  React.useEffect(() => {
+    const getFileText = async (path: string) => {
+      const file = app.vault
+        .getMarkdownFiles()
+        .find((file) => file.path === path);
+      const content = await app.vault.read(file);
+      setFileText(content);
+    };
+    getFileText(result.path);
+  }, [result]);
+  return (
+    <>
+      <div className="flex items-center">
+        {isExpanded && (
+          <ChevronDownIcon
+            className="h-3 w-3 min-w-[0.75rem]"
+            onClick={() => setIsExpanded(false)}
+          />
+        )}
+        {!isExpanded && (
+          <ChevronRightIcon
+            className="h-3 w-3 min-w-[0.75rem]"
+            onClick={() => setIsExpanded(true)}
+          />
+        )}
+        <a
+          key={result.path}
+          href={result.path}
+          className="tree-item-self is-clickable outgoing-link-item tree-item-self search-result-file-title is-clickable"
+          data-path={result.path}
+          onClick={() => {
+            app.workspace.openLinkText(result.path, '', false);
+          }}
+        >
+          <span
+            className="tree-item-inner"
+            title={`Similarity: ${result.similarity.toPrecision(
+              2
+            )}, Opacity: ${result.opacity.toPrecision(2)}`}
+            style={{ opacity: result.opacity }}
+          >
+            {result.name}
+          </span>
+        </a>
+      </div>
+      {isExpanded && (
+        <div className="search-result-file-matches p-2">
+          <ReactMarkdown>{fileText}</ReactMarkdown>
+        </div>
+      )}
+    </>
+  );
+};
 
 //     return { path: similarity.note_path, similarity: similarity.score };
 export function LinkComponent() {
@@ -70,25 +133,7 @@ export function LinkComponent() {
       <br />
       <div className="search-result-container">
         {results.map((result) => (
-          <a
-            key={result.path}
-            href={result.path}
-            className="tree-item-self is-clickable outgoing-link-item"
-            data-path={result.path}
-            onClick={() => {
-              app.workspace.openLinkText(result.path, '', false);
-            }}
-          >
-            <span
-              className="tree-item-inner"
-              title={`Similarity: ${result.similarity.toPrecision(
-                2
-              )}, Opacity: ${result.opacity.toPrecision(2)}`}
-              style={{ opacity: result.opacity }}
-            >
-              {result.name}
-            </span>
-          </a>
+          <ListItem key={result.path} result={result} />
         ))}
       </div>
       <div className="flex gap-3">

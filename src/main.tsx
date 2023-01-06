@@ -449,7 +449,6 @@ export default class AvaPlugin extends Plugin {
             new Notice('Image generated successfully', 2000);
           } catch (e) {
             new Notice(`️⛔️ AVA ${e}`, 4000);
-
             onError(e);
           }
         },
