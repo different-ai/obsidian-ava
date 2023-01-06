@@ -8,10 +8,10 @@ const SEMANTIC_SIMILARITY_THRESHOLD = 0.35;
 
 export interface ISimilarFile {
   score: number;
-  note_name: string;
-  note_path: string;
-  note_content: string;
-  note_tags: string[];
+  noteName: string;
+  notePath: string;
+  noteContent: string;
+  noteTags: string[];
 }
 export interface ISearchRequest {
   query?: string;
@@ -32,7 +32,7 @@ export const search = async (
   request: ISearchRequest,
   token: string,
   vaultId: string
-) => {
+): Promise<ISearchResponse> => {
   const response = await fetch(`${API_HOST}/v1/search`, {
     method: 'POST',
     headers: {
@@ -54,8 +54,16 @@ export const search = async (
     throw new Error(`Failed to search: ${data.message}`);
   }
 
-  const data: { similarities: ISimilarFile[] } = await response.json();
-  return data;
+  const data = await response.json();
+  return {
+    similarities: data.similarities.map((similarity: any) => ({
+      score: similarity.score,
+      noteName: similarity.note_name,
+      notePath: similarity.note_path,
+      noteContent: similarity.note_content,
+      noteTags: similarity.note_tags,
+    })),
+  };
 };
 
 export const createSemanticLinks = async (
@@ -83,12 +91,12 @@ export const createSemanticLinks = async (
   }
   const similarities = response.similarities.filter(
     (similarity) =>
-      similarity.note_path !== title &&
-      !similarity.note_name.includes(title) &&
+      similarity.notePath !== title &&
+      !similarity.noteName.includes(title) &&
       similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
   );
   return similarities.map((similarity) => {
-    return { path: similarity.note_path, similarity: similarity.score };
+    return { path: similarity.notePath, similarity: similarity.score };
   });
 };
 

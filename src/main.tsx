@@ -73,7 +73,6 @@ export default class AvaPlugin extends Plugin {
         prompt: "foobar",
         outputDir: outDir,
       },
-      this.settings?.token
     );
     if (imagePaths.length === 0) {
       console.error('No image was generated');
