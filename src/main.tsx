@@ -505,6 +505,7 @@ export default class AvaPlugin extends Plugin {
           new Notice(
             '🧙 Obsidian AI - Completing selection, this may take a few seconds'
           );
+          this.displayWriteSidebar();
 
           this.statusBarItem.render(<StatusBar status="loading" />);
           const text = editor.getSelection();
@@ -517,26 +518,14 @@ export default class AvaPlugin extends Plugin {
           const source = await complete(text, this.settings.token, {
             stream: true,
           });
+          store.getState().appendContentToRewrite(text);
+
           // TODO: display information message
           // TODO: when the completion is null (i.e. when prompt end by . for example)
           source.addEventListener('message', function (e: any) {
             const payload = JSON.parse(e.data);
-            console.log(payload);
-            const currentLine = editor.getCursor().line;
-            const lastChar = editor.getLine(currentLine).length;
-            const completion = payload.choices[0].text;
-            editor.setCursor({
-              line: currentLine,
-              ch: lastChar + (completion === '\n' ? 10 : 0),
-            });
-            // if \n then jump to next line
-            if (completion === '\n') {
-              editor.setCursor({
-                line: currentLine + 1,
-                ch: 0,
-              });
-            }
-            editor.replaceRange(completion, editor.getCursor());
+            store.getState().setEditorContext(editor);
+            store.getState().appendContentToRewrite(payload.choices[0].text);
           });
           source.addEventListener('error', onSSEError);
           source.stream();
