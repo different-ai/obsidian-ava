@@ -30,18 +30,21 @@ export const search = async (
   token: string,
   vaultId: string
 ) => {
-  const response: { similarities: ISimilarFile[] } = await fetch(
-    `${API_HOST}/v1/search`,
-    {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ ...request, vault_id: vaultId }),
-    }
-  ).then((response) => response.json());
-  return response;
+  const response = await fetch(`${API_HOST}/v1/search`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ ...request, vault_id: vaultId }),
+  });
+  if (response.status !== 200) {
+    const data = await response.json();
+    throw new Error(`Failed to search: ${data.message}`);
+  }
+
+  const data: { similarities: ISimilarFile[] } = await response.json();
+  return data;
 };
 
 export const createSemanticLinks = async (
@@ -77,7 +80,6 @@ export const createSemanticLinks = async (
     return { path: similarity.note_path, similarity: similarity.score };
   });
 };
-
 
 interface ICompletion {
   stream?: boolean;
@@ -263,10 +265,3 @@ export async function getUserAuthToken(vaultId: string) {
   const data = await response.json();
   return data.token;
 }
-
-export const userMessage = (e: any) =>
-  e.toString().includes('subscription')
-    ? '❗️ You need to have a "hobby" or "pro" plan to use this feature ❗️'
-    : '❗️ Something wrong happened. ❗️ \n ⚙️ Please make sure you connected your account in the settings ⚙️';
-
-

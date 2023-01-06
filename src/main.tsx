@@ -28,7 +28,6 @@ import {
   refreshSemanticSearch,
   rewrite,
   REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
-  userMessage,
 } from './utils';
 
 import posthog from 'posthog-js';
@@ -49,11 +48,6 @@ interface ImageAIClient {
 
 const onGeneralError = (e: any) => {
   console.error(e);
-  if (e.toString().includes('subscription')) {
-    // open app.anotherai.co
-    window.open('https://app.anotherai.co', '_blank');
-  }
-  new Notice(userMessage(e));
 };
 const onSSEError = (e: any) => {
   onGeneralError(e.data);
@@ -94,7 +88,8 @@ export default class AvaPlugin extends Plugin {
       return completion;
     } catch (e) {
       console.error(e);
-      new Notice('Link - Error connecting related notes');
+
+      new Notice(`️⛔️ AVA ${e}`, 4000);
       this.statusBarItem.render(<StatusBar status="disabled" />);
       return;
     }
@@ -299,21 +294,27 @@ export default class AvaPlugin extends Plugin {
 
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
-            const source = await createParagraph(text, this.settings.token);
-            source.addEventListener('message', function (e: any) {
-              const payload = JSON.parse(e.data);
-              console.log(payload);
-              const currentLine = editor.getCursor().line;
-              const lastChar = editor.getLine(currentLine).length;
-              editor.setCursor({ line: currentLine, ch: lastChar });
-              editor.replaceRange(
-                `${payload.choices[0].text}`,
-                editor.getCursor()
-              );
-            });
-            source.addEventListener('error', onSSEError);
-            source.stream();
-            this.statusBarItem.render(<StatusBar status="success" />);
+            try {
+              const source = await createParagraph(text, this.settings.token);
+              source.addEventListener('message', function (e: any) {
+                const payload = JSON.parse(e.data);
+                console.log(payload);
+                const currentLine = editor.getCursor().line;
+                const lastChar = editor.getLine(currentLine).length;
+                editor.setCursor({ line: currentLine, ch: lastChar });
+                editor.replaceRange(
+                  `${payload.choices[0].text}`,
+                  editor.getCursor()
+                );
+              });
+              source.addEventListener('error', onSSEError);
+              source.stream();
+              this.statusBarItem.render(<StatusBar status="success" />);
+            } catch (e) {
+              onGeneralError(e.message);
+              new Notice(`️⛔️ AVA ${e}`, 4000);
+              this.statusBarItem.render(<StatusBar status="error" />);
+            }
           };
 
           new PromptModal(this.app, onSubmit).open();
@@ -379,6 +380,8 @@ export default class AvaPlugin extends Plugin {
             );
             new Notice('Image generated successfully', 2000);
           } catch (e) {
+            new Notice(`️⛔️ AVA ${e}`, 4000);
+
             onError(e);
           }
         },

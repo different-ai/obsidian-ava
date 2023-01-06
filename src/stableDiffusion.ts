@@ -1,7 +1,6 @@
-import fs from "fs";
-import path from "path";
-import { API_HOST } from "./constants";
-import AvaPlugin from "./main";
+import fs from 'fs';
+import path from 'path';
+import { API_HOST } from './constants';
 
 export interface RequestImageCreate {
   // e.g. 512, 768, 1024
@@ -22,15 +21,18 @@ export interface ResponseImageCreate {
 /**
  * Create an image from a prompt
  * Only one image is supported at the moment
- * @param request 
- * @returns 
+ * @param request
+ * @returns
  */
-export const createImage = async (request: RequestImageCreate, token: string): Promise<ResponseImageCreate> => {
+export const createImage = async (
+  request: RequestImageCreate,
+  token: string
+): Promise<ResponseImageCreate> => {
   const response = await fetch(`${API_HOST}/v1/image/create`, {
-    method: "POST",
+    method: 'POST',
     headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({
       size: request.size || 512,
@@ -40,20 +42,19 @@ export const createImage = async (request: RequestImageCreate, token: string): P
   });
 
   if (response.status !== 200) {
-    throw new Error(`Failed to create image: ${response.statusText}`);
+    const data = await response.json();
+    throw new Error(`Failed to create image: ${data.message};
+    }`);
   }
-  
+
   const buffer = Buffer.from(await response.arrayBuffer());
   // file name is "time"_"the prompt as a writable encoded path" (only keep alphanumeric and underscores)
-  const encoded = request.prompt.replace(/[^a-zA-Z0-9_]/g, "_");
+  const encoded = request.prompt.replace(/[^a-zA-Z0-9_]/g, '_');
   // if it's too long, truncate it
   const truncated = encoded.length > 100 ? encoded.substring(0, 100) : encoded;
   const fileName = `${Date.now()}_${truncated}`;
   const filePath = path.resolve(
-      path.join(
-          request.outputDir,
-          `${fileName}.jpg`
-      )
+    path.join(request.outputDir, `${fileName}.jpg`)
   );
 
   fs.writeFileSync(filePath, buffer);
