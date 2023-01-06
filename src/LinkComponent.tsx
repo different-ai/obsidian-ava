@@ -14,7 +14,7 @@ export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
 const ListItem = ({
   result,
 }: {
-  result: { path: string; similarity: number };
+  result: { path: string; similarity: number; opacity: number; name: string };
 }) => {
   const [isExpanded, setIsExpanded] = React.useState(false);
   const app = useApp();
@@ -75,7 +75,6 @@ const ListItem = ({
 
 //     return { path: similarity.note_path, similarity: similarity.score };
 export function LinkComponent() {
-  const app = useApp();
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const [error, setError] = React.useState(false);
   const [results, setResults] = React.useState([]);
@@ -132,7 +131,7 @@ export function LinkComponent() {
       <div className="outgoing-link-header">🧙 AVA Links</div>
       <br />
       <div className="search-result-container">
-        {results.map((result) => (
+        {results?.map((result) => (
           <ListItem key={result.path} result={result} />
         ))}
       </div>
