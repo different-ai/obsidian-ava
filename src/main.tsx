@@ -587,6 +587,7 @@ export default class AvaPlugin extends Plugin {
           const source = await complete(text, this.settings.token, {
             stream: true,
           });
+          store.getState().reset();
           store.getState().appendContentToRewrite(text);
 
           // TODO: display information message
