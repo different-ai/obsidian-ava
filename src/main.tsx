@@ -43,13 +43,6 @@ import { SearchModal } from './searchModal';
 import { store } from './store';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
 
-interface ImageAIClient {
-  createImage: (
-    request: RequestImageCreate,
-    token: string
-  ) => Promise<ResponseImageCreate>;
-}
-
 const onGeneralError = (e: any) => {
   console.error(e);
 };
@@ -60,10 +53,6 @@ const onSSEError = (e: any) => {
 export default class AvaPlugin extends Plugin {
   settings: AvaSettings;
   statusBarItem: Root;
-  /**
-   * @deprecated You should now use createImage instead
-   */
-  imageAIClient: ImageAIClient;
   /**
    * Create an image using based on a text
    * Example:
@@ -145,7 +134,8 @@ export default class AvaPlugin extends Plugin {
         currentText,
         tags.map((tag) => tag.tag),
         this.settings?.token,
-        this.settings.vaultId
+        this.settings.vaultId,
+        this.manifest.version,
       );
 
       this.statusBarItem.render(<StatusBar status="disabled" />);
@@ -203,7 +193,11 @@ export default class AvaPlugin extends Plugin {
         2000
       );
       // first clear index
-      await clearIndex(this.settings?.token, this.settings?.vaultId);
+      await clearIndex(
+        this.settings?.token,
+        this.settings?.vaultId,
+        this.manifest.version,
+      );
       // 2000 = approx 13s - tune it for optimal user feedback / indexing time
       const batchSize = 2000;
       // execute in parallel batches split of batchSize size
@@ -224,7 +218,8 @@ export default class AvaPlugin extends Plugin {
                 noteContent: file.content,
               })),
               this.settings?.token,
-              this.settings?.vaultId
+              this.settings?.vaultId,
+              this.manifest.version,
             ).then(() => {
               new Notice(
                 'Search - Vault indexing in progress, ' +
@@ -267,7 +262,8 @@ export default class AvaPlugin extends Plugin {
               },
             ],
             this.settings?.token,
-            this.settings?.vaultId
+            this.settings?.vaultId,
+            this.manifest.version,
           );
         } catch (e) {
           onGeneralError(e);
@@ -294,7 +290,8 @@ export default class AvaPlugin extends Plugin {
               },
             ],
             this.settings?.token,
-            this.settings?.vaultId
+            this.settings?.vaultId,
+            this.manifest.version,
           );
         } catch (e) {
           onGeneralError(e);
@@ -311,7 +308,8 @@ export default class AvaPlugin extends Plugin {
             },
           ],
           this.settings?.token,
-          this.settings.vaultId
+          this.settings.vaultId,
+          this.manifest.version,
         );
       } catch (e) {
         onGeneralError(e);
@@ -341,12 +339,23 @@ export default class AvaPlugin extends Plugin {
       // ignore on dev otherwise it will index the whole vault every code change
       if (process.env.NODE_ENV !== 'development') this.indexWholeVault();
 
-      this.imageAIClient = {
-        createImage,
-      };
-      this.createImage = (req) => createImage(req, this.settings.token);
-      this.complete = (p, options) => complete(p, this.settings.token, options);
-      this.search = (req) => search(req, this.settings.token, this.settings.vaultId);
+      this.createImage = (req) => createImage(
+        req,
+        this.settings.token,
+        this.manifest.version,
+      );
+      this.complete = (p, options) => complete(
+        p,
+        this.settings.token,
+        this.manifest.version,
+        options,
+      );
+      this.search = (req) => search(
+        req,
+        this.settings.token, 
+        this.settings.vaultId,
+        this.manifest.version,
+      );
 
       this.addCommand({
         id: 'ava-add-prompt',
@@ -362,7 +371,11 @@ export default class AvaPlugin extends Plugin {
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             try {
-              const source = await createParagraph(text, this.settings.token);
+              const source = await createParagraph(
+                text,
+                this.settings.token,
+                this.manifest.version,
+              );
               source.addEventListener('message', function (e: any) {
                 const payload = JSON.parse(e.data);
                 console.log(payload);
@@ -428,7 +441,8 @@ export default class AvaPlugin extends Plugin {
                 prompt: selection,
                 outputDir: outDir,
               },
-              this.settings?.token
+              this.settings?.token,
+              this.manifest.version,
             );
             if (imagePaths.length === 0) {
               onError('No image was generated');
@@ -480,7 +494,11 @@ export default class AvaPlugin extends Plugin {
           const onSubmit = async (prompt: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
-            const source = await rewrite(text, prompt, this.settings.token);
+            const source = await rewrite(
+              text, prompt,
+              this.settings.token,
+              this.manifest.version,
+            );
             source.addEventListener('error', onSSEError);
             store.getState().reset();
             // go to the next line
@@ -512,7 +530,8 @@ export default class AvaPlugin extends Plugin {
           new SearchModal(
             this.app,
             this.settings.token,
-            this.settings.vaultId
+            this.settings.vaultId,
+            this.manifest.version,
           ).open();
         },
       });
@@ -584,9 +603,14 @@ export default class AvaPlugin extends Plugin {
             line: editor.getCursor().line + lines.length - 1,
             ch: lines[lines.length - 1].length,
           });
-          const source = await complete(text, this.settings.token, {
-            stream: true,
-          });
+          const source = await complete(
+            text,
+            this.settings.token, 
+            this.manifest.version,
+            {
+              stream: true,
+            }
+          );
           store.getState().reset();
           store.getState().appendContentToRewrite(text);
 
@@ -602,12 +626,6 @@ export default class AvaPlugin extends Plugin {
           this.statusBarItem.render(<StatusBar status="success" />);
         },
       });
-
-      // this.registerEvent(
-      //   this.app.workspace.on('file-open', () => {
-      //     this.updateSearch();
-      //   })
-      // );
 
       this.registerView(
         VIEW_TYPE_WRITE,

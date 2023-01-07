@@ -1,6 +1,6 @@
 import fs from 'fs';
 import path from 'path';
-import { API_HOST } from './constants';
+import { API_HOST, buildHeaders } from './constants';
 
 export interface RequestImageCreate {
   // e.g. 512, 768, 1024
@@ -26,14 +26,12 @@ export interface ResponseImageCreate {
  */
 export const createImage = async (
   request: RequestImageCreate,
-  token: string
+  token: string,
+  version: string
 ): Promise<ResponseImageCreate> => {
   const response = await fetch(`${API_HOST}/v1/image/create`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: buildHeaders(token, version),
     body: JSON.stringify({
       size: request.size || 512,
       limit: request.limit || 1,

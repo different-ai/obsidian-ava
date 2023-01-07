@@ -1,6 +1,6 @@
 import { SSE } from 'lib/sse';
 import { App } from 'obsidian';
-import { API_HOST } from './constants';
+import { API_HOST, buildHeaders } from './constants';
 import AvaPlugin from './main';
 
 // TODO: threshold configurable in settings, maybe?
@@ -31,14 +31,12 @@ export const EMBED_CHAR_LIMIT = 25000;
 export const search = async (
   request: ISearchRequest,
   token: string,
-  vaultId: string
+  vaultId: string,
+  version: string
 ): Promise<ISearchResponse> => {
   const response = await fetch(`${API_HOST}/v1/search`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: buildHeaders(token, version),
     body: JSON.stringify({
       query: request.query,
       note: {
@@ -71,7 +69,8 @@ export const createSemanticLinks = async (
   text: string,
   tags: string[],
   token: string,
-  vaultId: string
+  vaultId: string,
+  version: string
 ) => {
   const response = await search(
     {
@@ -82,7 +81,8 @@ export const createSemanticLinks = async (
       },
     },
     token,
-    vaultId
+    vaultId,
+    version,
   );
 
   console.log('response', response);
@@ -108,6 +108,7 @@ export interface ICompletion {
 export const complete = async (
   prompt: string,
   token: string,
+  version: string,
   options?: ICompletion
   // TODO how to use SSE type?
 ): Promise<any | string> => {
@@ -131,10 +132,7 @@ export const complete = async (
   if (options?.stop) body.stop = options.stop;
   if (stream) {
     const source = new SSE(`${API_HOST}/v1/text/create`, {
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: buildHeaders(token, version),
       method: 'POST',
       payload: JSON.stringify(body),
     });
@@ -142,10 +140,7 @@ export const complete = async (
   } else {
     const response = await fetch(`${API_HOST}/v1/text/create`, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers: buildHeaders(token, version),
       body: JSON.stringify(body),
     }).then((response) => response.json());
     console.log('Response:', response);
@@ -154,17 +149,17 @@ export const complete = async (
   }
 };
 
-export const createParagraph = (text: string, token: string) => {
+export const createParagraph = (text: string, token: string, version: string) => {
   const prompt = `Write a paragraph about ${text}`;
-  return complete(prompt, token);
+  return complete(prompt, token, version);
 };
 
-export const rewrite = (text: string, alteration: string, token: string) => {
+export const rewrite = (text: string, alteration: string, token: string, version: string) => {
   const prompt = `Rewrite
 "${text}"
 ${alteration}`;
   console.log('Prompt:', prompt);
-  return complete(prompt, token);
+  return complete(prompt, token, version);
 };
 
 interface NoteRefresh {
@@ -179,9 +174,9 @@ interface NoteRefresh {
 export const refreshSemanticSearch = async (
   notes: NoteRefresh[],
   token: string,
-  vaultId: string
+  vaultId: string,
+  version: string
 ) => {
-  console.log('try', token, vaultId);
   // stop silently not necessiraly need to span the user
   if (!token) {
     console.log('Tried to call refresh without a token');
@@ -194,10 +189,7 @@ export const refreshSemanticSearch = async (
   console.log('refreshing', notes.length, 'notes');
   const response = await fetch(`${API_HOST}/v1/search/refresh`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: buildHeaders(token, version),
     body: JSON.stringify({
       vault_id: vaultId,
       notes: notes.map((note) => ({
@@ -217,13 +209,10 @@ export const refreshSemanticSearch = async (
   return json;
 };
 
-export const clearIndex = async (token: string, vaultId: string) => {
+export const clearIndex = async (token: string, vaultId: string, version: string) => {
   const response = await fetch(`${API_HOST}/v1/search/clear`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
-    },
+    headers: buildHeaders(token, version),
     body: JSON.stringify({
       vault_id: vaultId,
     }),
