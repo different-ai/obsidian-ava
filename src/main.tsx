@@ -540,6 +540,10 @@ export default class AvaPlugin extends Plugin {
         name: 'Search',
         callback: async () => {
           posthog.capture('use-feature', { feature: 'search' });
+          if (!this.settings.useLinks) {
+            new Notice('Link - You need to enable links in settings', 3000);
+            return;
+          }
           if (!this.settings.token) {
             new Notice('Link - You need to login to use this feature');
             return;
@@ -569,6 +573,10 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-generate-link',
         name: 'Generate Link',
         editorCallback: async (editor: Editor) => {
+          if (!this.settings.useLinks) {
+            new Notice('Link - You need to enable links in settings', 3000);
+            return;
+          }
           if (!this.settings.token) {
             new Notice('🧙 You need to login to use this feature', 2000);
             return;
