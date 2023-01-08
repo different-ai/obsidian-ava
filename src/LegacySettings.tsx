@@ -1,5 +1,4 @@
 import { Notice } from 'obsidian';
-import { posthog } from 'posthog-js';
 import * as React from 'react';
 import AvaPlugin from './main';
 import { store } from './store';
@@ -29,7 +28,6 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.saveSettings();
     setDebug(checked);
     plugin.loadSettings();
-    checked && posthog.opt_out_capturing();
   };
   // this will not refresh the ui but it will clear the cache
   const handleDeleteCache = () => {
