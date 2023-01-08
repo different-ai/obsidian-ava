@@ -337,7 +337,7 @@ export default class AvaPlugin extends Plugin {
     } catch (e) {
       console.log('Ava - Error identifying user', e);
     }
-    if (this.settings.debug) posthog.opt_out_capturing();
+    posthog.opt_in_capturing();
 
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
