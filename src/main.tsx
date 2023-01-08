@@ -478,7 +478,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-rewrite-prompt',
         name: 'Rewrite Selection',
         editorCallback: (editor: Editor) => {
-          posthog.capture('ava-rewrite-prompt');
+          posthog.capture('use-feature', { feature: 'rewrite selection' });
           if (!this.settings.token) {
             new Notice('🧙 You need to login to use this feature', 2000);
             return;
@@ -530,7 +530,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-search',
         name: 'Search',
         callback: async () => {
-          posthog.capture('ava-search');
+          posthog.capture('use-feature', { feature: 'search' });
           if (!this.settings.token) {
             new Notice('Link - You need to login to use this feature');
             return;
