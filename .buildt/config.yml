@@ -1,0 +1,9 @@
+name: ava
+safe: true
+language: TypeScript
+extensions:
+  - .ts
+  - .cts
+  - .mts
+  - .tsx
+packageManager: NPM
