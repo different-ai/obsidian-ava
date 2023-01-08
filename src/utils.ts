@@ -278,7 +278,7 @@ export const openApp = async (vaultId: string) => {
   window.open(`${baseURL}/signup?token=${vaultId}&service=obsidian`);
 };
 
-export async function getUserAuthToken(vaultId: string) {
+export async function getLinkData(vaultId: string) {
   await wait(1000);
   const response = await fetch(`${baseURL}/api/auth?token=${vaultId}`, {
     headers: {

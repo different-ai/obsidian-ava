@@ -5,7 +5,7 @@ import useRetryUntilResolved from './hooks';
 import { AdvancedSettings } from './LegacySettings';
 import AvaPlugin from './main';
 import { store } from './store';
-import { getUserAuthToken, getVaultId, openApp } from './utils';
+import { getLinkData, getVaultId, openApp } from './utils';
 
 const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
@@ -26,7 +26,7 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
     const getAuth = async () => {
       const vaultId = getVaultId(plugin);
 
-      const linkData = await getUserAuthToken(vaultId);
+      const linkData = await getLinkData(vaultId);
       plugin.settings.token = linkData?.token;
       plugin.settings.userId = linkData?.userId;
 

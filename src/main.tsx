@@ -25,7 +25,7 @@ import {
   createSemanticLinks,
   EMBED_CHAR_LIMIT,
   getCompleteFiles,
-  getUserAuthToken,
+  getLinkData,
   getVaultId,
   ICompletion,
   ISearchRequest,
@@ -328,7 +328,7 @@ export default class AvaPlugin extends Plugin {
     });
     if (this.settings.token && !this.settings.userId) {
       const vaultId = getVaultId(this);
-      const linkData = await getUserAuthToken(vaultId);
+      const linkData = await getLinkData(vaultId);
       this.settings.userId = linkData.userId;
       this.saveSettings();
       posthog.identify(linkData.userId);
