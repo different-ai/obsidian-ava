@@ -331,8 +331,8 @@ export default class AvaPlugin extends Plugin {
       const linkData = await getLinkData(vaultId);
       this.settings.userId = linkData.userId;
       this.saveSettings();
-      posthog.identify(linkData.userId);
     }
+    posthog.identify(this.settings.userId);
     if (this.settings.debug) posthog.opt_out_capturing();
 
     const statusBarItemHtml = this.addStatusBarItem();
