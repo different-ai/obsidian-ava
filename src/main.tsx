@@ -25,6 +25,8 @@ import {
   createSemanticLinks,
   EMBED_CHAR_LIMIT,
   getCompleteFiles,
+  getUserAuthToken,
+  getVaultId,
   ICompletion,
   ISearchRequest,
   ISearchResponse,
@@ -73,9 +75,7 @@ export default class AvaPlugin extends Plugin {
     );
     ```
    */
-  createImage: (
-    request: RequestImageCreate,
-  ) => Promise<ResponseImageCreate>;
+  createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
   /**
    * Complete a sentence
    * Example:
@@ -91,7 +91,7 @@ export default class AvaPlugin extends Plugin {
     prompt: string,
     options?: ICompletion
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  ) => Promise<any | string>
+  ) => Promise<any | string>;
   /**
    * Semantically search your vault
    * Example:
@@ -107,16 +107,12 @@ export default class AvaPlugin extends Plugin {
   ```
   */
 
-  search: (
-    request: ISearchRequest,
-  ) => Promise<ISearchResponse>;
+  search: (request: ISearchRequest) => Promise<ISearchResponse>;
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
 
   private async link() {
-    posthog.capture('semantic-related-topics');
-
     const file = this.app.workspace.getActiveFile();
     if (!file) return;
     const currentText = await this.app.vault.read(file);
@@ -135,7 +131,7 @@ export default class AvaPlugin extends Plugin {
         tags.map((tag) => tag.tag),
         this.settings?.token,
         this.settings.vaultId,
-        this.manifest.version,
+        this.manifest.version
       );
 
       this.statusBarItem.render(<StatusBar status="disabled" />);
@@ -196,7 +192,7 @@ export default class AvaPlugin extends Plugin {
       await clearIndex(
         this.settings?.token,
         this.settings?.vaultId,
-        this.manifest.version,
+        this.manifest.version
       );
       // 2000 = approx 13s - tune it for optimal user feedback / indexing time
       const batchSize = 2000;
@@ -219,7 +215,7 @@ export default class AvaPlugin extends Plugin {
               })),
               this.settings?.token,
               this.settings?.vaultId,
-              this.manifest.version,
+              this.manifest.version
             ).then(() => {
               new Notice(
                 'Search - Vault indexing in progress, ' +
@@ -263,7 +259,7 @@ export default class AvaPlugin extends Plugin {
             ],
             this.settings?.token,
             this.settings?.vaultId,
-            this.manifest.version,
+            this.manifest.version
           );
         } catch (e) {
           onGeneralError(e);
@@ -291,7 +287,7 @@ export default class AvaPlugin extends Plugin {
             ],
             this.settings?.token,
             this.settings?.vaultId,
-            this.manifest.version,
+            this.manifest.version
           );
         } catch (e) {
           onGeneralError(e);
@@ -309,7 +305,7 @@ export default class AvaPlugin extends Plugin {
           ],
           this.settings?.token,
           this.settings.vaultId,
-          this.manifest.version,
+          this.manifest.version
         );
       } catch (e) {
         onGeneralError(e);
@@ -330,6 +326,13 @@ export default class AvaPlugin extends Plugin {
         });
       },
     });
+    if (this.settings.token && !this.settings.userId) {
+      const vaultId = getVaultId(this);
+      const linkData = await getUserAuthToken(vaultId);
+      this.settings.userId = linkData.userId;
+      this.saveSettings();
+      posthog.identify(linkData.userId);
+    }
     if (this.settings.debug) posthog.opt_out_capturing();
 
     const statusBarItemHtml = this.addStatusBarItem();
@@ -349,29 +352,23 @@ export default class AvaPlugin extends Plugin {
         }, 2000);
       }
 
-      this.createImage = (req) => createImage(
-        req,
-        this.settings.token,
-        this.manifest.version,
-      );
-      this.complete = (p, options) => complete(
-        p,
-        this.settings.token,
-        this.manifest.version,
-        options,
-      );
-      this.search = (req) => search(
-        req,
-        this.settings.token, 
-        this.settings.vaultId,
-        this.manifest.version,
-      );
+      this.createImage = (req) =>
+        createImage(req, this.settings.token, this.manifest.version);
+      this.complete = (p, options) =>
+        complete(p, this.settings.token, this.manifest.version, options);
+      this.search = (req) =>
+        search(
+          req,
+          this.settings.token,
+          this.settings.vaultId,
+          this.manifest.version
+        );
 
       this.addCommand({
         id: 'ava-add-prompt',
         name: 'Write Paragraph',
         editorCallback: (editor: Editor) => {
-          posthog.capture('ava-write-paragraph');
+          posthog.capture('use-feature', { feature: 'write paragraph' });
           new Notice('🧙 Writing Paragraph', 2000);
           if (!this.settings.token) {
             new Notice('🧙 You need to login to use this feature', 2000);
@@ -384,7 +381,7 @@ export default class AvaPlugin extends Plugin {
               const source = await createParagraph(
                 text,
                 this.settings.token,
-                this.manifest.version,
+                this.manifest.version
               );
               source.addEventListener('message', function (e: any) {
                 const payload = JSON.parse(e.data);
@@ -415,8 +412,8 @@ export default class AvaPlugin extends Plugin {
         name: 'Generate Image',
         editorCallback: async (editor: Editor) => {
           const selection = editor.getSelection();
-          posthog.capture('ava-generate-image', {
-            // capture prompt length (i.e. might create GPT3 post-processing for newbies)
+          posthog.capture('use-feature', {
+            feature: 'generate image',
             promptLength: selection.length,
           });
 
@@ -452,7 +449,7 @@ export default class AvaPlugin extends Plugin {
                 outputDir: outDir,
               },
               this.settings?.token,
-              this.manifest.version,
+              this.manifest.version
             );
             if (imagePaths.length === 0) {
               onError('No image was generated');
@@ -505,9 +502,10 @@ export default class AvaPlugin extends Plugin {
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
             const source = await rewrite(
-              text, prompt,
+              text,
+              prompt,
               this.settings.token,
-              this.manifest.version,
+              this.manifest.version
             );
             source.addEventListener('error', onSSEError);
             store.getState().reset();
@@ -541,7 +539,7 @@ export default class AvaPlugin extends Plugin {
             this.app,
             this.settings.token,
             this.settings.vaultId,
-            this.manifest.version,
+            this.manifest.version
           ).open();
         },
       });
@@ -582,7 +580,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-complete',
         name: 'Complete Selection',
         editorCallback: async (editor: Editor) => {
-          posthog.capture('ava-complete');
+          posthog.capture('use-feature', { feature: 'complete selection' });
           if (!this.settings.token) {
             new Notice('Link - You need to login to use this feature');
             return;
@@ -615,7 +613,7 @@ export default class AvaPlugin extends Plugin {
           });
           const source = await complete(
             text,
-            this.settings.token, 
+            this.settings.token,
             this.manifest.version,
             {
               stream: true,

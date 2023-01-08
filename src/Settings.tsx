@@ -26,8 +26,11 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
     const getAuth = async () => {
       const vaultId = getVaultId(plugin);
 
-      const token = await getUserAuthToken(vaultId);
-      plugin.settings.token = token;
+      const linkData = await getUserAuthToken(vaultId);
+      plugin.settings.token = linkData?.token;
+      plugin.settings.userId = linkData?.userId;
+
+      posthog.identify(linkData.userId);
       plugin.saveSettings();
       setAttemptingToConnect(false);
     };

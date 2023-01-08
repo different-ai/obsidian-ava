@@ -8,12 +8,14 @@ export interface AvaSettings {
   debug: boolean;
   token: string;
   vaultId: string;
+  userId: string;
 }
 
 export const DEFAULT_SETTINGS: AvaSettings = {
   debug: false,
   token: '',
   vaultId: undefined,
+  userId: '',
 };
 
 export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
@@ -69,6 +71,8 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
             <pre className="select-text">{state?.settings?.token}</pre>
             <div>Vault</div>
             <pre className="select-text">{state?.settings?.vaultId}</pre>
+            <div>userId</div>
+            <pre className="select-text">{state?.settings?.userId}</pre>
           </div>
         </div>
       )}

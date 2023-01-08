@@ -44,7 +44,7 @@ export const search = async (
         note_content: request.note?.noteContent,
         note_tags: request.note?.noteTags,
       },
-      vault_id: vaultId 
+      vault_id: vaultId,
     }),
   });
   if (response.status !== 200) {
@@ -82,7 +82,7 @@ export const createSemanticLinks = async (
     },
     token,
     vaultId,
-    version,
+    version
   );
 
   console.log('response', response);
@@ -99,7 +99,6 @@ export const createSemanticLinks = async (
     return { path: similarity.notePath, similarity: similarity.score };
   });
 };
-
 
 export interface ICompletion {
   stream?: boolean;
@@ -149,12 +148,21 @@ export const complete = async (
   }
 };
 
-export const createParagraph = (text: string, token: string, version: string) => {
+export const createParagraph = (
+  text: string,
+  token: string,
+  version: string
+) => {
   const prompt = `Write a paragraph about ${text}`;
   return complete(prompt, token, version);
 };
 
-export const rewrite = (text: string, alteration: string, token: string, version: string) => {
+export const rewrite = (
+  text: string,
+  alteration: string,
+  token: string,
+  version: string
+) => {
   const prompt = `Rewrite
 "${text}"
 ${alteration}`;
@@ -209,7 +217,11 @@ export const refreshSemanticSearch = async (
   return json;
 };
 
-export const clearIndex = async (token: string, vaultId: string, version: string) => {
+export const clearIndex = async (
+  token: string,
+  vaultId: string,
+  version: string
+) => {
   const response = await fetch(`${API_HOST}/v1/search/clear`, {
     method: 'POST',
     headers: buildHeaders(token, version),
@@ -274,6 +286,11 @@ export async function getUserAuthToken(vaultId: string) {
       mode: 'cors',
     },
   });
-  const data = await response.json();
-  return data.token;
+  const data: LinkData = await response.json();
+  return data;
+}
+
+interface LinkData {
+  userId: string;
+  token: string;
 }

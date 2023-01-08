@@ -24,6 +24,7 @@ export const store = create<State>((set) => ({
     debug: false,
     token: '',
     vaultId: '',
+    userId: '',
   },
   embeds: [],
   setEmbeds: (embeds: { path: string; similarity: number }[]) => {
