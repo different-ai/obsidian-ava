@@ -172,6 +172,10 @@ export default class AvaPlugin extends Plugin {
 
   private async indexWholeVault() {
     try {
+      if (!this.settings.useLinks) {
+        this.settings.useLinks = true;
+        this.saveSettings();
+      }
       const files = await getCompleteFiles(this.app);
       console.log('Ava - Indexing vault with', files);
       // display message estimating indexing time according to number of notes
@@ -239,6 +243,8 @@ export default class AvaPlugin extends Plugin {
     this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
     this.app.metadataCache.offref(this.eventRefDeleted);
+    this.settings.useLinks = false;
+    this.saveSettings();
   }
   private listenToNoteEvents() {
     if (this.eventRefChanged) {
@@ -249,6 +255,10 @@ export default class AvaPlugin extends Plugin {
       'changed',
       (file, data, cache) => {
         try {
+          if (!this.settings.useLinks) {
+            this.unlistenToNoteEvents();
+            return;
+          }
           refreshSemanticSearch(
             [
               {
@@ -276,6 +286,10 @@ export default class AvaPlugin extends Plugin {
         if (!cache) return;
         const f = file as TFile;
         try {
+          if (!this.settings.useLinks) {
+            this.unlistenToNoteEvents();
+            return;
+          }
           refreshSemanticSearch(
             [
               {
@@ -297,6 +311,10 @@ export default class AvaPlugin extends Plugin {
     });
     this.eventRefDeleted = this.app.vault.on('delete', (file) => {
       try {
+        if (!this.settings.useLinks) {
+          this.unlistenToNoteEvents();
+          return;
+        }
         refreshSemanticSearch(
           [
             {
@@ -343,19 +361,6 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.app.workspace.onLayoutReady(async () => {
-      // ignore on dev otherwise it will index the whole vault every code change
-      if (process.env.NODE_ENV !== 'development') {
-        // poll retry every 2s until this.settings.token is defined
-        // this is needed because sometimes the plugin is loaded
-        // before the token is set
-        const interval = setInterval(() => {
-          if (this.settings.token) {
-            clearInterval(interval);
-            this.indexWholeVault();
-          }
-        }, 2000);
-      }
-
       this.createImage = (req) =>
         createImage(req, this.settings.token, this.manifest.version);
       this.complete = (p, options) =>

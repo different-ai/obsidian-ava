@@ -21,6 +21,7 @@ type State = {
 
 export const store = create<State>((set) => ({
   settings: {
+    useLinks: false,
     debug: false,
     token: '',
     vaultId: '',
