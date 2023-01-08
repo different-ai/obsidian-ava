@@ -337,7 +337,17 @@ export default class AvaPlugin extends Plugin {
 
     this.app.workspace.onLayoutReady(async () => {
       // ignore on dev otherwise it will index the whole vault every code change
-      if (process.env.NODE_ENV !== 'development') this.indexWholeVault();
+      if (process.env.NODE_ENV !== 'development') {
+        // poll retry every 2s until this.settings.token is defined
+        // this is needed because sometimes the plugin is loaded
+        // before the token is set
+        const interval = setInterval(() => {
+          if (this.settings.token) {
+            clearInterval(interval);
+            this.indexWholeVault();
+          }
+        }, 2000);
+      }
 
       this.createImage = (req) => createImage(
         req,
