@@ -493,14 +493,12 @@ export default class AvaPlugin extends Plugin {
             return;
           }
           if (editor.somethingSelected() === false) {
-            new Notice(
-              '🧙 Obsidian AI - Select some text to rewrite and try again :)'
-            );
+            new Notice('🧙 AVA - Select some text to rewrite and try again :)');
             return;
           }
           if (editor.getSelection().length > TEXT_CREATE_CHAR_LIMIT) {
             new Notice(
-              '🧙 Obsidian AI - Selection is too long, please select less than 5800 characters ~1200 words'
+              '🧙 AVA - Selection is too long, please select less than 5800 characters ~1200 words'
             );
             return;
           }
@@ -559,7 +557,7 @@ export default class AvaPlugin extends Plugin {
 
       this.addCommand({
         id: 'ava-load-semantic',
-        name: 'Search API - Load vault',
+        name: 'Load vault',
         callback: async () => {
           posthog.capture('ava-load-semantic');
           if (!this.settings.token) {
@@ -604,19 +602,17 @@ export default class AvaPlugin extends Plugin {
           }
 
           if (editor.somethingSelected() === false) {
-            new Notice(
-              '🧙 Obsidian AI - Select some text to rewrite and try again :)'
-            );
+            new Notice('🧙 AVA - Select some text to rewrite and try again :)');
             return;
           }
           if (editor.getSelection().length > TEXT_CREATE_CHAR_LIMIT) {
             new Notice(
-              '🧙 Obsidian AI - Selection is too long, please select less than 5800 characters ~1200 words'
+              '🧙 AVA - Selection is too long, please select less than 5800 characters ~1200 words'
             );
             return;
           }
           new Notice(
-            '🧙 Obsidian AI - Completing selection, this may take a few seconds'
+            '🧙 AVA - Completing selection, this may take a few seconds'
           );
           this.displayWriteSidebar();
 

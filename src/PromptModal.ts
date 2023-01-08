@@ -19,7 +19,7 @@ export class PromptModal extends Modal {
   onOpen() {
     const { contentEl } = this;
 
-    contentEl.createEl('h1', { text: 'Obsidian AI - Paragraph Assist' });
+    contentEl.createEl('h1', { text: 'AVA - Paragraph Assist' });
     const form = contentEl.createEl('form');
     form.onsubmit = this.search;
     new Setting(form).setName('Write a paragraph about').addText((text) =>

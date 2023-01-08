@@ -65,7 +65,7 @@ export const CustomSettings = ({ plugin }: { plugin: AvaPlugin }) => {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   return (
     <div>
-      <div className="text-4xl mb-4">Obsidian AI - Codename AVA</div>
+      <div className="text-4xl mb-4">AVA - Codename AVA</div>
       <div className="flex justify-between gap-3 mb-20">
         {!state.settings.token && (
           <div>You need to have an account to make the most of this plugin</div>

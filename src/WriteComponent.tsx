@@ -24,7 +24,7 @@ export const WriteComponent = () => {
 
   return (
     <div className="select-text">
-      <h1 className="text-2xl">Obsidian AI</h1>
+      <h1 className="text-2xl">AVA</h1>
 
       <h2 className="text-4xl font-bold leading-tight">
         {/* <span className="text-gray-700">“</span> */}
@@ -38,7 +38,10 @@ export const WriteComponent = () => {
       </ReactMarkdown>
       {hideButtons ? null : (
         <div className="flex gap-3">
-          <CopyToClipboardButton text={state.content} extraOnClick={trackCopy} />
+          <CopyToClipboardButton
+            text={state.content}
+            extraOnClick={trackCopy}
+          />
           <InsertButton
             editorContext={state.editorContext}
             text={state.content}
