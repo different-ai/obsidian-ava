@@ -326,13 +326,17 @@ export default class AvaPlugin extends Plugin {
         });
       },
     });
-    if (this.settings.token && !this.settings.userId) {
-      const vaultId = getVaultId(this);
-      const linkData = await getLinkData(vaultId);
-      this.settings.userId = linkData.userId;
-      this.saveSettings();
+    try {
+      if (this.settings.token && !this.settings.userId) {
+        const vaultId = getVaultId(this);
+        const linkData = await getLinkData(vaultId);
+        this.settings.userId = linkData.userId;
+        this.saveSettings();
+      }
+      posthog.identify(this.settings.userId);
+    } catch (e) {
+      console.log('Ava - Error identifying user', e);
     }
-    posthog.identify(this.settings.userId);
     if (this.settings.debug) posthog.opt_out_capturing();
 
     const statusBarItemHtml = this.addStatusBarItem();
