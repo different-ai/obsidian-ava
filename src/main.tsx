@@ -2,6 +2,7 @@ import {
   App,
   Editor,
   EventRef,
+  MarkdownView,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -376,7 +377,7 @@ export default class AvaPlugin extends Plugin {
       this.addCommand({
         id: 'ava-add-prompt',
         name: 'Write Paragraph',
-        editorCallback: (editor: Editor) => {
+        editorCallback: (editor: Editor, view: MarkdownView) => {
           posthog.capture('use-feature', { feature: 'write paragraph' });
           new Notice('🧙 Writing Paragraph', 2000);
           if (!this.settings.token) {
@@ -386,22 +387,41 @@ export default class AvaPlugin extends Plugin {
 
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
+            const time = Date.now();
+            const promptsDirExists = await this.app.vault.adapter.exists(
+              'prompts'
+            );
+            if (!promptsDirExists) {
+              await this.app.vault.createFolder('prompts');
+            }
+            const file = await this.app.vault.create(
+              `prompts/${time}.md`,
+              `## Prompt
+> ${text}
+
+## Generated Paragraph
+`
+            );
+
+            await this.app.workspace.getRightLeaf(false).openFile(file);
+            // newLeaf.openFile(file);
+            // this.app.workspace.revealLeaf(newLeaf);
             try {
               const source = await createParagraph(
                 text,
                 this.settings.token,
                 this.manifest.version
               );
-              source.addEventListener('message', function (e: any) {
+              source.addEventListener('message', (e: any) => {
                 const payload = JSON.parse(e.data);
                 console.log(payload);
+                const textToAppend = payload.choices[0].text;
                 const currentLine = editor.getCursor().line;
                 const lastChar = editor.getLine(currentLine).length;
                 editor.setCursor({ line: currentLine, ch: lastChar });
-                editor.replaceRange(
-                  `${payload.choices[0].text}`,
-                  editor.getCursor()
-                );
+
+                this.app.vault.append(file, textToAppend);
+                editor.replaceRange(textToAppend, editor.getCursor());
               });
               source.addEventListener('error', onSSEError);
               source.stream();
