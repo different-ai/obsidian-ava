@@ -340,7 +340,7 @@ export default class AvaPlugin extends Plugin {
       loaded: (posthog) => {
         posthog.register_once({
           environment: process.env.NODE_ENV,
-          version: process.env.npm_package_version,
+          version: process.env.AVA_VERSION,
         });
       },
     });
