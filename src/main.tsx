@@ -359,6 +359,15 @@ export default class AvaPlugin extends Plugin {
     this.statusBarItem = createRoot(statusBarItemHtml);
 
     this.app.workspace.onLayoutReady(async () => {
+      // ignore on dev
+      if (process.env.NODE_ENV !== 'development') {
+        // if the user has enabled links in the past
+        // we listen to note changes by default,
+        // no need to load vault
+        if (this.settings.token && this.settings.useLinks) {
+          this.listenToNoteEvents();
+        }
+      }
       this.createImage = (req) =>
         createImage(req, this.settings.token, this.manifest.version);
       this.complete = (p, options) =>
