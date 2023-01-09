@@ -337,13 +337,8 @@ export default class AvaPlugin extends Plugin {
     console.log("Ava version", this.manifest.version);
     posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
       api_host: 'https://app.posthog.com',
-      loaded: (posthog) => {
-        posthog.register_once({
-          environment: process.env.NODE_ENV,
-          version: process.env.AVA_VERSION,
-        });
-      },
     });
+
     try {
       if (this.settings.token && !this.settings.userId) {
         const vaultId = getVaultId(this);

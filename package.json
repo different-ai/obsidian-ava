@@ -1,6 +1,6 @@
 {
   "name": "ava",
-  "version": "2.12.3",
+  "version": "2.12.4",
   "description": "AI assistant for Obsidian",
   "main": "main.js",
   "scripts": {
