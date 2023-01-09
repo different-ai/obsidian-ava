@@ -17,6 +17,7 @@ type State = {
   reset: () => void;
   setPrompt: (prompt: string) => void;
   settings: AvaSettings;
+  loadingEmbeds: boolean;
 };
 
 export const store = create<State>((set) => ({
@@ -27,6 +28,7 @@ export const store = create<State>((set) => ({
     vaultId: '',
     userId: '',
   },
+  loadingEmbeds: false,
   embeds: [],
   setEmbeds: (embeds: { path: string; similarity: number }[]) => {
     set(() => ({ embeds: embeds }));

@@ -334,7 +334,7 @@ export default class AvaPlugin extends Plugin {
   // eslint-disable-next-line require-jsdoc
   async onload() {
     await this.loadSettings();
-    console.log("Ava version", this.manifest.version);
+    console.log('Ava version', this.manifest.version);
     posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
       api_host: 'https://app.posthog.com',
     });
@@ -537,7 +537,7 @@ export default class AvaPlugin extends Plugin {
         callback: async () => {
           posthog.capture('use-feature', { feature: 'search' });
           if (!this.settings.useLinks) {
-            new Notice('Link - You need to enable links in settings', 3000);
+            new Notice('🧙 Link - You need to enable links in settings', 3000);
             return;
           }
           if (!this.settings.token) {
@@ -570,21 +570,22 @@ export default class AvaPlugin extends Plugin {
         name: 'Generate Link',
         editorCallback: async (editor: Editor) => {
           if (!this.settings.useLinks) {
-            new Notice('Link - You need to enable links in settings', 3000);
+            new Notice('🧙 Link - You need to enable links in settings', 3000);
             return;
           }
           if (!this.settings.token) {
             new Notice('🧙 You need to login to use this feature', 2000);
             return;
           }
-          new Notice('Link - Connecting Related Notes ⏰');
+          new Notice('🧙 Link - Searching for related notes⏰');
           this.displayLinkSidebar();
-          store.setState({ editorContext: editor });
+          store.setState({ editorContext: editor, loadingEmbeds: true });
           this.statusBarItem.render(<StatusBar status="loading" />);
           const results = await this.link();
           if (results) {
             store.setState({ embeds: results });
           }
+          store.setState({ loadingEmbeds: false });
           this.statusBarItem.render(<StatusBar status="success" />);
         },
       });

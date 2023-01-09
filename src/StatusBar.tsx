@@ -18,11 +18,11 @@ import React from 'react';
 // --color-base-70: #bababa;
 // --color-base-100: #dadada;
 
-export const Spinner = () => (
+export const Spinner = ({ className }: { className?: string }) => (
   <div role="status">
     <svg
       aria-hidden="true"
-      className="w-4 h-4 mr-2 text-[color:var(--color-base-100)] animate-spin fill-[color:var(--color-purple)]"
+      className={`w-4 h-4 mr-2 text-[color:var(--color-base-100)] animate-spin fill-[color:var(--color-purple)] ${className}`}
       viewBox="0 0 100 101"
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

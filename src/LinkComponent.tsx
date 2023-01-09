@@ -5,6 +5,7 @@ import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { useApp } from './hooks';
 import { InsertButton } from './InsertButton';
+import { Spinner } from './StatusBar';
 import { store } from './store';
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -48,6 +49,7 @@ const ListItem = ({
           <a
             key={result.path}
             href={result.path}
+            className="tree-item-self search-result-file-title"
             data-path={result.path}
             onClick={() => {
               app.workspace.openLinkText(result.path, '', false);
@@ -55,14 +57,15 @@ const ListItem = ({
           >
             <span
               className="tree-item-inner"
-              title={`Similarity: ${result.similarity.toPrecision(
-                2
-              )}, Opacity: ${result.opacity.toPrecision(2)}`}
+              title={`Opacity: ${result.opacity.toPrecision(2)}`}
               style={{ opacity: result.opacity }}
             >
               {result.name}
             </span>
           </a>
+          <span className="tree-item-flair">
+            {(result.similarity * 100).toPrecision(2)}% similar
+          </span>
         </div>
       </div>
       <div>
@@ -115,6 +118,15 @@ export function LinkComponent() {
     });
     setResults(results);
   }, [embeds, threshold]);
+
+  if (state.loadingEmbeds) {
+    return (
+      <div className="flex justify-center items-center flex-col gap-3 h-full">
+        <div>🧙 AVA Links is casting a memory retrieval spell</div>
+        <Spinner className="h-16 w-16" />
+      </div>
+    );
+  }
 
   if (error) {
     return <div>There was an error</div>;
