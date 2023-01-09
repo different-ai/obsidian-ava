@@ -397,10 +397,9 @@ export default class AvaPlugin extends Plugin {
             const file = await this.app.vault.create(
               `prompts/${time}.md`,
               `## Prompt
-> Write a paragraph aobut ${text}
+> Write a paragraph about ${text}
 
-## Generated Paragraph
-`
+## Generated Paragraph`
             );
 
             const leaf = this.app.workspace.getRightLeaf(false);
