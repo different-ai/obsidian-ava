@@ -32,7 +32,8 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     setUseLinks(checked);
     plugin.loadSettings();
     if (checked) {
-      new Notice('🧙 Links enabled, make sure to run cmd+p Load Vault ', 5000);
+      new Notice('🧙 Links enabled', 5000);
+      this.plugin.indexWholeVault();
     }
   };
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {

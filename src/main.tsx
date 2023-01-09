@@ -170,7 +170,7 @@ export default class AvaPlugin extends Plugin {
     );
   }
 
-  private async indexWholeVault() {
+  public async indexWholeVault() {
     try {
       if (!this.settings.useLinks) {
         this.settings.useLinks = true;
