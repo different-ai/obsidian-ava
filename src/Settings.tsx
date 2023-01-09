@@ -30,7 +30,10 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
       plugin.settings.token = linkData?.token;
       plugin.settings.userId = linkData?.userId;
 
-      posthog.identify(linkData.userId);
+      posthog.identify(linkData.userId, {
+        vaultId: vaultId,
+        version: plugin.manifest.version,
+      });
       plugin.saveSettings();
       setAttemptingToConnect(false);
     };

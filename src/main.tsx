@@ -334,7 +334,7 @@ export default class AvaPlugin extends Plugin {
   // eslint-disable-next-line require-jsdoc
   async onload() {
     await this.loadSettings();
-
+    console.log("Ava version", this.manifest.version);
     posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
       api_host: 'https://app.posthog.com',
       loaded: (posthog) => {
@@ -351,7 +351,10 @@ export default class AvaPlugin extends Plugin {
         this.settings.userId = linkData.userId;
         this.saveSettings();
       }
-      posthog.identify(this.settings.userId);
+      posthog.identify(this.settings.userId, {
+        vaultId: this.settings.vaultId,
+        version: this.manifest.version,
+      });
     } catch (e) {
       console.log('Ava - Error identifying user', e);
     }
