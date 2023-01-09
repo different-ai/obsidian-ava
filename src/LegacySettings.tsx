@@ -1,6 +1,7 @@
 import { Notice } from 'obsidian';
 import * as React from 'react';
 import AvaPlugin from './main';
+import { Spinner } from './StatusBar';
 import { store } from './store';
 
 export interface AvaSettings {
@@ -23,8 +24,22 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const [useLinks, setUseLinks] = React.useState(state.settings.useLinks);
   const [isDebug, setDebug] = React.useState(state.settings.debug);
+  const [isLoading, setIsLoading] = React.useState(false);
   const showAdvancedSettings = isDebug;
 
+
+  const handleClearIndex = () => {
+    setIsLoading(true);
+    new Notice('Clearing 🧙 Links index', 5000);
+    plugin.clearIndex().then(() => {
+      new Notice('🧙 Links index cleared', 5000);
+    }).catch((e) => {
+      new Notice('Error clearing 🧙 Links index', 5000);
+      console.error(e);
+    }).finally(() => {
+      setIsLoading(false);
+    });
+  };
   const handleUseLinks = (event: React.ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked;
     plugin.settings.useLinks = checked;
@@ -33,7 +48,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.loadSettings();
     if (checked) {
       new Notice('🧙 Links enabled', 5000);
-      this.plugin.indexWholeVault();
+      plugin.indexWholeVault();
     }
   };
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,20 +72,36 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     // small spacing vertically
     <div className="space-y-2">
       <div className="relative flex items-start">
-        <div className="flex h-5 items-center">
-          <input
-            aria-describedby="links-description"
-            name="links"
-            type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-            onChange={handleUseLinks}
-            checked={useLinks}
-          />
-        </div>
-        <div className="ml-3 text-sm">
-          <label htmlFor="links" className="font-medium ">
-            Use 🧙 Links
-          </label>
+        {/* horizontal list of an input and a button - with spacing */}
+        <div className="flex h-5 items-center space-x-2">
+          <div className="flex h-5 items-center">
+            <input
+              aria-describedby="links-description"
+              name="links"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              onChange={handleUseLinks}
+              checked={useLinks}
+            />
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="links" className="font-medium ">
+              Use 🧙 Links
+            </label>
+          </div>
+          {/* hovering the button show a tooltip */}
+          {/* hovering the button show a cursor pointer */}
+          { 
+            !isLoading ?
+            <button
+              className="ml-3 text-sm cursor-pointer"
+              onClick={handleClearIndex}
+              aria-label="Clear 🧙 Links' index can be required if you notice some issue with links not working"
+            >
+              Clear Index
+            </button> :
+            <Spinner/>
+          }
         </div>
       </div>
       <div className="relative flex items-start">
@@ -79,7 +110,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
             aria-describedby="comments-description"
             name="comments"
             type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
+            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
             onChange={handleDebug}
             checked={isDebug}
           />
@@ -93,7 +124,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
           </p>
         </div>
       </div>
-      <button onClick={handleDeleteCache}>Delete Cache</button>
+      <button className="cursor-pointer" onClick={handleDeleteCache}>Delete Cache</button>
       {showAdvancedSettings && (
         <div className="overflow-x-auto mt-6">
           <div>

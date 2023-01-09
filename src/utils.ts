@@ -221,7 +221,7 @@ export const clearIndex = async (
   token: string,
   vaultId: string,
   version: string
-) => {
+): Promise<any> => {
   const response = await fetch(`${API_HOST}/v1/search/clear`, {
     method: 'POST',
     headers: buildHeaders(token, version),

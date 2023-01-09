@@ -53,8 +53,8 @@ const onSSEError = (e: any) => {
 };
 
 export default class AvaPlugin extends Plugin {
-  settings: AvaSettings;
-  statusBarItem: Root;
+  public settings: AvaSettings;
+  public statusBarItem: Root;
   /**
    * Create an image using based on a text
    * Example:
@@ -75,7 +75,7 @@ export default class AvaPlugin extends Plugin {
     );
     ```
    */
-  createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
+  public createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
   /**
    * Complete a sentence
    * Example:
@@ -87,7 +87,7 @@ export default class AvaPlugin extends Plugin {
     // result: "white"
     ```
    */
-  complete: (
+  public complete: (
     prompt: string,
     options?: ICompletion
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,7 +107,8 @@ export default class AvaPlugin extends Plugin {
   ```
   */
 
-  search: (request: ISearchRequest) => Promise<ISearchResponse>;
+  public search: (request: ISearchRequest) => Promise<ISearchResponse>;
+  public clearIndex: () => Promise<any>
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
@@ -192,12 +193,7 @@ export default class AvaPlugin extends Plugin {
             : ''),
         2000
       );
-      // first clear index
-      await clearIndex(
-        this.settings?.token,
-        this.settings?.vaultId,
-        this.manifest.version
-      );
+
       // 2000 = approx 13s - tune it for optimal user feedback / indexing time
       const batchSize = 2000;
       // execute in parallel batches split of batchSize size
@@ -375,6 +371,12 @@ export default class AvaPlugin extends Plugin {
       this.search = (req) =>
         search(
           req,
+          this.settings.token,
+          this.settings.vaultId,
+          this.manifest.version
+        );
+      this.clearIndex = () =>
+        clearIndex(
           this.settings.token,
           this.settings.vaultId,
           this.manifest.version
