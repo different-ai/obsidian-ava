@@ -30,47 +30,49 @@ const ListItem = ({
     getFileText(result.path);
   }, [result]);
   return (
-    <div className="flex gap-2 items-center">
-      <div className="flex items-center">
-        {isExpanded && (
-          <ChevronDownIcon
-            className="h-3 w-3 min-w-[0.75rem]"
-            onClick={() => setIsExpanded(false)}
-          />
-        )}
-        {!isExpanded && (
-          <ChevronRightIcon
-            className="h-3 w-3 min-w-[0.75rem]"
-            onClick={() => setIsExpanded(true)}
-          />
-        )}
-        <a
-          key={result.path}
-          href={result.path}
-          className="tree-item-self is-clickable outgoing-link-item tree-item-self search-result-file-title is-clickable"
-          data-path={result.path}
-          onClick={() => {
-            app.workspace.openLinkText(result.path, '', false);
-          }}
-        >
-          <span
-            className="tree-item-inner"
-            title={`Similarity: ${result.similarity.toPrecision(
-              2
-            )}, Opacity: ${result.opacity.toPrecision(2)}`}
-            style={{ opacity: result.opacity }}
+    <>
+      <div className="flex gap-2 items-center">
+        <div className="tree-item-self is-clickable outgoing-link-item tree-item-self search-result-file-title is-clickable">
+          {isExpanded && (
+            <ChevronDownIcon
+              className="h-3 w-3 min-w-[0.75rem]"
+              onClick={() => setIsExpanded(false)}
+            />
+          )}
+          {!isExpanded && (
+            <ChevronRightIcon
+              className="h-3 w-3 min-w-[0.75rem]"
+              onClick={() => setIsExpanded(true)}
+            />
+          )}
+          <a
+            key={result.path}
+            href={result.path}
+            data-path={result.path}
+            onClick={() => {
+              app.workspace.openLinkText(result.path, '', false);
+            }}
           >
-            {result.name}
-          </span>
-        </a>
-      </div>
-      {isExpanded && (
-        <div className="search-result-file-matches p-2">
-          <ReactMarkdown>{fileText}</ReactMarkdown>
+            <span
+              className="tree-item-inner"
+              title={`Similarity: ${result.similarity.toPrecision(
+                2
+              )}, Opacity: ${result.opacity.toPrecision(2)}`}
+              style={{ opacity: result.opacity }}
+            >
+              {result.name}
+            </span>
+          </a>
         </div>
-      )}
-      <CopyToClipboardButton text={`[[${result.name}]]`} small />
-    </div>
+      </div>
+      <div>
+        {isExpanded && (
+          <div className="search-result-file-matches p-2">
+            <ReactMarkdown>{fileText}</ReactMarkdown>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
