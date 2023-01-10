@@ -58,7 +58,7 @@ const search = async () => {
         query: msg,
     });
     console.log(results);
-    return msg + "\n\n" + results.similarities.map((result) => `- [[${result.note_path}]]`).join("\n");
+    return msg + "\n\n" + results.similarities.map((result) => `- [[${result.notePath}]]`).join("\n");
 }
 module.exports = search;
 ```
@@ -74,7 +74,7 @@ const wikipedia = async (title, text) => {
     document.body.style.cursor = "wait";
     const prompt = "Title: " + title + "\n" + text + "\nWikipedia links of similar topics:\n- https://";
     console.log("Prompt:", prompt);
-    const completion = await app.plugins.plugins.ava.complete(prompt);
+    const completion = await app.plugins.plugins.ava.complete(prompt, {stream: false});
     console.log(completion);
     document.body.style.cursor = "default";
     return `\n\nSimilar topics Wikipedia URLs:\n\n- ${completion}`;
@@ -94,7 +94,7 @@ const latex = async (title, text) => {
     const selection = window.getSelection().toString();
     const prompt = "Turn this into a LaTex formula: " + selection + "\n$",
     console.log("Prompt:", prompt);
-    const completion = await app.plugins.plugins.ava.complete(prompt);
+    const completion = await app.plugins.plugins.ava.complete(prompt, {stream: false});
     console.log(completion);
     document.body.style.cursor = "default";
     return `${completion}`;
