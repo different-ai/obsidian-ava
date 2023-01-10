@@ -36,14 +36,13 @@ https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-
 #### Installation
 
 1. Go to settings and check "Use Links"
-2. cmd+p and type "Load Vault"
 
 #### Usage
 
 1. Press: <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P
 2. Type: Link Notes
 
-![](https://d1muf25xaso8hp.cloudfront.net/https%3A%2F%2Fs3.amazonaws.com%2Fappforest_uf%2Ff1671041695384x127761232744105780%2FScreen%2520Recording%25202022-12-13%2520at%25205.15.17%2520PM.gif?w=512&h=&auto=compress&dpr=2&fit=max)
+https://user-images.githubusercontent.com/25003283/211570482-05882014-a33f-4599-924a-b5ea54646008.mov
 
 ### Create images from selected text
 
