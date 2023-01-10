@@ -63,6 +63,6 @@ https://user-images.githubusercontent.com/25003283/211570482-05882014-a33f-4599-
 
 ## Technical Limitations
 
-- [link feature](https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-89c8-ed2f3277df72.mp4) has only been tested on macos
+- [link feature](https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-89c8-ed2f3277df72.mp4) does not index very large notes yet
 
 > Don't lag behind the crowd. Augment your learning with AI today.
