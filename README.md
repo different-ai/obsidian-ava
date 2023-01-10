@@ -6,7 +6,7 @@ Unlock the full potential of Obsidian Notes and take your productivity to the ne
 
 - Create blog posts
 - Rewrite paragraphs with ease
-- Link related notes
+- [Link related notes](https://github.com/louis030195/obsidian-ava/blob/main/README.md#connect-the-dots-leverage-your-knowledge)
 - Generate stunning visualizations
 
 https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-9c23-7f6d97252edb.mp4
@@ -63,6 +63,6 @@ https://user-images.githubusercontent.com/25003283/211570482-05882014-a33f-4599-
 
 ## Technical Limitations
 
-- [link feature](https://user-images.githubusercontent.com/11430621/206806275-dfd8c5cf-ad66-4a94-89c8-ed2f3277df72.mp4) does not index very large notes yet
+- [link feature](https://github.com/louis030195/obsidian-ava/blob/main/README.md#connect-the-dots-leverage-your-knowledge) does not index very large notes yet
 
 > Don't lag behind the crowd. Augment your learning with AI today.
