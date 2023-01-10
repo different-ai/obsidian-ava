@@ -27,7 +27,6 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const [isLoading, setIsLoading] = React.useState(false);
   const showAdvancedSettings = isDebug;
 
-
   const handleClearIndex = () => {
     setIsLoading(true);
     new Notice('Clearing 🧙 Links index', 5000);
@@ -48,7 +47,11 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.loadSettings();
     if (checked) {
       new Notice('🧙 Links enabled', 5000);
+      // when enabling links, we make sure to index the vault
       plugin.indexWholeVault();
+    } else {
+      // when disabling links, we make sure to unlisten to note events
+      plugin.unlistenToNoteEvents();
     }
   };
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {

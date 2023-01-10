@@ -227,14 +227,15 @@ export default class AvaPlugin extends Plugin {
           )
       );
 
-      this.listenToNoteEvents();
+      // only listen to note events if we don't already listen
+      if (!this.eventRefChanged) this.listenToNoteEvents();
       new Notice('Search - Vault indexed successfully', 2000);
     } catch (e) {
       onGeneralError(e);
       this.unlistenToNoteEvents();
     }
   }
-  private unlistenToNoteEvents() {
+  public unlistenToNoteEvents() {
     console.log('Ava - Unlistening to note events');
     this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
@@ -242,11 +243,13 @@ export default class AvaPlugin extends Plugin {
     this.settings.useLinks = false;
     this.saveSettings();
   }
-  private listenToNoteEvents() {
+  public listenToNoteEvents() {
     if (this.eventRefChanged) {
       console.log('Already listening to note events, unlistening first');
       this.unlistenToNoteEvents();
     }
+    this.settings.useLinks = true;
+    this.saveSettings();
     this.eventRefChanged = this.app.metadataCache.on(
       'changed',
       (file, data, cache) => {
