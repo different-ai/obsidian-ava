@@ -1,4 +1,4 @@
-⛔️ We made a breaking change. Please update to >2.6.1 if you haven't done so already!⛔️
+⛔️ Make sure you're running the latest version we do major updates weekly!⛔️
 
 # AVA - AI assistant for Obsidian
 
