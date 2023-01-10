@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { InsertButton } from './InsertButton';
+import { Spinner } from './StatusBar';
 import { store } from './store';
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -24,18 +25,25 @@ export const WriteComponent = () => {
 
   return (
     <div className="select-text">
-      <h1 className="text-2xl">AVA</h1>
+      <h2>🧙 AVA Write</h2>
+      <blockquote className="italic font-semibold ">
+        <p>{state.prompt}</p>
+      </blockquote>
+      <hr className="my-2" />
+      {state.loadingContent && (
+        <div className="flex gap-3">
+          <div>Casting a spell...</div>
+          <Spinner className="h-4 w-4" />
+        </div>
+      )}
 
-      <h2 className="text-4xl font-bold leading-tight">
-        {/* <span className="text-gray-700">“</span> */}
-        <span className="text-gray-200">{state.prompt}</span>
-        {/* <span className="text-gray-700">”</span> */}
-      </h2>
+      {!state.loadingContent && state.content === '' && (
+        <div className="flex justify-center items-center flex-col gap-3 h-full">
+          <div>Nothing to show. Try cmd + p and type rewrite to see 🧙</div>
+        </div>
+      )}
 
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>
-        {state.content ||
-          'Nothing to show. Try cmd + p and type rewrite to see 🧙'}
-      </ReactMarkdown>
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.content}</ReactMarkdown>
       {hideButtons ? null : (
         <div className="flex gap-3">
           <CopyToClipboardButton

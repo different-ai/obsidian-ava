@@ -21,6 +21,7 @@ type State = {
   setPrompt: (prompt: string) => void;
   settings: AvaSettings;
   loadingEmbeds: boolean;
+  loadingContent: boolean;
 };
 
 export const store = create<State>((set) => ({
@@ -40,6 +41,7 @@ export const store = create<State>((set) => ({
   setEmbeds: (embeds: { path: string; similarity: number }[]) => {
     set(() => ({ embeds: embeds }));
   },
+  loadingContent: false,
   content: '',
   appendContentToRewrite: (content: string) => {
     console.log(content);

@@ -75,7 +75,9 @@ export default class AvaPlugin extends Plugin {
     );
     ```
    */
-  public createImage: (request: RequestImageCreate) => Promise<ResponseImageCreate>;
+  public createImage: (
+    request: RequestImageCreate
+  ) => Promise<ResponseImageCreate>;
   /**
    * Complete a sentence
    * Example:
@@ -108,7 +110,7 @@ export default class AvaPlugin extends Plugin {
   */
 
   public search: (request: ISearchRequest) => Promise<ISearchResponse>;
-  public clearIndex: () => Promise<any>
+  public clearIndex: () => Promise<any>;
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
@@ -194,7 +196,7 @@ export default class AvaPlugin extends Plugin {
         2000
       );
 
-      store.setState({linksStatus: 'loading'});
+      store.setState({ linksStatus: 'loading' });
       // 2000 = approx 13s - tune it for optimal user feedback / indexing time
       const batchSize = 2000;
       // execute in parallel batches split of batchSize size
@@ -231,11 +233,11 @@ export default class AvaPlugin extends Plugin {
       // only listen to note events if we don't already listen
       if (!this.eventRefChanged) this.listenToNoteEvents();
       new Notice('Search - Vault indexed successfully', 2000);
-      store.setState({linksStatus: 'running'});
+      store.setState({ linksStatus: 'running' });
     } catch (e) {
       onGeneralError(e);
       this.unlistenToNoteEvents();
-      store.setState({linksStatus: 'error'});
+      store.setState({ linksStatus: 'error' });
     }
   }
   public unlistenToNoteEvents() {
@@ -253,7 +255,7 @@ export default class AvaPlugin extends Plugin {
     }
     this.settings.useLinks = true;
     this.saveSettings();
-    store.setState({linksStatus: 'running'});
+    store.setState({ linksStatus: 'running' });
 
     this.eventRefChanged = this.app.metadataCache.on(
       'changed',
@@ -522,28 +524,42 @@ export default class AvaPlugin extends Plugin {
 
           this.displayWriteSidebar();
 
+          store.getState().reset();
+
           const onSubmit = async (prompt: string) => {
+            store.setState({ loadingContent: true });
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
-            const source = await rewrite(
-              text,
-              prompt,
-              this.settings.token,
-              this.manifest.version
-            );
-            source.addEventListener('error', onSSEError);
-            store.getState().reset();
-            // go to the next line
 
-            source.addEventListener('message', function (e: any) {
-              const payload = JSON.parse(e.data);
-              store.getState().setPrompt(`Rewrite to ${prompt}`);
-              store.getState().setEditorContext(editor);
-              store.getState().appendContentToRewrite(payload.choices[0].text);
-              return;
-            });
-            source.stream();
-            this.statusBarItem.render(<StatusBar status="success" />);
+            store.setState({ loadingContent: true });
+            try {
+              const source = await rewrite(
+                text,
+                prompt,
+                this.settings.token,
+                this.manifest.version
+              );
+              source.addEventListener('error', onSSEError);
+              // go to the next line
+
+              source.addEventListener('message', function (e: any) {
+                // this is bad because it will triger react re-renders
+                // careful if you modify it, it's a bit harder to get the behavior right
+                store.setState({ loadingContent: true });
+                const payload = JSON.parse(e.data);
+                store.getState().setPrompt(`Rewrite to ${prompt}`);
+                store.getState().setEditorContext(editor);
+                store
+                  .getState()
+                  .appendContentToRewrite(payload.choices[0].text);
+                store.setState({ loadingContent: false });
+              });
+              source.stream();
+              this.statusBarItem.render(<StatusBar status="success" />);
+            } catch (e) {
+              console.error(e);
+              store.setState({ loadingContent: false });
+            }
           };
 
           new RewriteModal(this.app, onSubmit).open();
