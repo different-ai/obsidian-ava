@@ -44,7 +44,6 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.settings.useLinks = checked;
     plugin.saveSettings();
     setUseLinks(checked);
-    plugin.loadSettings();
     if (checked) {
       new Notice('🧙 Links enabled', 5000);
       // when enabling links, we make sure to index the vault
@@ -59,15 +58,12 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.settings.debug = checked;
     plugin.saveSettings();
     setDebug(checked);
-    plugin.loadSettings();
   };
   // this will not refresh the ui but it will clear the cache
   const handleDeleteCache = () => {
     plugin.settings.token = undefined;
     plugin.settings.vaultId = undefined;
     plugin.saveSettings();
-
-    plugin.loadSettings();
     new Notice('Cache cleared');
   };
 
