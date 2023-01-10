@@ -7,7 +7,7 @@ Unlock the full potential of Obsidian Notes and take your productivity to the ne
 - Create blog posts
 - [Rewrite paragraphs with ease](https://github.com/louis030195/obsidian-ava/blob/main/README.md#write-rewrite)
 - [Link related notes](https://github.com/louis030195/obsidian-ava/blob/main/README.md#connect-the-dots-leverage-your-knowledge)
-- Generate stunning visualizations
+- [Generate stunning visualizations](https://github.com/louis030195/obsidian-ava/blob/main/README.md#create-images-from-selected-text)
 
 https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-9c23-7f6d97252edb.mp4
 
