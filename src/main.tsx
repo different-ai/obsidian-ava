@@ -194,6 +194,7 @@ export default class AvaPlugin extends Plugin {
         2000
       );
 
+      store.setState({linksStatus: 'loading'});
       // 2000 = approx 13s - tune it for optimal user feedback / indexing time
       const batchSize = 2000;
       // execute in parallel batches split of batchSize size
@@ -230,9 +231,11 @@ export default class AvaPlugin extends Plugin {
       // only listen to note events if we don't already listen
       if (!this.eventRefChanged) this.listenToNoteEvents();
       new Notice('Search - Vault indexed successfully', 2000);
+      store.setState({linksStatus: 'running'});
     } catch (e) {
       onGeneralError(e);
       this.unlistenToNoteEvents();
+      store.setState({linksStatus: 'error'});
     }
   }
   public unlistenToNoteEvents() {
@@ -250,6 +253,8 @@ export default class AvaPlugin extends Plugin {
     }
     this.settings.useLinks = true;
     this.saveSettings();
+    store.setState({linksStatus: 'running'});
+
     this.eventRefChanged = this.app.metadataCache.on(
       'changed',
       (file, data, cache) => {

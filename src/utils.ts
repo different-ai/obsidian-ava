@@ -294,3 +294,6 @@ interface LinkData {
   userId: string;
   token: string;
 }
+
+export type LinksStatus = 'disabled' | 'loading' | 'running' | 'error';
+

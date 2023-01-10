@@ -51,6 +51,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     } else {
       // when disabling links, we make sure to unlisten to note events
       plugin.unlistenToNoteEvents();
+      state.setLinksStatus('disabled');
     }
   };
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,7 +72,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     // small spacing vertically
     <div className="space-y-2">
       <div className="relative flex items-start">
-        {/* horizontal list of an input and a button - with spacing */}
+        {/* horizontal list of an input and a button - with spacing between children */}
         <div className="flex h-5 items-center space-x-2">
           <div className="flex h-5 items-center">
             <input
@@ -86,6 +87,52 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
           <div className="ml-3 text-sm">
             <label htmlFor="links" className="font-medium ">
               Use 🧙 Links
+            </label>
+          </div>
+          {/*
+            a green when 'running', yellow when 'loading'
+            red when 'error' and grey blinking light when 'disabled'
+            showing the status of Links
+          */}
+          <div className="ml-3 text-sm">
+            <div className="flex items-center">
+              <div className="flex-shrink-0 h-2 w-2">
+                <div
+                  className={`h-2 w-2 rounded-full ${
+                    state.linksStatus === 'running'
+                      ? 'bg-green-400 animate-pulse'
+                      : state.linksStatus === 'loading'
+                      ? 'bg-yellow-400 animate-pulse'
+                      : state.linksStatus === 'error'
+                      ? 'bg-red-400 animate-pulse'
+                      : 'bg-gray-400 animate-pulse'
+                  }`}
+                  // tooltip shown when hovering the light
+                  // 'running' -> '🧙 Links is running'
+                  // 'loading' -> '🧙 Links is loading'
+                  // 'error' -> '🧙 Links is in error - please try to restart Obsidian'
+                  // 'disabled' -> '🧙 Links is disabled'
+                  aria-label={`${
+                    state.linksStatus === 'running'
+                      ? '🧙 Links is running'
+                      : state.linksStatus === 'loading'
+                      ? '🧙 Links is loading'
+                      : state.linksStatus === 'error'
+                      ? '🧙 Links is in error - please try to restart Obsidian'
+                      : '🧙 Links is disabled'
+                  }`}
+                />
+              </div>
+              <div className="ml-3 text-sm">
+                <label htmlFor="links" className="font-medium ">
+                  {state.linksStatus}
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className="ml-3 text-sm">
+            <label htmlFor="links" className="font-medium ">
+              |
             </label>
           </div>
           {/* hovering the button show a tooltip */}

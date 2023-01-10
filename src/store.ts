@@ -1,6 +1,7 @@
 import { Editor } from 'obsidian';
 import create from 'zustand/vanilla';
 import { AvaSettings } from './LegacySettings';
+import { LinksStatus } from './utils';
 
 export type Embed = {
   path: string;
@@ -8,6 +9,8 @@ export type Embed = {
 };
 
 type State = {
+  linksStatus: LinksStatus;
+  setLinksStatus: (status: LinksStatus) => void;
   embeds: Embed[];
   content: string;
   editorContext: Editor;
@@ -29,6 +32,10 @@ export const store = create<State>((set) => ({
     userId: '',
   },
   loadingEmbeds: false,
+  linksStatus: 'disabled',
+  setLinksStatus: (status: LinksStatus) => {
+    set(() => ({ linksStatus: status }));
+  },
   embeds: [],
   setEmbeds: (embeds: { path: string; similarity: number }[]) => {
     set(() => ({ embeds: embeds }));
