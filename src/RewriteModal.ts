@@ -20,9 +20,22 @@ export class RewriteModal extends Modal {
     this.onSubmit = onSubmit;
   }
 
+  private getLocalSuggestions() {
+    return JSON.parse(window.localStorage.getItem('ava-rewrite-text')) as string[] || [];
+  }
+
   search = (evt: Event) => {
     evt.preventDefault();
     this.onSubmit(this.text);
+    // remove this text from local storage and add it to the top of the suggestions
+    // window.localStorage 'ava-rewrite-text' is a list of 3 texts
+    // we maintain to 3 items max with the order being most recent first
+    const storedTexts = this.getLocalSuggestions();
+    window.localStorage.setItem('ava-rewrite-text', JSON.stringify([
+      this.text,
+      // minus the current text
+      ...storedTexts.filter((text) => text !== this.text),
+    ].slice(0, 3)));
     this.close();
   };
 
@@ -51,8 +64,11 @@ export class RewriteModal extends Modal {
     const suggestionContainer = contentEl.createEl('div', {
       attr: { style: 'display: flex; flex-wrap: wrap; gap: 0.5rem;' },
     });
+    const localSuggestions = this.getLocalSuggestions();
+    const allSuggestions = new Set([...localSuggestions, ...suggestions]);
+    // TODO: add history icon for local suggestions
     // add a few suggestions
-    suggestions.forEach((suggestion) => {
+    allSuggestions.forEach((suggestion) => {
       suggestionContainer.createEl('span', {
         text: suggestion,
         cls: 'setting-hotkey ',
