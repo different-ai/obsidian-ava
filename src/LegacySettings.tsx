@@ -1,4 +1,5 @@
 import { Notice } from 'obsidian';
+import posthog from 'posthog-js';
 import * as React from 'react';
 import AvaPlugin from './main';
 import { Spinner } from './StatusBar';
@@ -28,6 +29,9 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const showAdvancedSettings = isDebug;
 
   const handleClearIndex = () => {
+    posthog.capture('settings', {
+      action: 'clearIndex',
+    });
     setIsLoading(true);
     new Notice('Clearing 🧙 Links index', 5000);
     plugin.clearIndex().then(() => {
@@ -41,6 +45,10 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   };
   const handleUseLinks = (event: React.ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked;
+    posthog.capture('settings', {
+      action: 'useLinks',
+      value: checked,
+    });
     plugin.settings.useLinks = checked;
     plugin.saveSettings();
     setUseLinks(checked);
@@ -56,12 +64,19 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   };
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked;
+    posthog.capture('settings', {
+      action: 'debug',
+      value: checked,
+    });
     plugin.settings.debug = checked;
     plugin.saveSettings();
     setDebug(checked);
   };
   // this will not refresh the ui but it will clear the cache
   const handleDeleteCache = () => {
+    posthog.capture('settings', {
+      action: 'deleteCache',
+    });
     plugin.settings.token = undefined;
     plugin.settings.vaultId = undefined;
     plugin.saveSettings();
