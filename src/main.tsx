@@ -175,10 +175,6 @@ export default class AvaPlugin extends Plugin {
 
   public async indexWholeVault() {
     try {
-      if (!this.settings.useLinks) {
-        this.settings.useLinks = true;
-        this.saveSettings();
-      }
       const files = await getCompleteFiles(this.app);
       console.log('Ava - Indexing vault with', files);
       // display message estimating indexing time according to number of notes
@@ -245,16 +241,12 @@ export default class AvaPlugin extends Plugin {
     this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
     this.app.metadataCache.offref(this.eventRefDeleted);
-    this.settings.useLinks = false;
-    this.saveSettings();
   }
   public listenToNoteEvents() {
     if (this.eventRefChanged) {
       console.log('Already listening to note events, unlistening first');
       this.unlistenToNoteEvents();
     }
-    this.settings.useLinks = true;
-    this.saveSettings();
     store.setState({ linksStatus: 'running' });
 
     this.eventRefChanged = this.app.metadataCache.on(
