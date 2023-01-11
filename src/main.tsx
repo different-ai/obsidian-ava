@@ -377,7 +377,10 @@ export default class AvaPlugin extends Plugin {
       this.createImage = (req) =>
         createImage(req, this.settings.token, this.manifest.version);
       this.complete = (p, options) =>
-        complete(p, this.settings.token, this.manifest.version, options);
+        complete(p, this.settings.token, this.manifest.version, {
+          ...options,
+          stream: options.stream !== undefined ? options.stream : false,
+        });
       this.search = (req) =>
         search(
           req,

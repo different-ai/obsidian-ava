@@ -103,6 +103,12 @@ export const createSemanticLinks = async (
 export interface ICompletion {
   stream?: boolean;
   stop?: string[];
+  frequencyPenalty?: number;
+  maxTokens?: number;
+  presencePenalty?: number;
+  temperature?: number;
+  topP?: number;
+  model?: string;
 }
 export const complete = async (
   prompt: string,
@@ -119,14 +125,14 @@ export const complete = async (
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = {
-    frequency_penalty: 0,
-    max_tokens: 2000,
-    model: 'text-davinci-003',
-    presence_penalty: 0,
+    frequency_penalty: options?.frequencyPenalty || 0,
+    max_tokens: options?.maxTokens || 2000,
+    model: options?.model || 'text-davinci-003',
+    presence_penalty: options?.presencePenalty || 0,
     prompt: prompt,
     stream: stream,
-    temperature: 0.7,
-    top_p: 1,
+    temperature: options?.temperature || 0.7,
+    top_p: options?.topP !== undefined ? options?.topP : 1,
   };
   if (options?.stop) body.stop = options.stop;
   if (stream) {
