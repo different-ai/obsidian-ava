@@ -511,6 +511,8 @@ export default class AvaPlugin extends Plugin {
             return;
           }
           if (editor.getSelection().length > TEXT_CREATE_CHAR_LIMIT) {
+            posthog.capture('too-long-selection', {
+              length: editor.getSelection().length , action: 'rewrite' });
             new Notice(
               '🧙 AVA - Selection is too long, please select less than 5800 characters ~1200 words'
             );
@@ -522,6 +524,13 @@ export default class AvaPlugin extends Plugin {
           store.getState().reset();
 
           const onSubmit = async (prompt: string) => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const d: any = { 
+              feature: 'rewrite selection',
+            }
+            // only capture short prompt as it's more data privacy wise
+            if (prompt.length < 100) d.prompt = prompt;
+            posthog.capture('use-feature', d);
             store.setState({ loadingContent: true });
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
