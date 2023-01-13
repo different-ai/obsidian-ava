@@ -114,6 +114,12 @@ export default class AvaPlugin extends Plugin {
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
+  private streamingSource: any;
+  private setStreamingSource (source: any) {
+    this.streamingSource?.removeAllListeners();
+    this.streamingSource?.close();
+    this.streamingSource = source;
+  }
 
   private async link() {
     const file = this.app.workspace.getActiveFile();
@@ -401,12 +407,12 @@ export default class AvaPlugin extends Plugin {
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             try {
-              const source = await createParagraph(
+              this.setStreamingSource(await createParagraph(
                 text,
                 this.settings.token,
                 this.manifest.version
-              );
-              source.addEventListener('message', function (e: any) {
+              ));
+              this.streamingSource.addEventListener('message', function (e: any) {
                 const payload = JSON.parse(e.data);
                 console.log(payload);
                 const currentLine = editor.getCursor().line;
@@ -417,8 +423,8 @@ export default class AvaPlugin extends Plugin {
                   editor.getCursor()
                 );
               });
-              source.addEventListener('error', onSSEError);
-              source.stream();
+              this.streamingSource.addEventListener('error', onSSEError);
+              this.streamingSource.stream();
               this.statusBarItem.render(<StatusBar status="success" />);
             } catch (e) {
               onGeneralError(e.message);
@@ -537,16 +543,16 @@ export default class AvaPlugin extends Plugin {
 
             store.setState({ loadingContent: true });
             try {
-              const source = await rewrite(
+              this.setStreamingSource(await rewrite(
                 text,
                 prompt,
                 this.settings.token,
                 this.manifest.version
-              );
-              source.addEventListener('error', onSSEError);
+              ));
+              this.streamingSource.addEventListener('error', onSSEError);
               // go to the next line
 
-              source.addEventListener('message', function (e: any) {
+              this.streamingSource.addEventListener('message', function (e: any) {
                 // this is bad because it will triger react re-renders
                 // careful if you modify it, it's a bit harder to get the behavior right
                 store.setState({ loadingContent: true });
@@ -558,7 +564,7 @@ export default class AvaPlugin extends Plugin {
                   .appendContentToRewrite(payload.choices[0].text);
                 store.setState({ loadingContent: false });
               });
-              source.stream();
+              this.streamingSource.stream();
               this.statusBarItem.render(<StatusBar status="success" />);
             } catch (e) {
               console.error(e);
