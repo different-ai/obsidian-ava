@@ -29,6 +29,10 @@ export class LinkView extends ItemView {
   }
 
   async onOpen(): Promise<void> {
+    // this.containerEl.children[1].setAttribute(
+    //   'style',
+    //   'all: revert !important'
+    // );
     const root = createRoot(this.containerEl.children[1]);
     root.render(
       <AppContext.Provider value={this.app}>

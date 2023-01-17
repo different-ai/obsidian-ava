@@ -1,11 +1,22 @@
 import { SSE } from 'lib/sse';
+import { camelCase, isArray, isObject, transform } from 'lodash';
 import { App } from 'obsidian';
 import { API_HOST, buildHeaders } from './constants';
 import AvaPlugin from './main';
 
+export const camelize = (obj: Record<string, unknown>) =>
+  transform(
+    obj,
+    (result: Record<string, unknown>, value: unknown, key: string, target) => {
+      const camelKey = isArray(target) ? key : camelCase(key);
+      result[camelKey] = isObject(value)
+        ? camelize(value as Record<string, unknown>)
+        : value;
+    }
+  );
+
 // TODO: threshold configurable in settings, maybe?
 const SEMANTIC_SIMILARITY_THRESHOLD = 0.35;
-
 export interface ISimilarFile {
   score: number;
   noteName: string;
@@ -22,9 +33,30 @@ export interface ISearchRequest {
   };
 }
 
+export interface ISearchBody {
+  query?: string;
+  note?: {
+    note_path: string;
+    note_content?: string;
+    note_tags: string[];
+  };
+  vault_id: string;
+  top_k?: number;
+}
+
 export interface ISearchResponse {
+  query: string;
+  similarities: {
+    note_content: string;
+    note_name: string;
+    note_tags: string[];
+  }[];
+}
+
+export interface ISearchData {
   similarities: ISimilarFile[];
 }
+
 // this is so that the model can complete something at least of equal length
 export const REWRITE_CHAR_LIMIT = 5800;
 export const EMBED_CHAR_LIMIT = 25000;
@@ -33,19 +65,21 @@ export const search = async (
   token: string,
   vaultId: string,
   version: string
-): Promise<ISearchResponse> => {
+): Promise<ISearchData> => {
+  const body: ISearchBody = {
+    query: request.query,
+    note: {
+      note_path: request.note?.notePath,
+      note_content: request.note?.noteContent,
+      note_tags: request.note?.noteTags,
+    },
+    vault_id: vaultId,
+  };
+
   const response = await fetch(`${API_HOST}/v1/search`, {
     method: 'POST',
     headers: buildHeaders(token, version),
-    body: JSON.stringify({
-      query: request.query,
-      note: {
-        note_path: request.note?.notePath,
-        note_content: request.note?.noteContent,
-        note_tags: request.note?.noteTags,
-      },
-      vault_id: vaultId,
-    }),
+    body: JSON.stringify(body),
   });
   if (response.status !== 200) {
     const data = await response.json();
@@ -95,9 +129,10 @@ export const createSemanticLinks = async (
       !similarity.noteName.includes(title) &&
       similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
   );
-  return similarities.map((similarity) => {
-    return { path: similarity.notePath, similarity: similarity.score };
-  });
+  return similarities;
+  // return similarities.map((similarity) => {
+  //   return { path: similarity.notePath, similarity: similarity.score };
+  // });
 };
 
 export interface ICompletion {
@@ -302,4 +337,3 @@ interface LinkData {
 }
 
 export type LinksStatus = 'disabled' | 'loading' | 'running' | 'error';
-

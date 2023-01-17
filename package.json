@@ -18,15 +18,18 @@
   "license": "MIT",
   "dependencies": {
     "@heroicons/react": "^2.0.13",
+    "lodash": "^4.17.21",
     "posthog-js": "^1.37.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-hook-form": "^7.42.1",
     "react-markdown": "^8.0.4",
     "remark-gfm": "^3.0.1",
     "zustand": "^4.1.5"
   },
   "devDependencies": {
     "@tailwindcss/forms": "^0.5.3",
+    "@types/lodash": "^4.14.191",
     "@types/node": "^18.11.10",
     "@types/react": "^18.0.25",
     "@types/react-dom": "^18.0.9",

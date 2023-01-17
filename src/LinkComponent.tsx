@@ -1,12 +1,15 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { posthog } from 'posthog-js';
 import * as React from 'react';
+import { useForm } from 'react-hook-form';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
+import { PrimaryButton } from './Button';
+import { API_HOST } from './constants';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { useApp } from './hooks';
 import { InsertButton } from './InsertButton';
-import { Spinner } from './StatusBar';
 import { store } from './store';
+import { camelize, ISearchBody } from './utils';
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -33,7 +36,7 @@ const ListItem = ({
   return (
     <>
       <div className="flex gap-2 items-center">
-        <div className="tree-item-self is-clickable outgoing-link-item tree-item-self search-result-file-title is-clickable">
+        <div className="p-0 tree-item-self is-clickable outgoing-link-item tree-item-self search-result-file-title is-clickable">
           {isExpanded && (
             <ChevronDownIcon
               className="h-3 w-3 min-w-[0.75rem]"
@@ -79,6 +82,67 @@ const ListItem = ({
   );
 };
 
+const ControlForm = () => {
+  const { register, handleSubmit } = useForm();
+  const state = React.useSyncExternalStore(store.subscribe, store.getState);
+
+  const onSubmit = async (data: { limit: number }) => {
+    posthog.capture('use-feature', {
+      feature: 'search',
+      limit: data.limit,
+    });
+    state.setEmbedsLoading(true);
+
+    const body: ISearchBody = {
+      query: state.currentFileContent,
+      note: {
+        note_path: state.currentFilePath,
+        note_tags: state.currentFileTags,
+      },
+      vault_id: state.settings.vaultId,
+      top_k: Number(data.limit),
+    };
+
+    const response = await fetch(`${API_HOST}/v1/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${state.settings.token}`,
+        'X-Client-Version': state.version,
+      },
+      body: JSON.stringify(body),
+    }).then((res) => res.json());
+
+    const embeds = camelize(response.similarities);
+
+    state.setEmbedsLoading(false);
+    /* @ts-expect-error need to work on better types */
+    state.setEmbeds(embeds);
+  };
+
+  return (
+    <div className="border-2 block rounded-md border-solid border-gray-300 p-4">
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <div>
+          <label htmlFor="" className="block text-sm font-medium text-gray-700">
+            Max Results
+          </label>
+          <div className="mt-1">
+            <input
+              type="number"
+              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              defaultValue={5}
+              placeholder="5"
+              {...register('limit', { required: true })}
+            />
+          </div>
+        </div>
+        <PrimaryButton className="mt-3 w-full">Search</PrimaryButton>
+      </form>
+    </div>
+  );
+};
+
 export function LinkComponent() {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const [error, setError] = React.useState(false);
@@ -104,9 +168,9 @@ export function LinkComponent() {
     }
 
     // get the top value
-    const topValue = embeds[0].similarity;
+    const topValue = embeds[0].score;
     const results = embeds.map((embed) => {
-      const [path, similarity] = [embed.path, embed.similarity];
+      const [path, similarity] = [embed.notePath, embed.score];
       const opacity = sCurve(similarity, threshold, topValue);
 
       return {
@@ -119,43 +183,35 @@ export function LinkComponent() {
     setResults(results);
   }, [embeds, threshold]);
 
-  if (state.loadingEmbeds) {
-    return (
-      <div className="flex justify-center items-center flex-col gap-3 h-full">
-        <div>🧙 AVA Links is casting a memory retrieval spell</div>
-        <Spinner className="h-16 w-16" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return <div>There was an error</div>;
-  }
-
-  if (results.length === 0) {
-    return <div>🧙 Links - no links found</div>;
-  }
-
   const textToInsert = `${results
     .map((similarity) => '- [[' + similarity?.path?.replace('.md', '') + ']]')
     .join('\n')}`;
 
   return (
-    <div>
-      <div className="outgoing-link-header">🧙 AVA Links</div>
-      <br />
-      <div className="search-result-container">
+    <div className="flex flex-col gap-3">
+      <div className="text-2xl font-semibold mb-6">🧙 AVA Links</div>
+      <ControlForm />
+      {state.loadingEmbeds && <div>🔮 Casting memory retrieval spell...</div>}
+      {error && <div>There was an error</div>}
+      {results.length === 0 && !state.loadingEmbeds && (
+        <div>No links found</div>
+      )}
+
+      {!state.loadingEmbeds && results.length > 0 && (
+        <div className="flex gap-3">
+          <CopyToClipboardButton text={textToInsert} extraOnClick={trackCopy} />
+          <InsertButton
+            text={textToInsert}
+            editorContext={state.editorContext}
+            extraOnClick={trackInsert}
+          />
+        </div>
+      )}
+
+      <div className="search-result-container p-0">
         {results?.map((result) => (
           <ListItem key={result.path} result={result} />
         ))}
-      </div>
-      <div className="flex gap-3">
-        <CopyToClipboardButton text={textToInsert} extraOnClick={trackCopy} />
-        <InsertButton
-          text={textToInsert}
-          editorContext={state.editorContext}
-          extraOnClick={trackInsert}
-        />
       </div>
     </div>
   );

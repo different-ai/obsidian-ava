@@ -1,17 +1,14 @@
 import { Editor } from 'obsidian';
 import create from 'zustand/vanilla';
 import { AvaSettings } from './LegacySettings';
-import { LinksStatus } from './utils';
-
-export type Embed = {
-  path: string;
-  similarity: number;
-};
+import { ISimilarFile, LinksStatus } from './utils';
 
 type State = {
   linksStatus: LinksStatus;
   setLinksStatus: (status: LinksStatus) => void;
-  embeds: Embed[];
+  embeds: ISimilarFile[];
+  setEmbeds: (embeds: ISimilarFile[]) => void;
+  setEmbedsLoading: (loading: boolean) => void;
   content: string;
   editorContext: Editor;
   appendContentToRewrite: (content: string) => void;
@@ -22,9 +19,14 @@ type State = {
   settings: AvaSettings;
   loadingEmbeds: boolean;
   loadingContent: boolean;
+  currentFilePath: string;
+  currentFileContent: string;
+  currentFileTags: string[];
+  version: string;
 };
 
 export const store = create<State>((set) => ({
+  version: '',
   settings: {
     useLinks: false,
     debug: false,
@@ -32,29 +34,44 @@ export const store = create<State>((set) => ({
     vaultId: '',
     userId: '',
   },
+  // used to dispaly loading state in the sidebar
   loadingEmbeds: false,
+  // used to display loading state in the
   linksStatus: 'disabled',
   setLinksStatus: (status: LinksStatus) => {
     set(() => ({ linksStatus: status }));
   },
+  // used to fire /search from react component
+  currentFilePath: '',
+  currentFileContent: '',
+  currentFileTags: [],
+
+  // list of embeds to display in the sidebar
   embeds: [],
-  setEmbeds: (embeds: { path: string; similarity: number }[]) => {
+  setEmbeds: (embeds: ISimilarFile[]) => {
     set(() => ({ embeds: embeds }));
   },
+  setEmbedsLoading: (loading: boolean) => {
+    set(() => ({ loadingEmbeds: loading }));
+  },
+  // used for both the rewrite and complete paragraph
   loadingContent: false,
   content: '',
   appendContentToRewrite: (content: string) => {
     console.log(content);
     set((state) => ({ content: state.content + content }));
   },
-  editorContext: null,
-  setEditorContext: (editor: Editor) => {
-    set(() => ({ editorContext: editor }));
-  },
   prompt: '',
   setPrompt: (prompt: string) => {
     set(() => ({ prompt: prompt }));
   },
+
+  // used in all the sidebars to be able to modify the editor
+  editorContext: null,
+  setEditorContext: (editor: Editor) => {
+    set(() => ({ editorContext: editor }));
+  },
+
   reset: () => {
     set(() => ({ content: '', prompt: '' }));
   },

@@ -3,7 +3,7 @@ import {
   ClipboardDocumentListIcon,
 } from '@heroicons/react/24/outline';
 import * as React from 'react';
-import { PrimaryButton } from './Button';
+import { SecondaryButton } from './Button';
 
 export const CopyToClipboardButton = ({
   text,
@@ -42,11 +42,11 @@ export const CopyToClipboardButton = ({
   }
 
   return (
-    <PrimaryButton onClick={handleCopy}>
+    <SecondaryButton onClick={handleCopy}>
       {isCopied && <ClipboardDocumentCheckIcon height={24} />}
       {isCopied && <span>Copied!</span>}
       {!isCopied && <ClipboardDocumentListIcon height={24} />}
       {!isCopied && <span>Copy</span>}
-    </PrimaryButton>
+    </SecondaryButton>
   );
 };

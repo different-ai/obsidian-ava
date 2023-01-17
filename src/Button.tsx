@@ -3,10 +3,11 @@ import { ButtonProps } from './WriteComponent';
 
 export const PrimaryButton: React.FC<ButtonProps> = ({
   children,
+  className,
   ...props
 }) => (
   <button
-    className="mod-cta cursor-pointer"
+    className={`mod-cta cursor-pointer ${className}`}
     disabled={props.disabled}
     onClick={props.onClick}
     {...props}

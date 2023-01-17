@@ -1,6 +1,6 @@
 import { Editor } from 'obsidian';
 import * as React from 'react';
-import { PrimaryButton } from './Button';
+import { SecondaryButton } from './Button';
 
 export const InsertButton = ({
   editorContext,
@@ -15,5 +15,5 @@ export const InsertButton = ({
     editorContext.replaceSelection(text);
     extraOnClick?.(text);
   };
-  return <PrimaryButton onClick={handleReplace}>Insert</PrimaryButton>;
+  return <SecondaryButton onClick={handleReplace}>Insert</SecondaryButton>;
 };

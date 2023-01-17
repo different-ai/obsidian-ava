@@ -28,8 +28,8 @@ import {
   getLinkData,
   getVaultId,
   ICompletion,
+  ISearchData,
   ISearchRequest,
-  ISearchResponse,
   refreshSemanticSearch,
   rewrite,
   REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
@@ -109,22 +109,19 @@ export default class AvaPlugin extends Plugin {
   ```
   */
 
-  public search: (request: ISearchRequest) => Promise<ISearchResponse>;
+  public search: (request: ISearchRequest) => Promise<ISearchData>;
   public clearIndex: () => Promise<any>;
   private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
   private streamingSource: any;
-  private setStreamingSource (source: any) {
+  private setStreamingSource(source: any) {
     this.streamingSource?.removeAllListeners();
     this.streamingSource?.close();
     this.streamingSource = source;
   }
 
-  private async link() {
-    const file = this.app.workspace.getActiveFile();
-    if (!file) return;
-    const currentText = await this.app.vault.read(file);
+  private async link(currentText: string, tags: string[], path: string) {
     if (currentText.length > EMBED_CHAR_LIMIT) {
       new Notice(
         'Link - Note is too long. 🧙 AVA  only supports notes that are up to 25k characters'
@@ -132,12 +129,11 @@ export default class AvaPlugin extends Plugin {
       return;
     }
     let completion = null;
-    const tags = this.app.metadataCache.getFileCache(file).tags || [];
     try {
       completion = await createSemanticLinks(
-        file.path,
+        path,
         currentText,
-        tags.map((tag) => tag.tag),
+        tags,
         this.settings?.token,
         this.settings.vaultId,
         this.manifest.version
@@ -407,22 +403,27 @@ export default class AvaPlugin extends Plugin {
           const onSubmit = async (text: string) => {
             this.statusBarItem.render(<StatusBar status="loading" />);
             try {
-              this.setStreamingSource(await createParagraph(
-                text,
-                this.settings.token,
-                this.manifest.version
-              ));
-              this.streamingSource.addEventListener('message', function (e: any) {
-                const payload = JSON.parse(e.data);
-                console.log(payload);
-                const currentLine = editor.getCursor().line;
-                const lastChar = editor.getLine(currentLine).length;
-                editor.setCursor({ line: currentLine, ch: lastChar });
-                editor.replaceRange(
-                  `${payload.choices[0].text}`,
-                  editor.getCursor()
-                );
-              });
+              this.setStreamingSource(
+                await createParagraph(
+                  text,
+                  this.settings.token,
+                  this.manifest.version
+                )
+              );
+              this.streamingSource.addEventListener(
+                'message',
+                function (e: any) {
+                  const payload = JSON.parse(e.data);
+                  console.log(payload);
+                  const currentLine = editor.getCursor().line;
+                  const lastChar = editor.getLine(currentLine).length;
+                  editor.setCursor({ line: currentLine, ch: lastChar });
+                  editor.replaceRange(
+                    `${payload.choices[0].text}`,
+                    editor.getCursor()
+                  );
+                }
+              );
               this.streamingSource.addEventListener('error', onSSEError);
               this.streamingSource.stream();
               this.statusBarItem.render(<StatusBar status="success" />);
@@ -518,7 +519,9 @@ export default class AvaPlugin extends Plugin {
           }
           if (editor.getSelection().length > TEXT_CREATE_CHAR_LIMIT) {
             posthog.capture('too-long-selection', {
-              length: editor.getSelection().length , action: 'rewrite' });
+              length: editor.getSelection().length,
+              action: 'rewrite',
+            });
             new Notice(
               '🧙 AVA - Selection is too long, please select less than 5800 characters ~1200 words'
             );
@@ -531,9 +534,9 @@ export default class AvaPlugin extends Plugin {
 
           const onSubmit = async (prompt: string) => {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const d: any = { 
+            const d: any = {
               feature: 'rewrite selection',
-            }
+            };
             // only capture short prompt as it's more data privacy wise
             if (prompt.length < 100) d.prompt = prompt;
             posthog.capture('use-feature', d);
@@ -543,27 +546,32 @@ export default class AvaPlugin extends Plugin {
 
             store.setState({ loadingContent: true });
             try {
-              this.setStreamingSource(await rewrite(
-                text,
-                prompt,
-                this.settings.token,
-                this.manifest.version
-              ));
+              this.setStreamingSource(
+                await rewrite(
+                  text,
+                  prompt,
+                  this.settings.token,
+                  this.manifest.version
+                )
+              );
               this.streamingSource.addEventListener('error', onSSEError);
               // go to the next line
 
-              this.streamingSource.addEventListener('message', function (e: any) {
-                // this is bad because it will triger react re-renders
-                // careful if you modify it, it's a bit harder to get the behavior right
-                store.setState({ loadingContent: true });
-                const payload = JSON.parse(e.data);
-                store.getState().setPrompt(`Rewrite to ${prompt}`);
-                store.getState().setEditorContext(editor);
-                store
-                  .getState()
-                  .appendContentToRewrite(payload.choices[0].text);
-                store.setState({ loadingContent: false });
-              });
+              this.streamingSource.addEventListener(
+                'message',
+                function (e: any) {
+                  // this is bad because it will triger react re-renders
+                  // careful if you modify it, it's a bit harder to get the behavior right
+                  store.setState({ loadingContent: true });
+                  const payload = JSON.parse(e.data);
+                  store.getState().setPrompt(`Rewrite to ${prompt}`);
+                  store.getState().setEditorContext(editor);
+                  store
+                    .getState()
+                    .appendContentToRewrite(payload.choices[0].text);
+                  store.setState({ loadingContent: false });
+                }
+              );
               this.streamingSource.stream();
               this.statusBarItem.render(<StatusBar status="success" />);
             } catch (e) {
@@ -626,7 +634,21 @@ export default class AvaPlugin extends Plugin {
           this.displayLinkSidebar();
           store.setState({ editorContext: editor, loadingEmbeds: true });
           this.statusBarItem.render(<StatusBar status="loading" />);
-          const results = await this.link();
+
+          const file = this.app.workspace.getActiveFile();
+          const currentText = await this.app.vault.read(file);
+          const tags = this.app.metadataCache.getFileCache(file).tags || [];
+          const tagsArray = tags.map((tag) => tag.tag);
+          const path = file.path;
+
+          // we need to do this so we can fire /search inside of the sidebar later
+          store.setState({
+            currentFileContent: currentText,
+            currentFilePath: path,
+            currentFileTags: tagsArray,
+          });
+
+          const results = await this.link(currentText, tagsArray, path);
           if (results) {
             store.setState({ embeds: results });
           }
@@ -712,7 +734,7 @@ export default class AvaPlugin extends Plugin {
     this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData());
 
     // used to sync the store with the plugin settings / useful for react components
-    store.setState({ settings: this.settings });
+    store.setState({ settings: this.settings, version: this.manifest.version });
   }
 
   // eslint-disable-next-line require-jsdoc

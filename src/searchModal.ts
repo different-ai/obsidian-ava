@@ -1,8 +1,7 @@
 import { App, Notice, SuggestModal } from 'obsidian';
-import { Embed } from './store';
-import { search } from './utils';
+import { ISimilarFile, search } from './utils';
 
-export class SearchModal extends SuggestModal<Embed> {
+export class SearchModal extends SuggestModal<ISimilarFile> {
   private token: string;
   private vaultId: string;
   private version: string;
@@ -13,31 +12,31 @@ export class SearchModal extends SuggestModal<Embed> {
     this.vaultId = vaultId;
     this.version = version;
   }
-  private results: Embed[];
+  private results: ISimilarFile[];
 
   // Returns all available suggestions.
   // need to add a debounce here
-  async getSuggestions(query: string): Promise<Embed[]> {
+  async getSuggestions(query: string): Promise<ISimilarFile[]> {
     // would be nice to start with text-based search and then switch to semantic search above a certain length
     if (query.length < 2) return;
 
-    const res = await search({query}, this.token, this.vaultId, this.version);
+    const res = await search({ query }, this.token, this.vaultId, this.version);
     console.log('modal', res);
 
-    return res.similarities.map((similarity) => {
-      return { path: similarity.notePath, similarity: similarity.score };
-    });
+    return res.similarities;
   }
 
   // Renders each suggestion item.
-  renderSuggestion(embed: Embed, el: HTMLElement) {
-    el.createEl('div', { text: embed.path.split('/').pop().split('.md')[0] });
+  renderSuggestion(embed: ISimilarFile, el: HTMLElement) {
+    el.createEl('div', {
+      text: embed.notePath.split('/').pop().split('.md')[0],
+    });
     // el.createEl('small', { text: book.author });
   }
 
   // Perform action on the selected suggestion.
-  onChooseSuggestion(embed: Embed, evt: MouseEvent | KeyboardEvent) {
-    new Notice(`Selected ${embed.path.split('/').pop().split('.md')[0]}`);
-    this.app.workspace.openLinkText(embed.path, '');
+  onChooseSuggestion(embed: ISimilarFile, evt: MouseEvent | KeyboardEvent) {
+    new Notice(`Selected ${embed.notePath.split('/').pop().split('.md')[0]}`);
+    this.app.workspace.openLinkText(embed.notePath, '');
   }
 }
