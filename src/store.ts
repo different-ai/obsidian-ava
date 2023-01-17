@@ -1,14 +1,21 @@
 import { Editor } from 'obsidian';
 import create from 'zustand/vanilla';
 import { AvaSettings } from './LegacySettings';
-import { LinksStatus } from './utils';
+import { ISearchResponse, LinksStatus } from './utils';
 
 export type Embed = {
   path: string;
   similarity: number;
 };
 
+export type Exploration = {
+  type: string;
+  values: string[];
+}
+
 type State = {
+  searchResults?: ISearchResponse;
+  explorations: Exploration[];
   linksStatus: LinksStatus;
   setLinksStatus: (status: LinksStatus) => void;
   embeds: Embed[];
@@ -33,6 +40,8 @@ export const store = create<State>((set) => ({
     userId: '',
   },
   loadingEmbeds: false,
+  searchResults: undefined,
+  explorations: [],
   linksStatus: 'disabled',
   setLinksStatus: (status: LinksStatus) => {
     set(() => ({ linksStatus: status }));

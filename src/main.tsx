@@ -24,6 +24,7 @@ import {
   createParagraph,
   createSemanticLinks,
   EMBED_CHAR_LIMIT,
+  explore,
   getCompleteFiles,
   getLinkData,
   getVaultId,
@@ -44,6 +45,7 @@ import { RewriteModal } from './RewriteModal';
 import { SearchModal } from './searchModal';
 import { store } from './store';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
+import { PeopleView, VIEW_TYPE_PEOPLE } from './peopleView';
 
 const onGeneralError = (e: any) => {
   console.error(e);
@@ -177,6 +179,33 @@ export default class AvaPlugin extends Plugin {
     this.app.workspace.revealLeaf(
       this.app.workspace.getLeavesOfType(VIEW_TYPE_LINK)[0]
     );
+  }
+
+  async displayPeopleSidebar() {
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_PEOPLE);
+
+    await this.app.workspace.getRightLeaf(false).setViewState({
+      type: VIEW_TYPE_PEOPLE,
+      active: true,
+    });
+
+    this.app.workspace.revealLeaf(
+      this.app.workspace.getLeavesOfType(VIEW_TYPE_PEOPLE)[0]
+    );
+
+    if (!this.settings.token) {
+      new Notice('🧙 You need to login to use this feature', 2000);
+      return;
+    }
+    new Notice('🧙 Explore - Building');
+    // store.setState({ editorContext: editor, loadingEmbeds: true });
+    this.statusBarItem.render(<StatusBar status="loading" />);
+    const results = await explore(this.settings.token, this.settings.vaultId, this.manifest.version);
+    if (results) {
+      store.setState({ explorations: results.entities });
+    }
+    // store.setState({ loadingEmbeds: false });
+    this.statusBarItem.render(<StatusBar status="success" />);
   }
 
   public async indexWholeVault() {
@@ -361,6 +390,9 @@ export default class AvaPlugin extends Plugin {
 
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
+    this.addRibbonIcon("dice", "Ava", () => {
+      this.displayPeopleSidebar();
+    });
 
     this.app.workspace.onLayoutReady(async () => {
       // ignore on dev
@@ -700,6 +732,12 @@ export default class AvaPlugin extends Plugin {
         VIEW_TYPE_LINK,
         (leaf: WorkspaceLeaf) => new LinkView(leaf, this)
       );
+      this.registerView(
+        VIEW_TYPE_PEOPLE,
+        (leaf: WorkspaceLeaf) => new PeopleView(leaf, this, (e) => this.search({
+          persons: [e],
+        }).then((results) => store.setState({ searchResults: results })))
+      );
 
       // This adds a settings tab so the user
       // can configure various aspects of the plugin
@@ -725,6 +763,7 @@ export default class AvaPlugin extends Plugin {
   onunload(): void {
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_LINK);
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_WRITE);
+    this.app.workspace.detachLeavesOfType(VIEW_TYPE_PEOPLE);
 
     this.unlistenToNoteEvents();
   }

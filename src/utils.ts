@@ -20,6 +20,7 @@ export interface ISearchRequest {
     noteContent: string;
     noteTags: string[];
   };
+  persons?: string[];
 }
 
 export interface ISearchResponse {
@@ -45,6 +46,9 @@ export const search = async (
         note_tags: request.note?.noteTags,
       },
       vault_id: vaultId,
+      metadata: request.persons ? {
+        persons: request.persons,
+      } : undefined,
     }),
   });
   if (response.status !== 200) {
@@ -240,6 +244,26 @@ export const clearIndex = async (
   }
   const json = await response.json();
   console.log('Clear response:', json);
+  return json;
+};
+
+export const explore = async (
+  token: string,
+  vaultId: string,
+  version: string
+): Promise<any> => {
+  const response = await fetch(`${API_HOST}/v1/search/explore`, {
+    method: 'POST',
+    headers: buildHeaders(token, version),
+    body: JSON.stringify({
+      vault_id: vaultId,
+    }),
+  });
+  if (response.status !== 200) {
+    throw new Error(`Error exploring: ${response.statusText}`);
+  }
+  const json = await response.json();
+  console.log('Explore response:', json);
   return json;
 };
 
