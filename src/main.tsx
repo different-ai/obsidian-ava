@@ -340,8 +340,9 @@ export default class AvaPlugin extends Plugin {
     this.addRibbonIcon('ava', 'Ava', () => {
       const n = 'Ava - Getting Started.md';
       
-      this.app.vault.adapter.write(n, tutorial);
-      this.app.workspace.openLinkText(n, n);
+      this.app.vault.adapter.write(n, tutorial).then(() => {
+        this.app.workspace.openLinkText(n, n);
+      });
     });
     await this.loadSettings();
     console.log('Ava version', this.manifest.version);

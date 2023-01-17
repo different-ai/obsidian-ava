@@ -7,7 +7,10 @@ export const tutorial = `# 🧙 Ava - Getting Started
 
 Imagine you are going about your daily activities and suddenly you have multiple related ideas running through your head, but you can't seem to figure out how to connect them.
 
-1. Select and copy "Recipe of pizza with pineapple as a concise bullet list."
+1. Select and copy
+
+Recipe of pizza with pineapple. 
+
 2. Press cmd+p
 3. Type "paragraph"
 4. Select "🧙 AVA - Write Paragraph"
