@@ -1,4 +1,5 @@
 import {
+  addIcon,
   App,
   Editor,
   EventRef,
@@ -44,6 +45,8 @@ import { RewriteModal } from './RewriteModal';
 import { SearchModal } from './searchModal';
 import { store } from './store';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
+import { feedbackUrl, iconAva } from './constants';
+import { tutorial } from './tutorial';
 
 const onGeneralError = (e: any) => {
   console.error(e);
@@ -333,6 +336,13 @@ export default class AvaPlugin extends Plugin {
   }
   // eslint-disable-next-line require-jsdoc
   async onload() {
+    addIcon('ava', iconAva);
+    this.addRibbonIcon('ava', 'Ava', () => {
+      const n = 'Ava - Getting Started.md';
+      
+      this.app.vault.adapter.write(n, tutorial);
+      this.app.workspace.openLinkText(n, n);
+    });
     await this.loadSettings();
     console.log('Ava version', this.manifest.version);
     posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
@@ -747,7 +757,6 @@ export default class AvaPlugin extends Plugin {
   onunload(): void {
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_LINK);
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_WRITE);
-
     this.unlistenToNoteEvents();
   }
 }
