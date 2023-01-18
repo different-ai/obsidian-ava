@@ -35,6 +35,7 @@ import {
   rewrite,
   REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
   search,
+  suggestTags,
 } from './utils';
 
 import posthog from 'posthog-js';
@@ -718,6 +719,54 @@ export default class AvaPlugin extends Plugin {
             const payload = JSON.parse(e.data);
             store.getState().setEditorContext(editor);
             store.getState().appendContentToRewrite(payload.choices[0].text);
+          });
+          source.addEventListener('error', onSSEError);
+          source.stream();
+          this.statusBarItem.render(<StatusBar status="success" />);
+        },
+      });
+
+      this.addCommand({
+        id: 'ava-tags',
+        name: 'Suggest tags',
+        editorCallback: async (editor: Editor) => {
+          posthog.capture('use-feature', { feature: 'suggest tags' });
+          if (!this.settings.token) {
+            new Notice('🧙 AVA Tags - You need to login to use this feature');
+            return;
+          }
+          const text = editor.getValue();
+          if (!text) {
+            new Notice('🧙 AVA Tags - Open a note first');
+            return;
+          }
+
+          if (text.length > TEXT_CREATE_CHAR_LIMIT) {
+            new Notice(
+              '🧙 AVA Tags - Currently only supports files less than 5800 characters ~1200 words'
+            );
+            return;
+          }
+
+          new Notice(
+            '🧙 AVA - Generating tags, this may take a few seconds'
+          );
+          this.displayWriteSidebar();
+
+          this.statusBarItem.render(<StatusBar status="loading" />);
+          const file = this.app.workspace.getActiveFile();
+          const source = await suggestTags(
+            text,
+            this.settings.token,
+            this.manifest.version,
+          );
+          store.getState().reset();
+          store.getState().appendContentToRewrite(`#### Tags\n\n#`);
+          source.addEventListener('message', function (e: any) {
+            const payload = JSON.parse(e.data);
+            store.getState().setEditorContext(editor);
+            const t = payload.choices[0].text;
+            store.getState().appendContentToRewrite(t);
           });
           source.addEventListener('error', onSSEError);
           source.stream();
