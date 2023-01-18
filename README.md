@@ -27,7 +27,8 @@ https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-
 1. Press: <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P
 2. Type: Rewrite Selection
 
-![rewrite](https://user-images.githubusercontent.com/11430621/207849873-3a6938e1-0e5e-4f8b-9809-5cd7cb85df08.gif)
+![rewrite](https://user-images.githubusercontent.com/25003283/213139728-23ad27fa-1c05-4e58-8bad-5ec41768d1e5.gif)
+
 
 ### Connect the dots. Leverage your knowledge.
 
