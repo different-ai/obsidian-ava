@@ -54,11 +54,15 @@ https://user-images.githubusercontent.com/25003283/211570482-05882014-a33f-4599-
 
 ![ezgif com-gif-maker (4)](https://user-images.githubusercontent.com/25003283/208254052-136f3fac-3ef6-46d5-85eb-73a4d249ffdf.gif)
 
-## Installation
+## Getting started
 
 1. Install Ava from Obsidian's community plugins list
 
-**I doesn't work help!**
+We recommend you to try Ava's tutorial that you can find here:
+
+![image](https://user-images.githubusercontent.com/25003283/213156343-c44c0e64-8c22-47f2-81b3-2faad460a717.png)
+
+**It doesn't work help!**
 
 > Reach out to ben@prologe.io. We'll personally help you install it.
 
