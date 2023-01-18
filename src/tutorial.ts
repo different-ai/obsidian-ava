@@ -43,6 +43,14 @@ Imagine you wanting to relate your current note to another, but can't remember w
 3.  Type "link"
 4.  Select "🧙 AVA - Generate Link"
 
+### Get tags suggestions
+
+Want to classify your notes, but can't find the right tags?
+
+1.  Press cmd+p
+2.  Type "ava tag"
+3.  Select "🧙 AVA - Suggest tags"
+
 ### Generate stunning visualizations
 
 Illustrate your thoughts, ideas, or just create art.
