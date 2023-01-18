@@ -1,6 +1,6 @@
 ⛔️ Make sure you're running the latest version we do major updates weekly!⛔️
 
-# AVA - AI assistant for Obsidian
+# AVA - Quickly format your notes with ChatGPT in Obsidian
 
 Unlock the full potential of Obsidian Notes and take your productivity to the next level.
 
