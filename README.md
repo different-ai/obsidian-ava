@@ -43,7 +43,8 @@ https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-
 1. Press: <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P
 2. Type: Link Notes
 
-https://user-images.githubusercontent.com/25003283/211570482-05882014-a33f-4599-924a-b5ea54646008.mov
+![links](https://user-images.githubusercontent.com/25003283/213157399-03c9a557-8105-4ec8-b5c6-2487b636abd7.gif)
+
 
 ### Create images from selected text
 
@@ -52,7 +53,7 @@ https://user-images.githubusercontent.com/25003283/211570482-05882014-a33f-4599-
 1. Press: <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P
 2. Type: Generate Image
 
-![ezgif com-gif-maker (4)](https://user-images.githubusercontent.com/25003283/208254052-136f3fac-3ef6-46d5-85eb-73a4d249ffdf.gif)
+![images](https://user-images.githubusercontent.com/25003283/208254052-136f3fac-3ef6-46d5-85eb-73a4d249ffdf.gif)
 
 ## Getting started
 
