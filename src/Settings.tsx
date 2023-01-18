@@ -50,6 +50,7 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
   const handleDisconnect = () => {
     posthog.capture('ava-disconnect');
     plugin.settings.token = '';
+    plugin.unlistenToNoteEvents();
     setAttemptingToConnect(false);
     plugin.saveSettings();
   };

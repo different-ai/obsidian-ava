@@ -28,6 +28,13 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const [isLoading, setIsLoading] = React.useState(false);
   const showAdvancedSettings = isDebug;
 
+  React.useEffect(() => {
+    if (state.linksStatus === 'disabled') {
+      setUseLinks(false);
+      plugin.saveSettings();
+    }
+  }, [state.linksStatus]);
+
   const handleClearIndex = () => {
     posthog.capture('settings', {
       action: 'clearIndex',
@@ -47,29 +54,22 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
         setIsLoading(false);
       });
   };
-  const disableLinks = () => {
+  const enableLinks = (value: boolean) => {
+    console.log('enableLinks', value)
     posthog.capture('settings', {
       action: 'useLinks',
-      value: false,
+      value: value,
     });
-    plugin.settings.useLinks = true;
+    plugin.settings.useLinks = value;
     plugin.saveSettings();
-    setUseLinks(false);
-    plugin.unlistenToNoteEvents();
+    setUseLinks(value);
+    if (value) {
+      plugin.indexWholeVault();
+    } else  {
+      plugin.unlistenToNoteEvents();
+    }
   };
 
-  const enableLinks = () => {
-    posthog.capture('settings', {
-      action: 'useLinks',
-      value: true,
-    });
-    plugin.settings.useLinks = true;
-    plugin.saveSettings();
-    setUseLinks(true);
-    new Notice('🧙 Links enabled', 5000);
-    // when enabling links, we make sure to index the vault
-    plugin.indexWholeVault();
-  };
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked;
     posthog.capture('settings', {
@@ -90,7 +90,6 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.saveSettings();
     new Notice('Cache cleared');
   };
-
   return (
     // small spacing vertically
     <div className="space-y-2">
@@ -143,26 +142,22 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
           </p>
 
           <div className="flex ">
-            {!useLinks && (
-              <button
-                aria-describedby="links-description"
-                name="links"
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                onClick={enableLinks}
-              >
-                Enable
-              </button>
-            )}
-            {useLinks && (
-              <button
-                aria-describedby="links-description"
-                name="links"
-                className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                onClick={disableLinks}
-              >
-                Disable
-              </button>
-            )}
+            <button
+              name="links"
+              className={
+                "rounded border-gray-300 " +
+                // if not logged in (token is empty) change style
+                (plugin.settings.token === '' ?
+                  "cursor-not-allowed" :
+                  "cursor-pointer")
+              }
+              onClick={() => enableLinks(!useLinks)}
+              disabled={plugin.settings.token === ''}
+            >
+              {
+                useLinks ? "Disable" : "Enable"
+              }
+            </button>
             {/*
             a green when 'running', yellow when 'loading'
             red when 'error' and grey blinking light when 'disabled'

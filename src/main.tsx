@@ -247,6 +247,7 @@ export default class AvaPlugin extends Plugin {
     this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
     this.app.metadataCache.offref(this.eventRefDeleted);
+    store.setState({ linksStatus: 'disabled' });
   }
   public listenToNoteEvents() {
     if (this.eventRefChanged) {
