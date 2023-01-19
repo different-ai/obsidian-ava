@@ -86,7 +86,7 @@ const ControlForm = () => {
   const { register, handleSubmit } = useForm();
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
 
-  const onSubmit = async (data: { limit: number }) => {
+  const onSubmit = async (data: { limit: number, useNoteTitle: boolean }) => {
     posthog.capture('use-feature', {
       feature: 'search',
       limit: data.limit,
@@ -94,11 +94,8 @@ const ControlForm = () => {
     state.setEmbedsLoading(true);
 
     const body: ISearchBody = {
-      query: state.currentFileContent,
-      note: {
-        note_path: state.currentFilePath,
-        note_tags: state.currentFileTags,
-      },
+      query: data.useNoteTitle ? `File:${state.currentFilePath}\n` : '' +
+        `Content:\n${state.currentFileContent}`,
       vault_id: state.settings.vaultId,
       top_k: Number(data.limit),
     };
@@ -123,18 +120,35 @@ const ControlForm = () => {
   return (
     <div className="border-2 block rounded-md border-solid border-gray-300 p-4">
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div>
-          <label htmlFor="" className="block text-sm font-medium text-gray-700">
-            Max Results
-          </label>
-          <div className="mt-1">
+        {/* horizontal list of two items, one input number and one checkbox keep item top aligned spaced evenly */}
+        <div className="flex flex-col gap-3">
+          {/* vertical list */}
+          <div className="flex flex-col gap-2">
+            <label htmlFor="" className="block text-sm font-medium">
+              Max Results
+            </label>
             <input
               type="number"
-              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-max"
               defaultValue={5}
               placeholder="5"
               {...register('limit', { required: true })}
             />
+          </div>
+          {/* vertical list checkbox "use note title" */}
+          <div className="flex gap-2 items-center">
+            <input
+              type="checkbox"
+              defaultChecked={true}
+              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+              {...register('useNoteTitle', { required: false })}
+            />
+            <label
+              htmlFor=""
+              className="block text-sm font-medium"
+            >
+              Use note title for search
+            </label>
           </div>
         </div>
         <PrimaryButton className="mt-3 w-full">Search</PrimaryButton>

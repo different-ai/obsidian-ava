@@ -216,6 +216,7 @@ interface NoteRefresh {
   noteTags?: string[];
   noteContent?: string;
   pathToDelete?: string;
+  noteEmbeddingFormat?: string;
 }
 /**
  * Make a query to /refresh to refresh the semantic search index
@@ -247,6 +248,7 @@ export const refreshSemanticSearch = async (
         note_tags: note.noteTags,
         note_content: note.noteContent,
         path_to_delete: note.pathToDelete,
+        note_embedding_format: note.noteEmbeddingFormat,
       })),
     }),
   });
