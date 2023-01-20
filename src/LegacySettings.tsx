@@ -100,6 +100,35 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   return (
     // small spacing vertically
     <div className="space-y-2">
+      {/* a list of progress bars displaying current plans' usage */}
+      <div className="">
+        { usage && <div className="text-3xl font-bold">Usage</div>}
+        {
+          usage && Object.keys(usage).map((key: string) => {
+            let percentageAsNumber = Math.round(usage[key].split('/')[0] / usage[key].split('/')[1]) * 100;
+            // HACK for admin accounts
+            if (percentageAsNumber > 100) percentageAsNumber = 100;
+            const percentage = `${percentageAsNumber}%`;
+            return (
+              <div className="flex flex-col items-center mb-3 gap-1" key={key}>
+                <div className="text-sm">{ENDPOINT_NAMES[key]}</div>
+                {/* align the progress bar to the right */}
+                <div className="w-full bg-gray-200 rounded-full dark:bg-gray-700"
+                  // hover the progress bar to show the real usage
+                  aria-label={`${usage[key]} used`}
+                >
+                  {/* width = 16/15 = 106.7% | split the string on / and divide the first number by the second */}
+                  <div className="text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full bg-blue-600"
+                    style={{ width: percentage }}>
+                    {/* percentage of usage */}
+                    {percentage}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        }
+      </div>
       <div className="flex items-start">
         {/* horizontal list of an input and a button - with spacing between children */}
         <div className="flex flex-col">
@@ -186,41 +215,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
           </div>
         </div>
       </div>
-      {/* a list of progress bars displaying current plans' usage */}
-      <div className="">
-        { usage && <div className="text-3xl font-bold">Usage</div>}
-        {
-          usage && Object.keys(usage).map((key: string) => {
-            const percentageAsNumber = Math.round(usage[key].split('/')[0] / usage[key].split('/')[1]) * 100;
-            const percentage = `${percentageAsNumber}%`;
-            return (
-              <div className="flex flex-col items-center mb-3 gap-1" key={key}>
-                <div className="text-sm">{ENDPOINT_NAMES[key]}</div>
-                {/* align the progress bar to the right */}
-                <div className="w-full bg-gray-200 rounded-full dark:bg-gray-700"
-                  // hover the progress bar to show the real usage
-                  aria-label={`${usage[key]} used`}
-                >
-                  {/* width = 16/15 = 106.7% | split the string on / and divide the first number by the second */}
-                  {/* background color of the progress bar is blue when less than 50% used, orange when less than 75% and red when more than 75% */}
-                  <div className={
-                    "text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" +
-                    (
-                      percentageAsNumber < 50 ? " bg-blue-600" :
-                        percentageAsNumber < 75 ? " bg-orange-600" :
-                          " bg-red-600"
-                    )
-                  }
-                    style={{ width: percentage }}>
-                    {/* percentage of usage */}
-                    {percentage}
-                  </div>
-                </div>
-              </div>
-            );
-          })
-        }
-      </div>
+      
       <div className="">
         <div className="text-xl font-bold my-8">Advanced Settings</div>
         <div className="flex h-5 items-center">
