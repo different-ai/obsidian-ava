@@ -285,14 +285,14 @@ export const clearIndex = async (
  * TODO v2: pick 3 random notes and use as examples in the prompt
  * TODO v3: use /search to find similar notes and return a set of tags
  * TODO v4: use /search to find similar notes and get a set of tags and expand with text completion
- * @param token 
- * @param version 
- * @param noteContent 
+ * @param token
+ * @param version
+ * @param noteContent
  */
 export const suggestTags = async (
   noteContent: string,
   token: string,
-  version: string,
+  version: string
 ): Promise<any> => {
   const prompt = `Suggest a short list of tags in lower case for the note content (for example "#to-process #dogs", depending on the topic of the note):\n\n${noteContent}\n\nTags:#`;
   return await complete(prompt, token, version, {
@@ -315,7 +315,7 @@ export interface Usage {
 }
 
 // human friendly endpoint names i.e. /v1/search -> Links ...
-export const ENDPOINT_NAMES: {[key: string]: string} = {
+export const ENDPOINT_NAMES: { [key: string]: string } = {
   '/v1/search': 'Links',
   '/v1/search/refresh': 'Links',
   '/v1/search/clear': 'Links',
@@ -332,15 +332,15 @@ export const getUsage = async (
     headers: buildHeaders(token, version),
   });
   console.log('Usage response:', response);
-  const json = await response.json().catch(() => ({message: 'Internal error'}));
+  const json = await response
+    .json()
+    .catch(() => ({ message: 'Internal error' }));
   if (response.status !== 200) {
     throw new Error(json.message);
   }
   console.log('Usage response:', json);
   return json.usage;
 };
-
-
 
 /**
  * Get all Markdown files in the vault with their content and tags
@@ -384,7 +384,6 @@ export const openApp = async (vaultId: string) => {
 };
 
 export async function getLinkData(vaultId: string) {
-  await wait(1000);
   const response = await fetch(`${baseURL}/api/auth?token=${vaultId}`, {
     headers: {
       'Content-Type': 'application/json',

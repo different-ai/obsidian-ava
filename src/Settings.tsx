@@ -26,6 +26,8 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
     const getAuth = async () => {
       const vaultId = getVaultId(plugin);
 
+      // part1: wait 10 seconds in between calls
+      await sleep(5000);
       const linkData = await getLinkData(vaultId);
       plugin.settings.token = linkData?.token;
       plugin.settings.userId = linkData?.userId;
@@ -36,6 +38,9 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
       });
       plugin.saveSettings();
       setAttemptingToConnect(false);
+
+      // part two
+      await sleep(5000);
     };
     getAuth();
   }, 2000);
