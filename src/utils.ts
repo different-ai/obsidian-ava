@@ -304,6 +304,43 @@ export const suggestTags = async (
   });
 };
 
+// interface like
+//{"status":"ok","usage":{"/v1/search":16,"/v1/search/refresh":1,"/v1/text/create":0,"/v1/search/clear":0,"/v1/image/create":6}}
+export interface Usage {
+  '/v1/search': number;
+  '/v1/search/refresh': number;
+  '/v1/text/create': number;
+  '/v1/search/clear': number;
+  '/v1/image/create': number;
+}
+
+// human friendly endpoint names i.e. /v1/search -> Links ...
+export const ENDPOINT_NAMES: {[key: string]: string} = {
+  '/v1/search': 'Links',
+  '/v1/search/refresh': 'Links',
+  '/v1/search/clear': 'Links',
+  '/v1/text/create': 'Texts',
+  '/v1/image/create': 'Images',
+};
+
+export const getUsage = async (
+  token: string,
+  version: string
+): Promise<Usage> => {
+  const response = await fetch(`${API_HOST}/v1/billing/usage`, {
+    method: 'GET',
+    headers: buildHeaders(token, version),
+  });
+  if (response.status !== 200) {
+    throw new Error(`Error getting usage: ${response.statusText}`);
+  }
+  const json = await response.json();
+  console.log('Usage response:', json);
+  return json.usage;
+};
+
+
+
 /**
  * Get all Markdown files in the vault with their content and tags
  * @param {App} app

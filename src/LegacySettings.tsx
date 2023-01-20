@@ -4,6 +4,7 @@ import * as React from 'react';
 import AvaPlugin from './main';
 import { Spinner } from './StatusBar';
 import { store } from './store';
+import { ENDPOINT_NAMES, getUsage } from './utils';
 
 export interface AvaSettings {
   useLinks: boolean;
@@ -26,6 +27,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const [useLinks, setUseLinks] = React.useState(state.settings.useLinks);
   const [isDebug, setDebug] = React.useState(state.settings.debug);
   const [isLoading, setIsLoading] = React.useState(false);
+  const [usage, setUsage] = React.useState<any | undefined>(undefined);
   const showAdvancedSettings = isDebug;
 
   React.useEffect(() => {
@@ -34,6 +36,11 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
       plugin.saveSettings();
     }
   }, [state.linksStatus]);
+
+  React.useEffect(() => {
+    getUsage(state.settings.token, plugin.manifest.version)
+      .then(setUsage);
+  }, []);
 
   const handleClearIndex = () => {
     posthog.capture('settings', {
@@ -171,13 +178,48 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
                 onClick={handleClearIndex}
                 aria-label="Clear 🧙 Links' index can be required if you notice some issue with links not working"
               >
-                Clear Index
+                ⚠️ Clear Index
               </button>
             ) : (
               <Spinner />
             )}
           </div>
         </div>
+      </div>
+      {/* a list of progress bars displaying current plans' usage */}
+      <div className="">
+        { usage && <div className="text-3xl font-bold">Usage</div>}
+        {
+          usage && Object.keys(usage).map((key: string) => {
+            const percentageAsNumber = Math.round(usage[key].split('/')[0] / usage[key].split('/')[1]) * 100;
+            const percentage = `${percentageAsNumber}%`;
+            return (
+              <div className="flex flex-col items-center mb-3 gap-1" key={key}>
+                <div className="text-sm">{ENDPOINT_NAMES[key]}</div>
+                {/* align the progress bar to the right */}
+                <div className="w-full bg-gray-200 rounded-full dark:bg-gray-700"
+                  // hover the progress bar to show the real usage
+                  aria-label={`${usage[key]} used`}
+                >
+                  {/* width = 16/15 = 106.7% | split the string on / and divide the first number by the second */}
+                  {/* background color of the progress bar is blue when less than 50% used, orange when less than 75% and red when more than 75% */}
+                  <div className={
+                    "text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full" +
+                    (
+                      percentageAsNumber < 50 ? " bg-blue-600" :
+                        percentageAsNumber < 75 ? " bg-orange-600" :
+                          " bg-red-600"
+                    )
+                  }
+                    style={{ width: percentage }}>
+                    {/* percentage of usage */}
+                    {percentage}
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        }
       </div>
       <div className="">
         <div className="text-xl font-bold my-8">Advanced Settings</div>
