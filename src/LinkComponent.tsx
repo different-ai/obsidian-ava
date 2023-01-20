@@ -139,16 +139,19 @@ const ControlForm = () => {
           {/* vertical list checkbox "use note title" */}
           <div className="flex gap-2 items-center">
             <input
+              id="checked-checkbox"
               type="checkbox"
               defaultChecked={true}
               className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
               {...register('useNoteTitle', { required: false })}
             />
             <label
-              htmlFor=""
+              data-tooltip-target="tooltip-default" 
+              htmlFor="checked-checkbox"
               className="block text-sm font-medium"
+              aria-label="Disabling this improves search results for daily notes and unnamed files"
             >
-              Use note title for search
+              Include note title in search
             </label>
           </div>
         </div>
