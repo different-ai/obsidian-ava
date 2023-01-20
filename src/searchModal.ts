@@ -20,7 +20,14 @@ export class SearchModal extends SuggestModal<ISimilarFile> {
     // would be nice to start with text-based search and then switch to semantic search above a certain length
     if (query.length < 2) return;
 
-    const res = await search({ query }, this.token, this.vaultId, this.version);
+    const res = await search({ query }, this.token, this.vaultId, this.version)
+      .catch((err) => {
+        new Notice(`⛔️ AVA ${err.message}`);
+        console.error(err);
+        return {
+          similarities: [],
+        }
+      })
     console.log('modal', res);
 
     return res.similarities;

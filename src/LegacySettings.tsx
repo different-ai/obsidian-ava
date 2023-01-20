@@ -39,7 +39,8 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
 
   React.useEffect(() => {
     getUsage(state.settings.token, plugin.manifest.version)
-      .then(setUsage);
+      .then(setUsage)
+      .catch((e) => console.error(e));
   }, []);
 
   const handleClearIndex = () => {
@@ -54,7 +55,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
         new Notice('🧙 Links index cleared', 5000);
       })
       .catch((e) => {
-        new Notice('Error clearing 🧙 Links index', 5000);
+        new Notice(`⛔️ AVA ${e}`, 4000);
         console.error(e);
       })
       .finally(() => {

@@ -252,10 +252,10 @@ export const refreshSemanticSearch = async (
       })),
     }),
   });
-  if (response.status !== 200) {
-    throw new Error(`Error refreshing semantic search: ${response.statusText}`);
-  }
   const json = await response.json();
+  if (response.status !== 200) {
+    throw new Error(json.message);
+  }
   console.log('Refresh response:', json);
   return json;
 };
@@ -272,10 +272,10 @@ export const clearIndex = async (
       vault_id: vaultId,
     }),
   });
-  if (response.status !== 200) {
-    throw new Error(`Error clearing semantic search: ${response.statusText}`);
-  }
   const json = await response.json();
+  if (response.status !== 200) {
+    throw new Error(json.message);
+  }
   console.log('Clear response:', json);
   return json;
 };
@@ -331,10 +331,11 @@ export const getUsage = async (
     method: 'GET',
     headers: buildHeaders(token, version),
   });
+  console.log('Usage response:', response);
+  const json = await response.json().catch(() => ({message: 'Internal error'}));
   if (response.status !== 200) {
-    throw new Error(`Error getting usage: ${response.statusText}`);
+    throw new Error(json.message);
   }
-  const json = await response.json();
   console.log('Usage response:', json);
   return json.usage;
 };

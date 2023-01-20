@@ -46,7 +46,7 @@ import { RewriteModal } from './RewriteModal';
 import { SearchModal } from './searchModal';
 import { store } from './store';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
-import { feedbackUrl, iconAva } from './constants';
+import { iconAva } from './constants';
 import { tutorial } from './tutorial';
 
 const onGeneralError = (e: any) => {
@@ -54,6 +54,14 @@ const onGeneralError = (e: any) => {
 };
 const onSSEError = (e: any) => {
   onGeneralError(e.data);
+  let m = 'Internal Server Error'
+  try {
+    m = JSON.parse(e.data).message;
+  } catch (e) {
+    console.error(e);
+  }
+  new Notice(`️⛔️ AVA ${m}`, 4000);
+  store.setState({ loadingContent: false });
 };
 
 export default class AvaPlugin extends Plugin {
@@ -238,8 +246,11 @@ export default class AvaPlugin extends Plugin {
       store.setState({ linksStatus: 'running' });
     } catch (e) {
       onGeneralError(e);
+      const m = e.message || e;
+      new Notice(`⛔️ AVA ${m}`, 4000);
       this.unlistenToNoteEvents();
       store.setState({ linksStatus: 'error' });
+      // TODO: uselinks false?
     }
   }
   public unlistenToNoteEvents() {

@@ -41,8 +41,7 @@ export const createImage = async (
 
   if (response.status !== 200) {
     const data = await response.json();
-    throw new Error(`Failed to create image: ${data.message};
-    }`);
+    throw new Error(`Failed to create image: ${data.message}`);
   }
 
   const buffer = Buffer.from(await response.arrayBuffer());
