@@ -27,7 +27,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const [useLinks, setUseLinks] = React.useState(state.settings.useLinks);
   const [isDebug, setDebug] = React.useState(state.settings.debug);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [usage, setUsage] = React.useState<any | undefined>(undefined);
+  const [usage, setUsage] = React.useState<any | undefined>([]);
   const showAdvancedSettings = isDebug;
 
   React.useEffect(() => {
@@ -63,7 +63,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
       });
   };
   const enableLinks = (value: boolean) => {
-    console.log('enableLinks', value)
+    console.log('enableLinks', value);
     posthog.capture('settings', {
       action: 'useLinks',
       value: value,
@@ -73,7 +73,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     setUseLinks(value);
     if (value) {
       plugin.indexWholeVault();
-    } else  {
+    } else {
       plugin.unlistenToNoteEvents();
     }
   };
@@ -103,120 +103,126 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     <div className="space-y-2">
       {/* a list of progress bars displaying current plans' usage */}
       <div className="">
-        { usage && <div className="text-3xl font-bold">Usage</div>}
-        {
-          usage && Object.keys(usage).map((key: string) => {
-            let percentageAsNumber = Math.round(usage[key].split('/')[0] / usage[key].split('/')[1]) * 100;
+        <div className="text-2xl font-bold mb-3">🔮 Usage</div>
+
+        {usage &&
+          state.settings.token &&
+          Object.keys(usage).map((key: string) => {
+            let percentageAsNumber =
+              Math.round(usage[key].split('/')[0] / usage[key].split('/')[1]) *
+              100;
             // HACK for admin accounts
             if (percentageAsNumber > 100) percentageAsNumber = 100;
             const percentage = `${percentageAsNumber}%`;
             return (
-              <div className="flex flex-col items-center mb-3 gap-1" key={key}>
-                <div className="text-sm">{ENDPOINT_NAMES[key]}</div>
-                {/* align the progress bar to the right */}
-                <div className="w-full bg-gray-200 rounded-full dark:bg-gray-700"
+              <div className="flex flex-col mb-3 gap-1" key={key}>
+                <div className="flex gap-3 items-center">
+                  <div className="text-sm">{ENDPOINT_NAMES[key]}</div>{' '}
+                  <div className="text-sm">{usage[key]}</div>
+                </div>
+                {/* align the progress bar to the right */}{' '}
+                <div
+                  className="w-full bg-gray-200 rounded-md relative h-8  "
                   // hover the progress bar to show the real usage
-                  aria-label={`${usage[key]} used`}
+                  aria-label={`${percentage} used`}
                 >
-                  {/* width = 16/15 = 106.7% | split the string on / and divide the first number by the second */}
-                  <div className="text-xs font-medium text-blue-100 text-center p-0.5 leading-none rounded-full bg-blue-600"
-                    style={{ width: percentage }}>
-                    {/* percentage of usage */}
-                    {percentage}
-                  </div>
+                  <div className="absolute top-1/2 z-20 text-[var(--text-on-accent)]"></div>
+                  <div
+                    className="text-xs font-medium leading-none rounded-md bg-[var(--interactive-accent)] h-full  flex justify-center items-center absolute "
+                    style={{ width: percentage }}
+                  ></div>
                 </div>
               </div>
             );
-          })
-        }
+          })}
       </div>
-      <div className="flex items-start">
-        {/* horizontal list of an input and a button - with spacing between children */}
-        <div className="flex flex-col">
-          <div className="flex items-center mb-3">
-            <div className="text-3xl font-bold">🧙 Links</div>
-            <div className="ml-3 text-sm">
-              <div className="flex items-center">
-                <div className="flex-shrink-0 h-2 w-2">
-                  <div
-                    className={`h-2 w-2 rounded-full ${
-                      state.linksStatus === 'running'
-                        ? 'bg-green-400 animate-pulse'
-                        : state.linksStatus === 'loading'
-                        ? 'bg-yellow-400 animate-pulse'
-                        : state.linksStatus === 'error'
-                        ? 'bg-red-400 animate-pulse'
-                        : 'bg-gray-400 animate-pulse'
-                    }`}
-                    // tooltip shown when hovering the light
-                    // 'running' -> '🧙 Links is running'
-                    // 'loading' -> '🧙 Links is loading'
-                    // 'error' -> '🧙 Links is in error - please try to restart Obsidian'
-                    // 'disabled' -> '🧙 Links is disabled'
-                    aria-label={`${
-                      state.linksStatus === 'running'
-                        ? '🧙 Links is running'
-                        : state.linksStatus === 'loading'
-                        ? '🧙 Links is loading'
-                        : state.linksStatus === 'error'
-                        ? '🧙 Links is in error - please try to restart Obsidian'
-                        : '🧙 Links is disabled'
-                    }`}
-                  />
-                </div>
-                <div className="ml-3 text-sm">
-                  <label htmlFor="links" className="font-medium ">
-                    {state.linksStatus}
-                  </label>
+      {state.settings.token && (
+        <div className="flex items-start">
+          {/* horizontal list of an input and a button - with spacing between children */}
+          <div className="flex flex-col">
+            <div className="flex items-center my-3">
+              <div className="text-2xl font-bold">🧙 Links</div>
+              <div className="ml-3 text-sm">
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 h-2 w-2">
+                    <div
+                      className={`h-2 w-2 rounded-full ${
+                        state.linksStatus === 'running'
+                          ? 'bg-green-400 animate-pulse'
+                          : state.linksStatus === 'loading'
+                          ? 'bg-yellow-400 animate-pulse'
+                          : state.linksStatus === 'error'
+                          ? 'bg-red-400 animate-pulse'
+                          : 'bg-gray-400 animate-pulse'
+                      }`}
+                      // tooltip shown when hovering the light
+                      // 'running' -> '🧙 Links is running'
+                      // 'loading' -> '🧙 Links is loading'
+                      // 'error' -> '🧙 Links is in error - please try to restart Obsidian'
+                      // 'disabled' -> '🧙 Links is disabled'
+                      aria-label={`${
+                        state.linksStatus === 'running'
+                          ? '🧙 Links is running'
+                          : state.linksStatus === 'loading'
+                          ? '🧙 Links is loading'
+                          : state.linksStatus === 'error'
+                          ? '🧙 Links is in error - please try to restart Obsidian'
+                          : '🧙 Links is disabled'
+                      }`}
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="links" className="font-medium ">
+                      {state.linksStatus}
+                    </label>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-          {/* use caption for feature description */}
-          <p>
-            Link is a powerful feature that allows to link independent notes
-            based on their content.
-          </p>
+            {/* use caption for feature description */}
+            <p>
+              Link is a powerful feature that allows to link independent notes
+              based on their content.
+            </p>
 
-          <div className="flex ">
-            <button
-              name="links"
-              className={
-                "rounded border-gray-300 " +
-                // if not logged in (token is empty) change style
-                (plugin.settings.token === '' ?
-                  "cursor-not-allowed" :
-                  "cursor-pointer")
-              }
-              onClick={() => enableLinks(!useLinks)}
-              disabled={plugin.settings.token === ''}
-            >
-              {
-                useLinks ? "Disable" : "Enable"
-              }
-            </button>
-            {/*
+            <div className="flex ">
+              <button
+                name="links"
+                className={
+                  'rounded border-gray-300 ' +
+                  // if not logged in (token is empty) change style
+                  (plugin.settings.token === ''
+                    ? 'cursor-not-allowed'
+                    : 'cursor-pointer')
+                }
+                onClick={() => enableLinks(!useLinks)}
+                disabled={plugin.settings.token === ''}
+              >
+                {useLinks ? 'Disable' : 'Enable'}
+              </button>
+              {/*
             a green when 'running', yellow when 'loading'
             red when 'error' and grey blinking light when 'disabled'
             showing the status of Links
           */}
-            {/* hovering the button show a tooltip */}
-            {/* hovering the button show a cursor pointer */}
-            {!isLoading ? (
-              <button
-                className="ml-3 text-sm cursor-pointer"
-                onClick={handleClearIndex}
-                aria-label="Clear 🧙 Links' index can be required if you notice some issue with links not working"
-              >
-                ⚠️ Clear Index
-              </button>
-            ) : (
-              <Spinner />
-            )}
+              {/* hovering the button show a tooltip */}
+              {/* hovering the button show a cursor pointer */}
+              {!isLoading ? (
+                <button
+                  className="ml-3 text-sm cursor-pointer"
+                  onClick={handleClearIndex}
+                  aria-label="Clear 🧙 Links' index can be required if you notice some issue with links not working"
+                >
+                  ⚠️ Clear Index
+                </button>
+              ) : (
+                <Spinner />
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      
+      )}
+
       <div className="">
         <div className="text-xl font-bold my-8">Advanced Settings</div>
         <div className="flex h-5 items-center">
