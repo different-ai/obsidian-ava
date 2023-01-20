@@ -341,7 +341,7 @@ export default class AvaPlugin extends Plugin {
     addIcon('ava', iconAva);
     this.addRibbonIcon('ava', 'Ava', () => {
       const n = 'Ava - Getting Started.md';
-      
+
       this.app.vault.adapter.write(n, tutorial).then(() => {
         this.app.workspace.openLinkText(n, n);
       });
@@ -350,6 +350,7 @@ export default class AvaPlugin extends Plugin {
     console.log('Ava version', this.manifest.version);
     posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
       api_host: 'https://app.posthog.com',
+      autocapture: false,
     });
 
     try {
@@ -749,9 +750,7 @@ export default class AvaPlugin extends Plugin {
             return;
           }
 
-          new Notice(
-            '🧙 AVA - Generating tags, this may take a few seconds'
-          );
+          new Notice('🧙 AVA - Generating tags, this may take a few seconds');
           this.displayWriteSidebar();
 
           this.statusBarItem.render(<StatusBar status="loading" />);
@@ -759,7 +758,7 @@ export default class AvaPlugin extends Plugin {
           const source = await suggestTags(
             text,
             this.settings.token,
-            this.manifest.version,
+            this.manifest.version
           );
           store.getState().reset();
           store.getState().appendContentToRewrite(`#### Tags\n\n#`);
