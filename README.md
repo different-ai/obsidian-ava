@@ -2,6 +2,8 @@
 
 # AVA - Quickly format your notes with ChatGPT in Obsidian
 
+[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/DYE6VFTJET)
+
 Unlock the full potential of Obsidian Notes and take your productivity to the next level.
 
 - [Create blog posts](https://github.com/louis030195/obsidian-ava/blob/main/README.md#generate-meaningful-text-from-your-notes)
