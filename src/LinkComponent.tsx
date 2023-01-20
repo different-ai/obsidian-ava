@@ -94,7 +94,8 @@ const ControlForm = () => {
     state.setEmbedsLoading(true);
 
     const body: ISearchBody = {
-      query: data.useNoteTitle ? `File:${state.currentFilePath}\n` : '' +
+      // parenthese are needed for the ternary operator to work
+      query: (data.useNoteTitle ? `File:${state.currentFilePath}\n` : '') +
         `Content:\n${state.currentFileContent}`,
       vault_id: state.settings.vaultId,
       top_k: Number(data.limit),
