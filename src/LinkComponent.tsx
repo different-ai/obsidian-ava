@@ -86,7 +86,7 @@ const ControlForm = () => {
   const { register, handleSubmit } = useForm();
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
 
-  const onSubmit = async (data: { limit: number, useNoteTitle: boolean }) => {
+  const onSubmit = async (data: { limit: number; useNoteTitle: boolean }) => {
     posthog.capture('use-feature', {
       feature: 'search',
       limit: data.limit,
@@ -95,7 +95,8 @@ const ControlForm = () => {
 
     const body: ISearchBody = {
       // parenthese are needed for the ternary operator to work
-      query: (data.useNoteTitle ? `File:${state.currentFilePath}\n` : '') +
+      query:
+        (data.useNoteTitle ? `File:${state.currentFilePath}\n` : '') +
         `Content:\n${state.currentFileContent}`,
       vault_id: state.settings.vaultId,
       top_k: Number(data.limit),
@@ -146,7 +147,7 @@ const ControlForm = () => {
               {...register('useNoteTitle', { required: false })}
             />
             <label
-              data-tooltip-target="tooltip-default" 
+              data-tooltip-target="tooltip-default"
               htmlFor="checked-checkbox"
               className="block text-sm font-medium"
               aria-label="Disabling this improves search results for daily notes and unnamed files"
@@ -227,9 +228,10 @@ export function LinkComponent() {
       )}
 
       <div className="search-result-container p-0">
-        {results?.map((result) => (
-          <ListItem key={result.path} result={result} />
-        ))}
+        {!state.loadingEmbeds &&
+          results?.map((result) => (
+            <ListItem key={result.path} result={result} />
+          ))}
       </div>
     </div>
   );
