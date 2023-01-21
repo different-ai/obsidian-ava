@@ -772,7 +772,7 @@ export default class AvaPlugin extends Plugin {
             this.manifest.version,
           );
           store.getState().reset();
-          store.getState().appendContentToRewrite(`#### Tags\n\n#`);
+          store.getState().appendContentToRewrite(`\n\n#`);
           source.addEventListener('message', function (e: any) {
             const payload = JSON.parse(e.data);
             store.getState().setEditorContext(editor);
