@@ -765,11 +765,11 @@ export default class AvaPlugin extends Plugin {
           this.displayWriteSidebar();
 
           this.statusBarItem.render(<StatusBar status="loading" />);
-          const file = this.app.workspace.getActiveFile();
+
           const source = await suggestTags(
             text,
             this.settings.token,
-            this.manifest.version
+            this.manifest.version,
           );
           store.getState().reset();
           store.getState().appendContentToRewrite(`#### Tags\n\n#`);

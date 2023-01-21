@@ -78,4 +78,8 @@ ${feedbackUrl}
 ${calText}
 
 ${calUrl}
+
+### Join the community
+
+[Discord](https://discord.gg/DYE6VFTJET)
 `;

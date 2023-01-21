@@ -285,23 +285,23 @@ export const clearIndex = async (
  * TODO v2: pick 3 random notes and use as examples in the prompt
  * TODO v3: use /search to find similar notes and return a set of tags
  * TODO v4: use /search to find similar notes and get a set of tags and expand with text completion
- * @param token
- * @param version
- * @param noteContent
+ * @param noteContent 
+ * @param token 
+ * @param version 
  */
 export const suggestTags = async (
   noteContent: string,
   token: string,
   version: string
 ): Promise<any> => {
-  const prompt = `Suggest a short list of tags in lower case for the note content (for example "#to-process #dogs", depending on the topic of the note):\n\n${noteContent}\n\nTags:#`;
+  const prompt = `Suggest a short list of NEW tags in lower case for the note content that represent the main topics (for example "#to-process #dogs ..."):\n\n${noteContent}\n\nTags:#`;
   return await complete(prompt, token, version, {
     maxTokens: 100,
     temperature: 0.5,
     topP: 0.5,
     stop: ['\n'],
     stream: true,
-  });
+  })
 };
 
 // interface like
