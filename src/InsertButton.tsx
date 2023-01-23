@@ -6,12 +6,12 @@ export const InsertButton = ({
   editorContext,
   text,
   extraOnClick,
-  disabled,
+  disabled = false,
 }: {
   editorContext: Editor;
   text: string;
   extraOnClick?: (text: string) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }) => {
   const handleReplace = () => {
     editorContext.replaceSelection(text);

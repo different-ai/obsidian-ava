@@ -8,11 +8,11 @@ import { SecondaryButton } from './Button';
 export const CopyToClipboardButton = ({
   text,
   extraOnClick,
-  disabled,
+  disabled = false,
 }: {
   text: string;
   extraOnClick?: (text: string) => void;
-  disabled: boolean;
+  disabled?: boolean;
 }) => {
   const [isCopied, setIsCopied] = React.useState(false);
 
