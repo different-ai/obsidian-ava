@@ -109,8 +109,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
           state.settings.token &&
           Object.keys(usage).map((key: string) => {
             let percentageAsNumber =
-              Math.round(usage[key].split('/')[0] / usage[key].split('/')[1]) *
-              100;
+              (usage[key].split('/')[0] / usage[key].split('/')[1]) * 100;
             // HACK for admin accounts
             if (percentageAsNumber > 100) percentageAsNumber = 100;
             const percentage = `${percentageAsNumber}%`;
@@ -128,7 +127,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
                 >
                   <div className="absolute top-1/2 z-20 text-[var(--text-on-accent)]"></div>
                   <div
-                    className="text-xs font-medium leading-none rounded-md bg-[var(--interactive-accent)] h-full  flex justify-center items-center absolute "
+                    className="text-xs font-medium leading-none rounded-md bg-[var(--interactive-accent)] h-full "
                     style={{ width: percentage }}
                   ></div>
                 </div>
