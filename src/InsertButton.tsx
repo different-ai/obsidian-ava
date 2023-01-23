@@ -6,14 +6,20 @@ export const InsertButton = ({
   editorContext,
   text,
   extraOnClick,
+  disabled,
 }: {
   editorContext: Editor;
   text: string;
   extraOnClick?: (text: string) => void;
+  disabled: boolean;
 }) => {
   const handleReplace = () => {
     editorContext.replaceSelection(text);
     extraOnClick?.(text);
   };
-  return <SecondaryButton onClick={handleReplace}>Insert</SecondaryButton>;
+  return (
+    <SecondaryButton disabled={disabled} onClick={handleReplace}>
+      Insert
+    </SecondaryButton>
+  );
 };

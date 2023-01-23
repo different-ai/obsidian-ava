@@ -21,7 +21,7 @@ export const SecondaryButton: React.FC<ButtonProps> = ({
   ...props
 }) => (
   <button
-    className="cursor-pointer"
+    className={`${props.disabled ? 'opacity-50' : 'cursor-pointer'}`}
     disabled={props.disabled}
     onClick={props.onClick}
     {...props}

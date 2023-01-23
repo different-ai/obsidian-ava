@@ -8,11 +8,11 @@ import { SecondaryButton } from './Button';
 export const CopyToClipboardButton = ({
   text,
   extraOnClick,
-  small = false,
+  disabled,
 }: {
   text: string;
   extraOnClick?: (text: string) => void;
-  small?: boolean;
+  disabled: boolean;
 }) => {
   const [isCopied, setIsCopied] = React.useState(false);
 
@@ -29,20 +29,8 @@ export const CopyToClipboardButton = ({
     setIsCopied(true);
   };
 
-  if (small) {
-    return isCopied ? (
-      <ClipboardDocumentCheckIcon height={14} />
-    ) : (
-      <ClipboardDocumentListIcon
-        height={14}
-        onClick={handleCopy}
-        className="cursor-pointer"
-      />
-    );
-  }
-
   return (
-    <SecondaryButton onClick={handleCopy}>
+    <SecondaryButton disabled={disabled} onClick={handleCopy}>
       {isCopied && <ClipboardDocumentCheckIcon height={24} />}
       {isCopied && <span>Copied!</span>}
       {!isCopied && <ClipboardDocumentListIcon height={24} />}

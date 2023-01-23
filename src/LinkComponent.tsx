@@ -33,6 +33,8 @@ const ListItem = ({
     };
     getFileText(result.path);
   }, [result]);
+  // only show notes with content, we should make this configurable and not enable this by default
+  // if (fileText.length === 0) return null;
   return (
     <>
       <div className="flex gap-2 items-center">
@@ -73,8 +75,9 @@ const ListItem = ({
       </div>
       <div>
         {isExpanded && (
-          <div className="search-result-file-matches p-2">
-            <ReactMarkdown>{fileText}</ReactMarkdown>
+          <div className="search-result-file-matches p-2 ">
+            <div className="opacity-75">Preview</div>
+            <ReactMarkdown>{fileText || 'File is empty'}</ReactMarkdown>
           </div>
         )}
       </div>
@@ -120,7 +123,7 @@ const ControlForm = () => {
   };
 
   return (
-    <div className="border-2 block rounded-md border-solid border-gray-300 p-4">
+    <div className="border block rounded-md border-solid border-gray-300 p-4">
       <form onSubmit={handleSubmit(onSubmit)}>
         {/* horizontal list of two items, one input number and one checkbox keep item top aligned spaced evenly */}
         <div className="flex flex-col gap-3">
@@ -206,27 +209,33 @@ export function LinkComponent() {
     .map((similarity) => '- [[' + similarity?.path?.replace('.md', '') + ']]')
     .join('\n')}`;
 
+  const disableButtons =
+    state.loadingContent || results.length === 0 || !state.editorContext;
   return (
     <div className="flex flex-col gap-3">
-      <div className="text-2xl font-semibold mb-6">🧙 AVA Links</div>
+      <div className="text-xl font-semibold ">🧙 AVA Links</div>
       <ControlForm />
+      <div className="flex gap-3">
+        <CopyToClipboardButton
+          disabled={disableButtons}
+          text={textToInsert}
+          extraOnClick={trackCopy}
+        />
+        <InsertButton
+          disabled={disableButtons}
+          text={textToInsert}
+          editorContext={state.editorContext}
+          extraOnClick={trackInsert}
+        />
+      </div>
+      <div className="text-sm text-[var(--text-faint)]">
+        Notes similar to {state.currentFilePath.replace('.md', '')}
+      </div>
       {state.loadingEmbeds && <div>🔮 Casting memory retrieval spell...</div>}
       {error && <div>There was an error</div>}
       {results.length === 0 && !state.loadingEmbeds && (
         <div>No links found</div>
       )}
-
-      {!state.loadingEmbeds && results.length > 0 && (
-        <div className="flex gap-3">
-          <CopyToClipboardButton text={textToInsert} extraOnClick={trackCopy} />
-          <InsertButton
-            text={textToInsert}
-            editorContext={state.editorContext}
-            extraOnClick={trackInsert}
-          />
-        </div>
-      )}
-
       <div className="search-result-container p-0">
         {!state.loadingEmbeds &&
           results?.map((result) => (
