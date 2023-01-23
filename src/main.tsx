@@ -3,6 +3,7 @@ import {
   App,
   Editor,
   EventRef,
+  MarkdownView,
   Notice,
   Plugin,
   PluginSettingTab,
@@ -122,10 +123,11 @@ export default class AvaPlugin extends Plugin {
 
   public search: (request: ISearchRequest) => Promise<ISearchData>;
   public clearIndex: () => Promise<any>;
-  private eventRefChanged: EventRef;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
+  private eventRefActiveLeafChanged: EventRef;
   private streamingSource: any;
+  private lastFile?: TFile;
   private setStreamingSource(source: any) {
     this.streamingSource?.removeAllListeners();
     this.streamingSource?.close();
@@ -240,7 +242,7 @@ export default class AvaPlugin extends Plugin {
       );
 
       // only listen to note events if we don't already listen
-      if (!this.eventRefChanged) this.listenToNoteEvents();
+      if (!this.eventRefRenamed) this.listenToNoteEvents();
       new Notice('Search - Vault indexed successfully', 2000);
       store.setState({ linksStatus: 'running' });
     } catch (e) {
@@ -254,44 +256,59 @@ export default class AvaPlugin extends Plugin {
   }
   public unlistenToNoteEvents() {
     console.log('Ava - Unlistening to note events');
-    this.app.metadataCache.offref(this.eventRefChanged);
     this.app.metadataCache.offref(this.eventRefRenamed);
     this.app.metadataCache.offref(this.eventRefDeleted);
+    this.app.workspace.offref(this.eventRefActiveLeafChanged);
+    this.lastFile = undefined;
     store.setState({ linksStatus: 'disabled' });
   }
   public listenToNoteEvents() {
-    if (this.eventRefChanged) {
+    if (this.eventRefRenamed) {
       console.log('Already listening to note events, unlistening first');
       this.unlistenToNoteEvents();
     }
     store.setState({ linksStatus: 'running' });
 
-    this.eventRefChanged = this.app.metadataCache.on(
-      'changed',
-      (file, data, cache) => {
-        try {
-          if (!this.settings.useLinks) {
-            this.unlistenToNoteEvents();
-            return;
-          }
-          refreshSemanticSearch(
-            [
-              {
-                notePath: file.path,
-                noteTags: cache.tags?.map((tag) => tag.tag) || [],
-                noteContent: data,
-              },
-            ],
-            this.settings?.token,
-            this.settings?.vaultId,
-            this.manifest.version
-          );
-        } catch (e) {
-          onGeneralError(e);
-          this.unlistenToNoteEvents();
+		this.eventRefActiveLeafChanged = this.app.workspace.on("active-leaf-change", (leaf) => {
+      try {
+        // if last file was defined, refresh index for it
+        if (this.lastFile !== undefined) {
+            if (!this.settings.useLinks) {
+              this.unlistenToNoteEvents();
+              return;
+            }
+          const cache = this.app.metadataCache.getFileCache(this.lastFile)
+          if (!cache) return;
+          this.app.vault.adapter.read(this.lastFile.path).then((data) => {
+            if (!this.lastFile) return;
+            refreshSemanticSearch(
+              [
+                {
+                  notePath: this.lastFile.path,
+                  noteTags: cache.tags?.map((tag) => tag.tag) || [],
+                  noteContent: data,
+                },
+              ],
+              this.settings?.token,
+              this.settings?.vaultId,
+              this.manifest.version
+            );
+          });
         }
+
+        // set to last file if it's a file
+        if (leaf.view instanceof MarkdownView) {
+          this.lastFile = leaf.view.file;
+        } else {
+          this.lastFile = undefined;
+        }
+
+      } catch (e) {
+        onGeneralError(e);
+        this.unlistenToNoteEvents();
       }
-    );
+    });
+
     this.eventRefRenamed = this.app.vault.on('rename', (file, oldPath) => {
       Promise.all([
         this.app.vault.adapter.read(file.path),
@@ -326,6 +343,7 @@ export default class AvaPlugin extends Plugin {
     });
     this.eventRefDeleted = this.app.vault.on('delete', (file) => {
       try {
+        this.lastFile = undefined;
         if (!this.settings.useLinks) {
           this.unlistenToNoteEvents();
           return;
