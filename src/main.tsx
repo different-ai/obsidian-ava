@@ -709,12 +709,6 @@ export default class AvaPlugin extends Plugin {
 
           this.statusBarItem.render(<StatusBar status="loading" />);
           const text = editor.getSelection();
-          const lines = text.split('\n');
-          // set cursor at the end of the selection
-          editor.setCursor({
-            line: editor.getCursor().line + lines.length - 1,
-            ch: lines[lines.length - 1].length,
-          });
           const source = await complete(
             text,
             this.settings.token,
