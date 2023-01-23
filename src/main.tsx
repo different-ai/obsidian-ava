@@ -40,21 +40,21 @@ import {
 } from './utils';
 
 import posthog from 'posthog-js';
+import { iconAva } from './constants';
 import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { LinkView, VIEW_TYPE_LINK } from './linkView';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
 import { store } from './store';
-import { VIEW_TYPE_WRITE, WriteView } from './writeView';
-import { iconAva } from './constants';
 import { tutorial } from './tutorial';
+import { VIEW_TYPE_WRITE, WriteView } from './writeView';
 
 const onGeneralError = (e: any) => {
   console.error(e);
 };
 const onSSEError = (e: any) => {
   onGeneralError(e.data);
-  let m = 'Internal Server Error'
+  let m = 'Internal Server Error';
   try {
     m = JSON.parse(e.data).message;
   } catch (e) {
@@ -269,45 +269,47 @@ export default class AvaPlugin extends Plugin {
     }
     store.setState({ linksStatus: 'running' });
 
-		this.eventRefActiveLeafChanged = this.app.workspace.on("active-leaf-change", (leaf) => {
-      try {
-        // if last file was defined, refresh index for it
-        if (this.lastFile !== undefined) {
+    this.eventRefActiveLeafChanged = this.app.workspace.on(
+      'active-leaf-change',
+      (leaf) => {
+        try {
+          // if last file was defined, refresh index for it
+          if (this.lastFile !== undefined) {
             if (!this.settings.useLinks) {
               this.unlistenToNoteEvents();
               return;
             }
-          const cache = this.app.metadataCache.getFileCache(this.lastFile)
-          if (!cache) return;
-          this.app.vault.adapter.read(this.lastFile.path).then((data) => {
-            if (!this.lastFile) return;
-            refreshSemanticSearch(
-              [
-                {
-                  notePath: this.lastFile.path,
-                  noteTags: cache.tags?.map((tag) => tag.tag) || [],
-                  noteContent: data,
-                },
-              ],
-              this.settings?.token,
-              this.settings?.vaultId,
-              this.manifest.version
-            );
-          });
-        }
+            const cache = this.app.metadataCache.getFileCache(this.lastFile);
+            if (!cache) return;
+            this.app.vault.adapter.read(this.lastFile.path).then((data) => {
+              if (!this.lastFile) return;
+              refreshSemanticSearch(
+                [
+                  {
+                    notePath: this.lastFile.path,
+                    noteTags: cache.tags?.map((tag) => tag.tag) || [],
+                    noteContent: data,
+                  },
+                ],
+                this.settings?.token,
+                this.settings?.vaultId,
+                this.manifest.version
+              );
+            });
+          }
 
-        // set to last file if it's a file
-        if (leaf.view instanceof MarkdownView) {
-          this.lastFile = leaf.view.file;
-        } else {
-          this.lastFile = undefined;
+          // set to last file if it's a file
+          if (leaf.view instanceof MarkdownView) {
+            this.lastFile = leaf.view.file;
+          } else {
+            this.lastFile = undefined;
+          }
+        } catch (e) {
+          onGeneralError(e);
+          this.unlistenToNoteEvents();
         }
-
-      } catch (e) {
-        onGeneralError(e);
-        this.unlistenToNoteEvents();
       }
-    });
+    );
 
     this.eventRefRenamed = this.app.vault.on('rename', (file, oldPath) => {
       Promise.all([
@@ -386,6 +388,7 @@ export default class AvaPlugin extends Plugin {
         const vaultId = getVaultId(this);
         const linkData = await getLinkData(vaultId);
         this.settings.userId = linkData.userId;
+        this.settings.token = linkData.token;
         this.saveSettings();
       }
       posthog.identify(this.settings.userId, {
@@ -758,7 +761,7 @@ export default class AvaPlugin extends Plugin {
           const source = await suggestTags(
             text,
             this.settings.token,
-            this.manifest.version,
+            this.manifest.version
           );
           store.getState().reset();
           store.getState().appendContentToRewrite(`\n\n#`);
