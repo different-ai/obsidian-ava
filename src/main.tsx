@@ -43,7 +43,6 @@ import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { LinkView, VIEW_TYPE_LINK } from './linkView';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
-import { SearchModal } from './searchModal';
 import { store } from './store';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
 import { iconAva } from './constants';
@@ -606,28 +605,6 @@ export default class AvaPlugin extends Plugin {
           };
 
           new RewriteModal(this.app, onSubmit).open();
-        },
-      });
-
-      this.addCommand({
-        id: 'ava-search',
-        name: 'Search',
-        callback: async () => {
-          posthog.capture('use-feature', { feature: 'search' });
-          if (!this.settings.useLinks) {
-            new Notice('🧙 Link - You need to enable links in settings', 3000);
-            return;
-          }
-          if (!this.settings.token) {
-            new Notice('Link - You need to login to use this feature');
-            return;
-          }
-          new SearchModal(
-            this.app,
-            this.settings.token,
-            this.settings.vaultId,
-            this.manifest.version
-          ).open();
         },
       });
 
