@@ -650,7 +650,12 @@ export default class AvaPlugin extends Plugin {
             return;
           }
           if (!this.settings.token) {
-            new Notice('🧙 You need to login to use this feature', 2000);
+            new Notice('🧙 You need to login to use this feature', 3000);
+            return;
+          }
+          if (store.getState().linksStatus !== "running") {
+            new Notice('🧙 Link - Links is not running, '+
+              'please start it first in the setings', 3000);
             return;
           }
           new Notice('🧙 Link - Searching for related notes⏰');
