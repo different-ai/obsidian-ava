@@ -199,16 +199,14 @@ export const createParagraph = (
 };
 
 export const rewrite = (
-  text: string,
+  content: string,
   alteration: string,
   token: string,
   version: string
 ) => {
-  const prompt = `Rewrite
-"${text}"
-${alteration}`;
-  console.log('Prompt:', prompt);
-  return complete(prompt, token, version);
+  const p = `Rewrite ${alteration.trim()}\n###\n${content.trim()}\n###`;
+  console.log('Prompt:', p);
+  return complete(p, token, version, {stop: ['###']});
 };
 
 interface NoteRefresh {
