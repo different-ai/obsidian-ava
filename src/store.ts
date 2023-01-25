@@ -33,6 +33,7 @@ export const store = create<State>((set) => ({
     token: '',
     vaultId: '',
     userId: '',
+    experimental: false,
   },
   // used to dispaly loading state in the sidebar
   loadingEmbeds: false,
