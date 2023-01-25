@@ -200,7 +200,7 @@ export const createParagraph = (
 export const buildRewritePrompt = (
   content: string,
   alteration: string
-) => `Transform to ${alteration.trim()}:\n\n${content.trim()}`;
+) => `You're a powerful AI editor that rewrites text exactly as humans say.\n\n"${content.trim()}"\n\nHuman: ${alteration.trim()}\n\nAI:`;
 export const rewrite = (
   content: string,
   alteration: string,
