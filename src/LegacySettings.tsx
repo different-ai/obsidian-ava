@@ -12,6 +12,7 @@ export interface AvaSettings {
   token: string;
   vaultId: string;
   userId: string;
+  experimental: boolean;
 }
 
 export const DEFAULT_SETTINGS: AvaSettings = {
@@ -20,6 +21,7 @@ export const DEFAULT_SETTINGS: AvaSettings = {
   token: '',
   vaultId: undefined,
   userId: '',
+  experimental: false,
 };
 
 export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
@@ -28,6 +30,8 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const [isDebug, setDebug] = React.useState(state.settings.debug);
   const [isLoading, setIsLoading] = React.useState(false);
   const [usage, setUsage] = React.useState<any | undefined>([]);
+  const [isExperimental, setExperimental] = React.useState(state.settings.experimental);
+
   const showAdvancedSettings = isDebug;
 
   React.useEffect(() => {
@@ -87,6 +91,12 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.settings.debug = checked;
     plugin.saveSettings();
     setDebug(checked);
+  };
+  const handleExperimental = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked;
+    plugin.settings.experimental = checked;
+    plugin.saveSettings();
+    setExperimental(checked);
   };
   // this will not refresh the ui but it will clear the cache
   const handleDeleteCache = () => {
@@ -221,27 +231,49 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
           </div>
         </div>
       )}
-
       <div className="">
         <div className="text-xl font-bold my-8">Advanced Settings</div>
-        <div className="flex h-5 items-center">
-          <input
-            aria-describedby="comments-description"
-            name="comments"
-            type="checkbox"
-            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-            onChange={handleDebug}
-            checked={isDebug}
-          />
-          <div className="ml-3 text-sm">
-            <label htmlFor="comments" className="font-medium ">
-              Debug
-            </label>
-            <div id="comments-description" className="text-gray-500">
-              You probably don't need this
+        <div className="flex flex-row justify-around">
+          <div className="flex h-5 items-center">
+            <input
+              aria-describedby="comments-description"
+              name="comments"
+              id="comments"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              onChange={handleDebug}
+              checked={isDebug}
+            />
+            <div className="ml-3 text-sm">
+              <label htmlFor="comments" className="font-medium cursor-pointer">
+                Debug
+                <div id="comments-description" className="text-gray-500">
+                  ⚠️ You probably don't need this ⚠️
+                </div>
+              </label>
+            </div>
+          </div>
+          <div className="flex h-5 items-center">
+            <input
+              aria-describedby="experimental-description"
+              name="experimental"
+              id="experimental"
+              type="checkbox"
+              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              onChange={handleExperimental}
+              checked={isExperimental}
+            />
+            <div className="ml-3 text-sm">
+              <label htmlFor="experimental" className="font-medium cursor-pointer">
+                Experimental features
+                <div id="experimental-description" className="text-gray-500">
+                  ⚠️ Can break your vault, to be used with caution ⚠️
+                </div>
+              </label>
             </div>
           </div>
         </div>
+
         {showAdvancedSettings && (
           <button className="cursor-pointer mt-6" onClick={handleDeleteCache}>
             Delete Cache
