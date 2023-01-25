@@ -197,16 +197,19 @@ export const createParagraph = (
   const prompt = `Write a paragraph about ${text}`;
   return complete(prompt, token, version);
 };
-
+export const buildRewritePrompt = (
+  content: string,
+  alteration: string
+) => `Transform to ${alteration.trim()}:\n\n${content.trim()}`;
 export const rewrite = (
   content: string,
   alteration: string,
   token: string,
   version: string
 ) => {
-  const p = `Rewrite ${alteration.trim()}\n###\n${content.trim()}\n###`;
+  const p = buildRewritePrompt(content, alteration);
   console.log('Prompt:', p);
-  return complete(p, token, version, {stop: ['###']});
+  return complete(p, token, version);
 };
 
 interface NoteRefresh {

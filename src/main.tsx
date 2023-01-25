@@ -609,7 +609,7 @@ export default class AvaPlugin extends Plugin {
                   // careful if you modify it, it's a bit harder to get the behavior right
                   store.setState({ loadingContent: true });
                   const payload = JSON.parse(e.data);
-                  store.getState().setPrompt(`Rewrite to ${prompt}`);
+                  store.getState().setPrompt(prompt);
                   store.getState().setEditorContext(editor);
                   store
                     .getState()

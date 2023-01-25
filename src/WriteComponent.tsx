@@ -10,7 +10,7 @@ import { CopyToClipboardButton } from './CopyToClipboard';
 import { InsertButton } from './InsertButton';
 import { Spinner } from './StatusBar';
 import { store } from './store';
-import { REWRITE_CHAR_LIMIT } from './utils';
+import { buildRewritePrompt, REWRITE_CHAR_LIMIT } from './utils';
 
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -22,7 +22,6 @@ export const WriteComponent = () => {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const { register, handleSubmit, setValue } = useForm();
   const onSubmit = async (data: { content: string; alteration: string }) => {
-    posthog.capture('use-feature', { feature: 'rewrite selection' });
     if (!state.settings.token) {
       new Notice('🧙 You need to login to use this feature', 2000);
       return;
@@ -54,7 +53,7 @@ export const WriteComponent = () => {
     store.setState({ loadingContent: true });
 
     try {
-      const p = `Rewrite ${data.alteration.trim()}\n###\n${data.content.trim()}\n###`;
+      const p = buildRewritePrompt(data.content, data.alteration);
       console.log('prompt', p);
       const streamingSource = new SSE(`${API_HOST}/v1/text/create`, {
         headers: buildHeaders(state.settings.token, state.version),
@@ -65,7 +64,6 @@ export const WriteComponent = () => {
           stream: true,
           temperature: 0.7,
           model: 'text-davinci-003',
-          stop: ['###'],
         }),
       });
       const onSSEError = (e: any) => {
@@ -87,7 +85,8 @@ export const WriteComponent = () => {
           // careful if you modify it, it's a bit harder to get the behavior right
           store.setState({ loadingContent: true });
           const payload = JSON.parse(e.data);
-          store.getState().setPrompt(`Rewrite to ${prompt}`);
+          // TODO: do we need this?
+          // store.getState().setPrompt(`Rewrite to ${prompt}`);
           // store.getState().setEditorContext(editor);
           store
             .getState()
@@ -117,33 +116,42 @@ export const WriteComponent = () => {
     <div className="select-text">
       <h2>🧙 AVA Write</h2>
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="flex gap-3">
-          <input
-            type="text"
-            className="w-full"
-            defaultValue={state.prompt}
-            {...register('alteration', { required: true })}
-          />
-          <button
-            className="font-bold py-2 px-4 rounded inline-flex items-center"
-            type="submit"
-          >
-            <svg
-              className="h-4 w-4 mr-2"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
+        <div className="flex flex-col gap-3">
+          <div className="text-xl">
+            Transform to
+          </div>
+          {/* a small text informing the user that this will edit the text below */}
+          <div className="text-xs text-gray-500">
+            This will edit the text below
+          </div>
+          <div className="flex gap-3">
+            <input
+              type="text"
+              className="w-full"
+              defaultValue={state.prompt}
+              {...register('alteration', { required: true })}
+            />
+            <button
+              className="font-bold py-2 px-4 rounded inline-flex items-center"
+              type="submit"
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 5l7 7-7 7"
-              />
-            </svg>
-            <span>Write</span>
-          </button>
+              <svg
+                className="h-4 w-4 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+              <span>Write</span>
+            </button>
+          </div>
         </div>
       </form>
 

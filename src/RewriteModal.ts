@@ -46,7 +46,7 @@ export class RewriteModal extends Modal {
     const form = contentEl.createEl('form');
     form.onsubmit = this.search;
 
-    new Setting(form).setName('Rewrite text').addText((textfield) => {
+    new Setting(form).setName('Transform to').addText((textfield) => {
       textfield
         .setPlaceholder(
           'remove all email addresses / make it sound more like [paste text] / make it more polite'
