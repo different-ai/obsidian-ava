@@ -12,7 +12,6 @@ import { Spinner } from './StatusBar';
 import { store } from './store';
 import { buildRewritePrompt, REWRITE_CHAR_LIMIT } from './utils';
 
-
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   disabled?: boolean;
@@ -78,22 +77,17 @@ export const WriteComponent = () => {
       };
       streamingSource.addEventListener('error', onSSEError);
 
-      streamingSource.addEventListener(
-        'message',
-        function (e: any) {
-          // this is bad because it will triger react re-renders
-          // careful if you modify it, it's a bit harder to get the behavior right
-          store.setState({ loadingContent: true });
-          const payload = JSON.parse(e.data);
-          // TODO: do we need this?
-          // store.getState().setPrompt(`Rewrite to ${prompt}`);
-          // store.getState().setEditorContext(editor);
-          store
-            .getState()
-            .appendContentToRewrite(payload.choices[0].text);
-          store.setState({ loadingContent: false });
-        }
-      );
+      streamingSource.addEventListener('message', function (e: any) {
+        // this is bad because it will triger react re-renders
+        // careful if you modify it, it's a bit harder to get the behavior right
+        store.setState({ loadingContent: true });
+        const payload = JSON.parse(e.data);
+        // TODO: do we need this?
+        // store.getState().setPrompt(`Rewrite to ${prompt}`);
+        // store.getState().setEditorContext(editor);
+        store.getState().appendContentToRewrite(payload.choices[0].text);
+        store.setState({ loadingContent: false });
+      });
       streamingSource.stream();
       // this.statusBarItem.render(<StatusBar status="success" />);
     } catch (e) {
@@ -101,7 +95,7 @@ export const WriteComponent = () => {
       store.setState({ loadingContent: false });
     }
   };
-  const hideButtons = state.content === '';
+  const disableButtons = state.content === '';
   React.useEffect(() => {
     setValue('content', state.content);
   }, [state.content, setValue]);
@@ -114,48 +108,45 @@ export const WriteComponent = () => {
 
   return (
     <div className="select-text">
-      <h2>🧙 AVA Write</h2>
+      <div className="text-xl font-semibold ">🧙 AVA Write</div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-3">
-          <div className="text-xl">
-            Transform to
-          </div>
-          {/* a small text informing the user that this will edit the text below */}
-          <div className="text-xs text-gray-500">
-            This will edit the text below
-          </div>
-          <div className="flex gap-3">
+          <div className="flex flex-col mt-3">
+            <label htmlFor="" className="block text-sm font-medium">
+              Change text to
+            </label>
+            <div className="text-xs text-[var(--text-faint)] mb-1">
+              This will rewrite the prompt below
+            </div>
             <input
               type="text"
-              className="w-full"
+              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-full"
               defaultValue={state.prompt}
               {...register('alteration', { required: true })}
             />
             <button
-              className="font-bold py-2 px-4 rounded inline-flex items-center"
+              className="font-bold py-2 px-4 rounded inline-flex items-center mod-cta mt-1"
               type="submit"
             >
-              <svg
-                className="h-4 w-4 mr-2"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
-              <span>Write</span>
+              <span>Rewrite</span>
             </button>
           </div>
         </div>
       </form>
+      <div className="flex gap-3 my-3">
+        <CopyToClipboardButton
+          disabled={disableButtons}
+          text={state.content}
+          extraOnClick={trackCopy}
+        />
+        <InsertButton
+          disabled={disableButtons}
+          editorContext={state.editorContext}
+          text={state.content}
+          extraOnClick={trackInsert}
+        />
+      </div>
 
-      <hr className="my-2" />
       {state.loadingContent && (
         <div className="flex gap-3">
           <div>Casting a spell...</div>
@@ -169,23 +160,7 @@ export const WriteComponent = () => {
         </div>
       )}
 
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-      >{state.content}</ReactMarkdown>
-
-      {hideButtons ? null : (
-        <div className="flex gap-3">
-          <CopyToClipboardButton
-            text={state.content}
-            extraOnClick={trackCopy}
-          />
-          <InsertButton
-            editorContext={state.editorContext}
-            text={state.content}
-            extraOnClick={trackInsert}
-          />
-        </div>
-      )}
+      <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.content}</ReactMarkdown>
     </div>
   );
 };
