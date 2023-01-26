@@ -1,25 +1,22 @@
-import { calText, calUrl, creditsText, feedbackText, feedbackUrl } from "./constants";
+export const tutorial = `
+| <!-- -->    | <!-- -->    |
+| ------------- | ------------- | ----- |
+| Feedback     | Fill out this form to send us your feedback | https://forms.gle/RZLR4umCwCFpZcNE9 |
+| Schedule a call      | Schedule a call with us    |   https://cal.com/potato/20min |
+| Join the community | Join the Discord community | https://discord.gg/DYE6VFTJET |
 
 
-export const tutorial = `# 🧙 Ava - Getting Started
+### Find similar notes
 
-### Expand & explore your ideas
+The following will help you find notes similar to the one you're currently viewing:
 
-Imagine you are going about your daily activities and suddenly you have multiple related ideas running through your head, but you can't seem to figure out how to connect them.
+1.  **Make sure you have AVA Links enabled** (you can see this in the plugin settings)
+2.  Press cmd+p
+3.  Type "ava link"
+4.  Select "🧙 AVA - Generate Link"
 
-1. Select and copy
 
-Recipe of pizza with pineapple. 
-
-2. Press cmd+p
-3. Type "paragraph"
-4. Select "🧙 AVA - Write Paragraph"
-5. Paste the text
-6. Press "Write Paragraph"
-
-### Format & Transform
-
-Imagine you have messy texts that you want to turn into a concise paragraph.
+### Make sense of messy information
 
 1.  Select the text below
 
@@ -36,15 +33,6 @@ on hzo to use the plugin
 7.  Click "Rewrite Text" to complete the transformation
 8.  Now change the text instruction in Write panel to ask "remove all vowels" and press enter
 
-### Link related notes
-
-Imagine you wanting to relate your current note to another, but can't remember which of your notes are related.
-
-1.  Select the notes to link
-2.  Press cmd+p
-3.  Type "link"
-4.  Select "🧙 AVA - Generate Link"
-
 ### Get tags suggestions
 
 Want to classify your notes, but can't find the right tags?
@@ -53,35 +41,35 @@ Want to classify your notes, but can't find the right tags?
 2.  Type "ava tag"
 3.  Select "🧙 AVA - Suggest tags"
 
-### Generate stunning visualizations
+🪄 Pro-tip: using tags before using links increases of finding similar notes
 
-Illustrate your thoughts, ideas, or just create art.
 
-1.  Select the text below to visualize
+### Using complete for lazy calculation
 
-A young male with short hair standing still hand in hand with an humanoid robot, looking at the sunset, concept art by Van Gogh, realistic painting, high definition, concept art, serene landscape, high quality, highly detailed, 8K, soft colors, warm colors, high coherence, hyperrealistic, concept art, symmetrical
+1. Select text below
 
-2.  Press cmd+p
-3.  Type "image"
-4.  Select "🧙 AVA - Generate Image"
+each requests costs $0.03
+
+we had 3000 requests that means
+
+3. Press cmd+p
+4. Type "ava complete"
+5. Select "🧙AVA - Complete"
+
+
+
+### Tips & Tricks
+
+🪄 Pro-tip: **You can use "Generate Link" as a very powerful search bar.** *If you're struggling to find a note in your vault*, 
+
+1.  open a new file
+2. type whatever information you can remember
+3. Use  "Generate Link."
+
 
 ### Credits
 
-${creditsText}
+Ava started as a weekend project by Ben & Louis as a mean to solve multiple problems related to having a large quantity of disparate notes. 
+We are very grateful for your support and feedback.
 
-### Feedback
-
-${feedbackText}
-
-${feedbackUrl}
-
-### Schedule a call
-
-${calText}
-
-${calUrl}
-
-### Join the community
-
-[Discord](https://discord.gg/DYE6VFTJET)
 `;
