@@ -198,10 +198,8 @@ export const createParagraph = (
   const prompt = `Write a paragraph about ${text}`;
   return complete(prompt, token, version);
 };
-export const buildRewritePrompt = (
-  content: string,
-  alteration: string
-) => `You're a powerful AI editor that rewrites text exactly as humans say.\n\n"${content.trim()}"\n\nHuman: ${alteration.trim()}\n\nAI:`;
+export const buildRewritePrompt = (content: string, alteration: string) =>
+  `You're a powerful AI editor that rewrites text exactly as humans say.\n\n Could you rewrite the following and ${alteration.trim()}:\n\n${content.trim()}`;
 export const rewrite = (
   content: string,
   alteration: string,
@@ -287,9 +285,9 @@ export const clearIndex = async (
  * TODO v2: pick 3 random notes and use as examples in the prompt
  * TODO v3: use /search to find similar notes and return a set of tags
  * TODO v4: use /search to find similar notes and get a set of tags and expand with text completion
- * @param noteContent 
- * @param token 
- * @param version 
+ * @param noteContent
+ * @param token
+ * @param version
  */
 export const suggestTags = async (
   noteContent: string,
@@ -303,7 +301,7 @@ export const suggestTags = async (
     topP: 0.5,
     stop: ['\n'],
     stream: true,
-  })
+  });
 };
 
 // interface like
@@ -386,19 +384,22 @@ export const openApp = async (vaultId: string) => {
 };
 
 export async function getLinkData(vaultId: string) {
-  const response = posthog.isFeatureEnabled('new-auth') ?
-    await fetch(`https://auth-c6txy76x2q-uc.a.run.app?token=${vaultId}&service=obsidian`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    }) :
-    await fetch(`${baseURL}/api/auth?token=${vaultId}&service=obsidian`, {
-      headers: {
-        'Content-Type': 'application/json',
-        mode: 'cors',
-      },
-    });
+  const response = posthog.isFeatureEnabled('new-auth')
+    ? await fetch(
+        `https://auth-c6txy76x2q-uc.a.run.app?token=${vaultId}&service=obsidian`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        }
+      )
+    : await fetch(`${baseURL}/api/auth?token=${vaultId}&service=obsidian`, {
+        headers: {
+          'Content-Type': 'application/json',
+          mode: 'cors',
+        },
+      });
   const data: LinkData = await response.json();
   return data;
 }

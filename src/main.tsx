@@ -602,6 +602,7 @@ export default class AvaPlugin extends Plugin {
               this.streamingSource.addEventListener('error', onSSEError);
               // go to the next line
 
+              store.getState().setPrompt(prompt);
               this.streamingSource.addEventListener(
                 'message',
                 function (e: any) {
@@ -609,7 +610,6 @@ export default class AvaPlugin extends Plugin {
                   // careful if you modify it, it's a bit harder to get the behavior right
                   store.setState({ loadingContent: true });
                   const payload = JSON.parse(e.data);
-                  store.getState().setPrompt(prompt);
                   store.getState().setEditorContext(editor);
                   store
                     .getState()
@@ -653,9 +653,12 @@ export default class AvaPlugin extends Plugin {
             new Notice('🧙 You need to login to use this feature', 3000);
             return;
           }
-          if (store.getState().linksStatus !== "running") {
-            new Notice('🧙 Link - Links is not running, '+
-              'please start it first in the setings', 3000);
+          if (store.getState().linksStatus !== 'running') {
+            new Notice(
+              '🧙 Link - Links is not running, ' +
+                'please start it first in the setings',
+              3000
+            );
             return;
           }
           new Notice('🧙 Link - Searching for related notes⏰');

@@ -116,7 +116,7 @@ export const WriteComponent = () => {
               Change text to
             </label>
             <div className="text-xs text-[var(--text-faint)] mb-1">
-              This will rewrite the prompt below
+              This will rewrite the text below
             </div>
             <input
               type="text"
