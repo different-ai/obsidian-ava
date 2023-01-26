@@ -1,6 +1,7 @@
 import { SSE } from 'lib/sse';
 import { camelCase, isArray, isObject, transform } from 'lodash';
 import { App } from 'obsidian';
+import posthog from 'posthog-js';
 import { API_HOST, buildHeaders } from './constants';
 import AvaPlugin from './main';
 
@@ -385,12 +386,19 @@ export const openApp = async (vaultId: string) => {
 };
 
 export async function getLinkData(vaultId: string) {
-  const response = await fetch(`${baseURL}/api/auth?token=${vaultId}`, {
-    headers: {
-      'Content-Type': 'application/json',
-      mode: 'cors',
-    },
-  });
+  const response = posthog.isFeatureEnabled('new-auth') ?
+    await fetch(`https://auth-c6txy76x2q-uc.a.run.app?token=${vaultId}&service=obsidian`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }) :
+    await fetch(`${baseURL}/api/auth?token=${vaultId}&service=obsidian`, {
+      headers: {
+        'Content-Type': 'application/json',
+        mode: 'cors',
+      },
+    });
   const data: LinkData = await response.json();
   return data;
 }
