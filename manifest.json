@@ -1,10 +1,10 @@
 {
 	"id": "ava",
 	"name": "🧙 AVA",
-	"version": "2.16.4",
+	"version": "2.16.5",
 	"minAppVersion": "0.12.0",
 	"description": "AI assistant for Obsidian",
 	"author": "louis030195",
 	"authorUrl": "https://louis030195.com",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }
