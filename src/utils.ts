@@ -76,8 +76,10 @@ export const search = async (
     },
     vault_id: vaultId,
   };
-
-  const response = await fetch(`${API_HOST}/v1/search`, {
+  const url = posthog.isFeatureEnabled('new-search') ?
+    `https://obsidian-search-dev-c6txy76x2q-uc.a.run.app/v1/search` :
+    `${API_HOST}/v1/search`;
+  const response = await fetch(url, {
     method: 'POST',
     headers: buildHeaders(token, version),
     body: JSON.stringify(body),
@@ -237,7 +239,10 @@ export const refreshSemanticSearch = async (
     return;
   }
   console.log('refreshing', notes.length, 'notes');
-  const response = await fetch(`${API_HOST}/v1/search/refresh`, {
+  const url = posthog.isFeatureEnabled('new-search') ?
+    `https://obsidian-search-dev-c6txy76x2q-uc.a.run.app/v1/search/refresh` :
+    `${API_HOST}/v1/search/refresh`;
+  const response = await fetch(url, {
     method: 'POST',
     headers: buildHeaders(token, version),
     body: JSON.stringify({
@@ -265,7 +270,10 @@ export const clearIndex = async (
   vaultId: string,
   version: string
 ): Promise<any> => {
-  const response = await fetch(`${API_HOST}/v1/search/clear`, {
+  const url = posthog.isFeatureEnabled('new-search') ?
+    `https://obsidian-search-dev-c6txy76x2q-uc.a.run.app/v1/search/clear` :
+    `${API_HOST}/v1/search/clear`;
+  const response = await fetch(url, {
     method: 'POST',
     headers: buildHeaders(token, version),
     body: JSON.stringify({

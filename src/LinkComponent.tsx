@@ -104,8 +104,10 @@ const ControlForm = () => {
       vault_id: state.settings.vaultId,
       top_k: Number(data.limit),
     };
-
-    const response = await fetch(`${API_HOST}/v1/search`, {
+    const url = posthog.isFeatureEnabled('new-search') ?
+      `https://obsidian-search-dev-c6txy76x2q-uc.a.run.app/v1/search` :
+      `${API_HOST}/v1/search`;
+    const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
