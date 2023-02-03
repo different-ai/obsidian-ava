@@ -49,6 +49,20 @@ import { store } from './store';
 import { tutorial } from './tutorial';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
 
+// e.g. ["Buddhism/Veganism"]
+// path: "Buddhism/Veganism/2021-01-01.md" should be ignored
+// e.g. ["Journal/2021/Bob/Relationships"]
+// path: "Journal/2021/Bob/Relationships/ILoveBob.md" should be ignored
+// but not "Journal/2021/Bob/BobIsCool.md"
+const isIgnored = (ignoredFolders: string[], path: string) => {
+  const ignored = ignoredFolders.some((folder) => {
+    const folderPath = folder.split('/').join('\\/');
+    const regex = new RegExp(`^${folderPath}\/.*$`);
+    return regex.test(path);
+  });
+  return ignored;
+}
+
 const onGeneralError = (e: any) => {
   console.error(e);
 };
@@ -190,7 +204,10 @@ export default class AvaPlugin extends Plugin {
 
   public async indexWholeVault() {
     try {
-      const files = await getCompleteFiles(this.app);
+      let files = await getCompleteFiles(this.app);
+      files = files
+          // filter out files in ignored folders
+          .filter((file) => !isIgnored(this.settings?.ignoredFolders, file.path))
       console.log('Ava - Indexing vault with', files);
       // display message estimating indexing time according to number of notes
       // 1000 notes = 4 seconds
@@ -269,20 +286,32 @@ export default class AvaPlugin extends Plugin {
     }
     store.setState({ linksStatus: 'running' });
 
+    const setLastFile = (leaf: WorkspaceLeaf) => {
+      // set to last file if it's a file
+      if (leaf.view instanceof MarkdownView) {
+        this.lastFile = leaf.view.file;
+      } else {
+        this.lastFile = undefined;
+      }
+    }
     this.eventRefActiveLeafChanged = this.app.workspace.on(
       'active-leaf-change',
       (leaf) => {
         try {
+          if (!this.settings.useLinks) {
+            this.unlistenToNoteEvents();
+            return;
+          }
           // if last file was defined, refresh index for it
           if (this.lastFile !== undefined) {
-            if (!this.settings.useLinks) {
-              this.unlistenToNoteEvents();
-              return;
+            // ignore if file in ignored folder
+            if (isIgnored(this.settings?.ignoredFolders, this.lastFile.path)) {
+              return setLastFile(leaf);
             }
             const cache = this.app.metadataCache.getFileCache(this.lastFile);
-            if (!cache) return;
+            if (!cache) return setLastFile(leaf);
             this.app.vault.adapter.read(this.lastFile.path).then((data) => {
-              if (!this.lastFile) return;
+              if (!this.lastFile) return setLastFile(leaf);
               refreshSemanticSearch(
                 [
                   {
@@ -297,13 +326,7 @@ export default class AvaPlugin extends Plugin {
               );
             });
           }
-
-          // set to last file if it's a file
-          if (leaf.view instanceof MarkdownView) {
-            this.lastFile = leaf.view.file;
-          } else {
-            this.lastFile = undefined;
-          }
+          setLastFile(leaf);
         } catch (e) {
           onGeneralError(e);
           this.unlistenToNoteEvents();
@@ -319,6 +342,8 @@ export default class AvaPlugin extends Plugin {
         // Somehow event triggered twice and cache only defined on the second time
         if (!cache) return;
         const f = file as TFile;
+        // if file in ignored folder, ignore
+        if (isIgnored(this.settings?.ignoredFolders, f.path)) return;
         try {
           if (!this.settings.useLinks) {
             this.unlistenToNoteEvents();
@@ -350,6 +375,8 @@ export default class AvaPlugin extends Plugin {
           this.unlistenToNoteEvents();
           return;
         }
+        // if file in ignored folder, ignore
+        if (isIgnored(this.settings?.ignoredFolders, file.path)) return;
         refreshSemanticSearch(
           [
             {

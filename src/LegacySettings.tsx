@@ -1,4 +1,4 @@
-import { Notice } from 'obsidian';
+import { Notice, TFolder } from 'obsidian';
 import posthog from 'posthog-js';
 import * as React from 'react';
 import AvaPlugin from './main';
@@ -13,6 +13,7 @@ export interface AvaSettings {
   vaultId: string;
   userId: string;
   experimental: boolean;
+  ignoredFolders: string[];
 }
 
 export const DEFAULT_SETTINGS: AvaSettings = {
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: AvaSettings = {
   vaultId: undefined,
   userId: '',
   experimental: false,
+  ignoredFolders: [],
 };
 
 export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
@@ -31,7 +33,9 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const [isLoading, setIsLoading] = React.useState(false);
   const [usage, setUsage] = React.useState<any | undefined>([]);
   const [isExperimental, setExperimental] = React.useState(state.settings.experimental);
-
+  const [folderList, setFolderList] = React.useState<string[]>([]);
+  const [ignoredFolders, setIgnoredFolders] = React.useState<string[]>(state.settings.ignoredFolders);
+  const [ignoredFolderInput, setIgnoredFolderInput] = React.useState<string>('');
   const showAdvancedSettings = isDebug;
 
   React.useEffect(() => {
@@ -45,6 +49,12 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     getUsage(state.settings.token, plugin.manifest.version)
       .then(setUsage)
       .catch((e) => console.error(e));
+  }, []);
+
+  React.useEffect(() => {
+    const f = app.vault.getAllLoadedFiles().filter((i: TFolder) =>
+      i.children).map(folder => folder.path);
+    setFolderList(f);
   }, []);
 
   const handleClearIndex = () => {
@@ -108,6 +118,19 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     plugin.saveSettings();
     new Notice('Cache cleared');
   };
+  const handleIgnoredFolderInput = () => {
+    const v = [...new Set([...ignoredFolders, ignoredFolderInput])];
+    plugin.settings.ignoredFolders = v;
+    plugin.saveSettings();
+    setIgnoredFolders(v);
+    setIgnoredFolderInput('');
+  };
+  const handleRemoveIgnoredFolder = (folder: string) => {
+    const v = ignoredFolders.filter(i => i !== folder);
+    plugin.settings.ignoredFolders = v;
+    plugin.saveSettings();
+    setIgnoredFolders(v);
+  };
   return (
     // small spacing vertically
     <div className="space-y-2">
@@ -119,7 +142,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
           state.settings.token &&
           Object.keys(usage).map((key: string) => {
             let percentageAsNumber =
-              (usage[key].split('/')[0] / usage[key].split('/')[1]) * 100;
+              Math.round((usage[key].split('/')[0] / usage[key].split('/')[1]) * 100);
             // HACK for admin accounts
             if (percentageAsNumber > 100) percentageAsNumber = 100;
             const percentage = `${percentageAsNumber}%`;
@@ -227,6 +250,80 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
               ) : (
                 <Spinner />
               )}
+            </div>
+          </div>
+          {/* autocomplete search bar to ignore folders for indexing */}
+          {/* this div maximum size is fixed as it might grow with children */}
+          {/* TODO: a v2 would be a truly autocomplete search bar a la algolia */}
+          <div className="flex flex-col gap-3 w-[300px]">
+            <div className="text-xl font-bold">🔍 Ignore Folders</div>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3">
+                <input
+                  type="text"
+                  className="border border-gray-300 rounded-md"
+                  placeholder="Folder name"
+                  value={ignoredFolderInput}
+                  onChange={(e) => setIgnoredFolderInput(e.target.value)}
+                />
+                <button
+                  className={"rounded border-gray-300" +
+                    // if the input is not a valid folder name
+                    // i.e. not found in folder list
+                    // show a disabled button style
+                    (!folderList.includes(ignoredFolderInput)
+                      ? ' cursor-not-allowed'
+                      : ' cursor-pointer')
+                  }
+                  // TODO: does not work somehow?
+                  aria-label={!folderList.includes(ignoredFolderInput)
+                    ? 'This folder does not exist'
+                    : 'Add folder to ignored folders'}
+                  onClick={handleIgnoredFolderInput}
+                  // disabled if the input is not a valid folder name
+                  // i.e. not found in folder list
+                  disabled={!folderList.includes(ignoredFolderInput)}
+                >
+                  Add
+                </button>
+              </div>
+              {/* horizontal list with an horizontal list & a right arrow icon at the end */}
+              <div className="flex flex-row gap-3">
+                {/* horizontal list of ignored folders, scrollable with max 3 items */}
+                {/* hide scrollbar */}
+                <div className="flex flex-row gap-3 overflow-x-auto max-h-12 no-scrollbar"> 
+                  {ignoredFolders.map((folder) => (
+                    // chip like deletable with icon button cursor pointer
+                    <div key={folder} className="flex items-center gap-3">
+                      <button
+                        className="rounded border-gray-300 cursor-pointer"
+                        aria-label={`Remove ${folder} from ignored folders`}
+                        onClick={() => handleRemoveIgnoredFolder(folder)}
+                      >
+                        {/* overflow ellipsis */}
+                        {folder.length > 10
+                          ? folder.substring(0, 10) + '...'
+                          : folder} 🗑️
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {/* 
+                  show a right arrow icon ➡️ at the end to indicate that there are more
+                  ignored folders to scroll to
+                */}
+                <div className="flex items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="text-gray-500">➡️</div>
+                  </div>
+                </div>
+              </div>
+                
+              {/* small grey caption indicating the count of ignored folders */}
+              <div className="text-sm text-gray-500">
+                {ignoredFolders.length} ignored folder
+                {ignoredFolders.length > 1 ? 's' : ''}
+              </div>
             </div>
           </div>
         </div>
