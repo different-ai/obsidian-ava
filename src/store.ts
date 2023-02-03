@@ -34,6 +34,7 @@ export const store = create<State>((set) => ({
     vaultId: '',
     userId: '',
     experimental: false,
+    ignoredFolders: [],
   },
   // used to dispaly loading state in the sidebar
   loadingEmbeds: false,
