@@ -206,8 +206,8 @@ export default class AvaPlugin extends Plugin {
     try {
       let files = await getCompleteFiles(this.app);
       files = files
-          // filter out files in ignored folders
-          .filter((file) => !isIgnored(this.settings?.ignoredFolders, file.path))
+        // filter out files in ignored folders
+        .filter((file) => !isIgnored(this.settings?.ignoredFolders, file.path))
       console.log('Ava - Indexing vault with', files);
       // display message estimating indexing time according to number of notes
       // 1000 notes = 4 seconds
@@ -216,11 +216,11 @@ export default class AvaPlugin extends Plugin {
       // 10000 notes = 40 seconds
       new Notice(
         'Search - Indexing vault...' +
-          (files.length > 1000
-            ? ' (your vault is large, this may take a while,' +
-              // display in seconds
-              `estimated time: ${Math.round(files.length / 250)}s)`
-            : ''),
+        (files.length > 1000
+          ? ' (your vault is large, this may take a while,' +
+          // display in seconds
+          `estimated time: ${Math.round(files.length / 250)}s)`
+          : ''),
         2000
       );
 
@@ -250,8 +250,8 @@ export default class AvaPlugin extends Plugin {
             ).then(() => {
               new Notice(
                 'Search - Vault indexing in progress, ' +
-                  batch.length +
-                  ' files indexed',
+                batch.length +
+                ' files indexed',
                 2000
               );
             })
@@ -393,6 +393,74 @@ export default class AvaPlugin extends Plugin {
       }
     });
   }
+
+  private getEditor() {
+    const view = this.app.workspace.getActiveViewOfType(MarkdownView);
+    if (!view) {
+      // View can be null some times. Can't do anything in this case.
+    } else {
+      const viewMode = view.getMode(); // "preview" or "source" (can also be "live" but I don't know when that happens)
+      switch (viewMode) {
+        case "preview":
+          // The leaf is in preview mode, which makes things difficult.
+          // I don't know how to get the selection when the editor is in preview mode :(
+          break;
+        case "source":
+          // Ensure that view.editor exists!
+          if ("editor" in view) {
+            // Good, it exists.
+            return view.editor;
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+
+  private async generateLink(editor?: Editor) {
+    if (!this.settings.useLinks) {
+      new Notice('🧙 Link - You need to enable links in settings', 3000);
+      return;
+    }
+    if (!this.settings.token) {
+      new Notice('🧙 You need to login to use this feature', 3000);
+      return;
+    }
+    if (store.getState().linksStatus !== 'running') {
+      new Notice(
+        '🧙 Link - Links is not running, ' +
+        'please start it first in the setings',
+        3000
+      );
+      return;
+    }
+    new Notice('🧙 Link - Searching for related notes⏰');
+    this.displayLinkSidebar();
+    store.setState({ editorContext: editor || this.getEditor(), loadingEmbeds: true });
+    this.statusBarItem.render(<StatusBar status="loading" />);
+
+    const file = this.app.workspace.getActiveFile();
+    const currentText = await this.app.vault.read(file);
+    const tags = this.app.metadataCache.getFileCache(file).tags || [];
+    const tagsArray = tags.map((tag) => tag.tag);
+    const path = file.path;
+
+    // we need to do this so we can fire /search inside of the sidebar later
+    store.setState({
+      currentFileContent: currentText,
+      currentFilePath: path,
+      currentFileTags: tagsArray,
+    });
+
+    const results = await this.link(currentText, tagsArray, path);
+    if (results) {
+      store.setState({ embeds: results });
+    }
+    store.setState({ loadingEmbeds: false });
+    this.statusBarItem.render(<StatusBar status="success" />);
+  }
+
   // eslint-disable-next-line require-jsdoc
   async onload() {
     addIcon('ava', iconAva);
@@ -402,6 +470,9 @@ export default class AvaPlugin extends Plugin {
       this.app.vault.adapter.write(n, tutorial).then(() => {
         this.app.workspace.openLinkText(n, n);
       });
+    });
+    this.addRibbonIcon('link', 'Ava 🧙 Link', () => {
+      this.generateLink();
     });
     await this.loadSettings();
     console.log('Ava version', this.manifest.version);
@@ -672,46 +743,7 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-generate-link',
         name: 'Generate Link',
         editorCallback: async (editor: Editor) => {
-          if (!this.settings.useLinks) {
-            new Notice('🧙 Link - You need to enable links in settings', 3000);
-            return;
-          }
-          if (!this.settings.token) {
-            new Notice('🧙 You need to login to use this feature', 3000);
-            return;
-          }
-          if (store.getState().linksStatus !== 'running') {
-            new Notice(
-              '🧙 Link - Links is not running, ' +
-                'please start it first in the setings',
-              3000
-            );
-            return;
-          }
-          new Notice('🧙 Link - Searching for related notes⏰');
-          this.displayLinkSidebar();
-          store.setState({ editorContext: editor, loadingEmbeds: true });
-          this.statusBarItem.render(<StatusBar status="loading" />);
-
-          const file = this.app.workspace.getActiveFile();
-          const currentText = await this.app.vault.read(file);
-          const tags = this.app.metadataCache.getFileCache(file).tags || [];
-          const tagsArray = tags.map((tag) => tag.tag);
-          const path = file.path;
-
-          // we need to do this so we can fire /search inside of the sidebar later
-          store.setState({
-            currentFileContent: currentText,
-            currentFilePath: path,
-            currentFileTags: tagsArray,
-          });
-
-          const results = await this.link(currentText, tagsArray, path);
-          if (results) {
-            store.setState({ embeds: results });
-          }
-          store.setState({ loadingEmbeds: false });
-          this.statusBarItem.render(<StatusBar status="success" />);
+          this.generateLink(editor);
         },
       });
 
