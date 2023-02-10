@@ -1,15 +1,16 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
+import { Notice } from 'obsidian';
 import { posthog } from 'posthog-js';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { PrimaryButton } from './Button';
-import { API_HOST } from './constants';
+import { EMBEDBASE_URL } from './constants';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { useApp } from './hooks';
 import { InsertButton } from './InsertButton';
 import { store } from './store';
-import { camelize, ISearchBody } from './utils';
+import { camelize } from './utils';
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -90,34 +91,40 @@ const ControlForm = () => {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
 
   const onSubmit = async (data: { limit: number; useNoteTitle: boolean }) => {
+    if (!state.settings.useLinks) {
+      new Notice('🧙 Link - You need to enable links in settings', 3000);
+      return;
+    }
+    if (!state.settings.token) {
+      new Notice('🧙 You need to login to use this feature', 3000);
+      return;
+    }
     posthog.capture('use-feature', {
       feature: 'search',
       limit: data.limit,
     });
     state.setEmbedsLoading(true);
 
-    const body: ISearchBody = {
-      // parenthese are needed for the ternary operator to work
-      query:
-        (data.useNoteTitle ? `File:\n${state.currentFilePath}\n` : '') +
-        `Content:\n${state.currentFileContent}`,
-      vault_id: state.settings.vaultId,
-      top_k: Number(data.limit),
-    };
-    const url = posthog.isFeatureEnabled('new-search') ?
-      `https://obsidian-search-dev-c6txy76x2q-uc.a.run.app/v1/search` :
-      `${API_HOST}/v1/search`;
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${state.settings.token}`,
-        'X-Client-Version': state.version,
-      },
-      body: JSON.stringify(body),
-    }).then((res) => res.json());
+    const response = await fetch(`${EMBEDBASE_URL}/v1/${state.settings.vaultId}/search`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${state.settings.token}`,
+          'X-Client-Version': state.version,
+        },
+        body: JSON.stringify({
+          // parenthese are needed for the ternary operator to work
+          query:
+            (data.useNoteTitle ? `File:\n${state.currentFilePath}\n` : '') +
+            `Content:\n${state.currentFileContent}`,
+          top_k: Number(data.limit),
+        }),
+      }).then((res) => res.json());
 
-    const embeds = camelize(response.similarities);
+    const embeds = camelize(response.similarities.filter(
+      (similarity: any) =>
+        similarity.id !== state.currentFilePath
+    ));
 
     state.setEmbedsLoading(false);
     /* @ts-expect-error need to work on better types */
@@ -194,7 +201,7 @@ export function LinkComponent() {
     // get the top value
     const topValue = embeds[0].score;
     const results = embeds.map((embed) => {
-      const [path, similarity] = [embed.notePath, embed.score];
+      const [path, similarity] = [embed.id, embed.score];
       const opacity = sCurve(similarity, threshold, topValue);
 
       return {
@@ -206,7 +213,6 @@ export function LinkComponent() {
     });
     setResults(results);
   }, [embeds, threshold]);
-
   const textToInsert = `${results
     .map((similarity) => '- [[' + similarity?.path?.replace('.md', '') + ']]')
     .join('\n')}`;

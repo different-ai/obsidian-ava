@@ -8,7 +8,7 @@ import {
   Plugin,
   PluginSettingTab,
   TFile,
-  WorkspaceLeaf,
+  WorkspaceLeaf
 } from 'obsidian';
 
 import * as React from 'react';
@@ -17,7 +17,7 @@ import { CustomSettings } from './Settings';
 import {
   createImage,
   RequestImageCreate,
-  ResponseImageCreate,
+  ResponseImageCreate
 } from './stableDiffusion';
 import { StatusBar } from './StatusBar';
 import {
@@ -25,18 +25,16 @@ import {
   complete,
   createParagraph,
   createSemanticLinks,
+  deleteFromIndex,
   EMBED_CHAR_LIMIT,
   getCompleteFiles,
   getLinkData,
   getVaultId,
   ICompletion,
-  ISearchData,
-  ISearchRequest,
-  refreshSemanticSearch,
-  rewrite,
+  ISearchRequest, ISearchResponse, rewrite,
   REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
   search,
-  suggestTags,
+  suggestTags, syncIndex
 } from './utils';
 
 import posthog from 'posthog-js';
@@ -135,7 +133,7 @@ export default class AvaPlugin extends Plugin {
   ```
   */
 
-  public search: (request: ISearchRequest) => Promise<ISearchData>;
+  public search: (request: ISearchRequest) => Promise<ISearchResponse>;
   public clearIndex: () => Promise<any>;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
@@ -148,7 +146,7 @@ export default class AvaPlugin extends Plugin {
     this.streamingSource = source;
   }
 
-  private async link(currentText: string, tags: string[], path: string) {
+  private async link(currentText: string, path: string) {
     if (currentText.length > EMBED_CHAR_LIMIT) {
       new Notice(
         'Link - Note is too long. 🧙 AVA  only supports notes that are up to 25k characters'
@@ -160,10 +158,9 @@ export default class AvaPlugin extends Plugin {
       completion = await createSemanticLinks(
         path,
         currentText,
-        tags,
         this.settings?.token,
         this.settings.vaultId,
-        this.manifest.version
+        this.manifest.version,
       );
 
       this.statusBarItem.render(<StatusBar status="disabled" />);
@@ -238,11 +235,10 @@ export default class AvaPlugin extends Plugin {
             return acc;
           }, [])
           .map((batch) =>
-            refreshSemanticSearch(
+            syncIndex(
               batch.map((file: any) => ({
-                notePath: file.path,
-                noteTags: file.tags,
-                noteContent: file.content,
+                id: file.path,
+                data: `File:\n${file.path}\nContent:\n${file.content}`
               })),
               this.settings?.token,
               this.settings?.vaultId,
@@ -312,12 +308,11 @@ export default class AvaPlugin extends Plugin {
             if (!cache) return setLastFile(leaf);
             this.app.vault.adapter.read(this.lastFile.path).then((data) => {
               if (!this.lastFile) return setLastFile(leaf);
-              refreshSemanticSearch(
+              syncIndex(
                 [
                   {
-                    notePath: this.lastFile.path,
-                    noteTags: cache.tags?.map((tag) => tag.tag) || [],
-                    noteContent: data,
+                    id: this.lastFile.path,
+                    data: `File:\n${this.lastFile.path}\nContent:\n${data}`
                   },
                 ],
                 this.settings?.token,
@@ -344,18 +339,20 @@ export default class AvaPlugin extends Plugin {
         const f = file as TFile;
         // if file in ignored folder, ignore
         if (isIgnored(this.settings?.ignoredFolders, f.path)) return;
+        
         try {
+          if (oldPath) {
+            deleteFromIndex([oldPath], this.settings?.token, this.settings?.vaultId, this.manifest.version);
+          }
           if (!this.settings.useLinks) {
             this.unlistenToNoteEvents();
             return;
           }
-          refreshSemanticSearch(
+          syncIndex(
             [
               {
-                notePath: f.path,
-                noteTags: cache.tags?.map((tag) => tag.tag) || [],
-                noteContent: data,
-                pathToDelete: oldPath,
+                id: f.path,
+                data: `File:\n${f.path}\nContent:\n${data}`
               },
             ],
             this.settings?.token,
@@ -377,16 +374,7 @@ export default class AvaPlugin extends Plugin {
         }
         // if file in ignored folder, ignore
         if (isIgnored(this.settings?.ignoredFolders, file.path)) return;
-        refreshSemanticSearch(
-          [
-            {
-              pathToDelete: file.path,
-            },
-          ],
-          this.settings?.token,
-          this.settings.vaultId,
-          this.manifest.version
-        );
+        deleteFromIndex([file.path], this.settings?.token, this.settings?.vaultId, this.manifest.version);
       } catch (e) {
         onGeneralError(e);
         this.unlistenToNoteEvents();
@@ -442,18 +430,15 @@ export default class AvaPlugin extends Plugin {
 
     const file = this.app.workspace.getActiveFile();
     const currentText = await this.app.vault.read(file);
-    const tags = this.app.metadataCache.getFileCache(file).tags || [];
-    const tagsArray = tags.map((tag) => tag.tag);
     const path = file.path;
 
     // we need to do this so we can fire /search inside of the sidebar later
     store.setState({
       currentFileContent: currentText,
       currentFilePath: path,
-      currentFileTags: tagsArray,
     });
 
-    const results = await this.link(currentText, tagsArray, path);
+    const results = await this.link(currentText, path);
     if (results) {
       store.setState({ embeds: results });
     }
@@ -523,7 +508,7 @@ export default class AvaPlugin extends Plugin {
           req,
           this.settings.token,
           this.settings.vaultId,
-          this.manifest.version
+          this.manifest.version,
         );
       this.clearIndex = () =>
         clearIndex(
@@ -877,6 +862,8 @@ export default class AvaPlugin extends Plugin {
   onunload(): void {
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_LINK);
     this.app.workspace.detachLeavesOfType(VIEW_TYPE_WRITE);
+    // TODO: skip when local development (annoying have to index every time I change a line of code)
+    // TODO: careful not using node stuff for mobile?
     this.unlistenToNoteEvents();
   }
 }
