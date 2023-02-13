@@ -8,7 +8,7 @@ import {
   Plugin,
   PluginSettingTab,
   TFile,
-  WorkspaceLeaf
+  WorkspaceLeaf,
 } from 'obsidian';
 
 import * as React from 'react';
@@ -17,7 +17,7 @@ import { CustomSettings } from './Settings';
 import {
   createImage,
   RequestImageCreate,
-  ResponseImageCreate
+  ResponseImageCreate,
 } from './stableDiffusion';
 import { StatusBar } from './StatusBar';
 import {
@@ -31,10 +31,13 @@ import {
   getLinkData,
   getVaultId,
   ICompletion,
-  ISearchRequest, ISearchResponse, rewrite,
+  ISearchRequest,
+  ISearchResponse,
+  rewrite,
   REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
   search,
-  suggestTags, syncIndex
+  suggestTags,
+  syncIndex,
 } from './utils';
 
 import posthog from 'posthog-js';
@@ -59,7 +62,7 @@ const isIgnored = (ignoredFolders: string[], path: string) => {
     return regex.test(path);
   });
   return ignored;
-}
+};
 
 const onGeneralError = (e: any) => {
   console.error(e);
@@ -160,7 +163,7 @@ export default class AvaPlugin extends Plugin {
         currentText,
         this.settings?.token,
         this.settings.vaultId,
-        this.manifest.version,
+        this.manifest.version
       );
 
       this.statusBarItem.render(<StatusBar status="disabled" />);
@@ -204,7 +207,7 @@ export default class AvaPlugin extends Plugin {
       let files = await getCompleteFiles(this.app);
       files = files
         // filter out files in ignored folders
-        .filter((file) => !isIgnored(this.settings?.ignoredFolders, file.path))
+        .filter((file) => !isIgnored(this.settings?.ignoredFolders, file.path));
       console.log('Ava - Indexing vault with', files);
       // display message estimating indexing time according to number of notes
       // 1000 notes = 4 seconds
@@ -213,11 +216,11 @@ export default class AvaPlugin extends Plugin {
       // 10000 notes = 40 seconds
       new Notice(
         'Search - Indexing vault...' +
-        (files.length > 1000
-          ? ' (your vault is large, this may take a while,' +
-          // display in seconds
-          `estimated time: ${Math.round(files.length / 250)}s)`
-          : ''),
+          (files.length > 1000
+            ? ' (your vault is large, this may take a while,' +
+              // display in seconds
+              `estimated time: ${Math.round(files.length / 250)}s)`
+            : ''),
         2000
       );
 
@@ -238,7 +241,7 @@ export default class AvaPlugin extends Plugin {
             syncIndex(
               batch.map((file: any) => ({
                 id: file.path,
-                data: `File:\n${file.path}\nContent:\n${file.content}`
+                data: `File:\n${file.path}\nContent:\n${file.content}`,
               })),
               this.settings?.token,
               this.settings?.vaultId,
@@ -246,8 +249,8 @@ export default class AvaPlugin extends Plugin {
             ).then(() => {
               new Notice(
                 'Search - Vault indexing in progress, ' +
-                batch.length +
-                ' files indexed',
+                  batch.length +
+                  ' files indexed',
                 2000
               );
             })
@@ -289,7 +292,7 @@ export default class AvaPlugin extends Plugin {
       } else {
         this.lastFile = undefined;
       }
-    }
+    };
     this.eventRefActiveLeafChanged = this.app.workspace.on(
       'active-leaf-change',
       (leaf) => {
@@ -312,7 +315,7 @@ export default class AvaPlugin extends Plugin {
                 [
                   {
                     id: this.lastFile.path,
-                    data: `File:\n${this.lastFile.path}\nContent:\n${data}`
+                    data: `File:\n${this.lastFile.path}\nContent:\n${data}`,
                   },
                 ],
                 this.settings?.token,
@@ -339,10 +342,15 @@ export default class AvaPlugin extends Plugin {
         const f = file as TFile;
         // if file in ignored folder, ignore
         if (isIgnored(this.settings?.ignoredFolders, f.path)) return;
-        
+
         try {
           if (oldPath) {
-            deleteFromIndex([oldPath], this.settings?.token, this.settings?.vaultId, this.manifest.version);
+            deleteFromIndex(
+              [oldPath],
+              this.settings?.token,
+              this.settings?.vaultId,
+              this.manifest.version
+            );
           }
           if (!this.settings.useLinks) {
             this.unlistenToNoteEvents();
@@ -352,7 +360,7 @@ export default class AvaPlugin extends Plugin {
             [
               {
                 id: f.path,
-                data: `File:\n${f.path}\nContent:\n${data}`
+                data: `File:\n${f.path}\nContent:\n${data}`,
               },
             ],
             this.settings?.token,
@@ -374,7 +382,12 @@ export default class AvaPlugin extends Plugin {
         }
         // if file in ignored folder, ignore
         if (isIgnored(this.settings?.ignoredFolders, file.path)) return;
-        deleteFromIndex([file.path], this.settings?.token, this.settings?.vaultId, this.manifest.version);
+        deleteFromIndex(
+          [file.path],
+          this.settings?.token,
+          this.settings?.vaultId,
+          this.manifest.version
+        );
       } catch (e) {
         onGeneralError(e);
         this.unlistenToNoteEvents();
@@ -389,13 +402,13 @@ export default class AvaPlugin extends Plugin {
     } else {
       const viewMode = view.getMode(); // "preview" or "source" (can also be "live" but I don't know when that happens)
       switch (viewMode) {
-        case "preview":
+        case 'preview':
           // The leaf is in preview mode, which makes things difficult.
           // I don't know how to get the selection when the editor is in preview mode :(
           break;
-        case "source":
+        case 'source':
           // Ensure that view.editor exists!
-          if ("editor" in view) {
+          if ('editor' in view) {
             // Good, it exists.
             return view.editor;
           }
@@ -418,14 +431,17 @@ export default class AvaPlugin extends Plugin {
     if (store.getState().linksStatus !== 'running') {
       new Notice(
         '🧙 Link - Links is not running, ' +
-        'please start it first in the setings',
+          'please start it first in the setings',
         3000
       );
       return;
     }
     new Notice('🧙 Link - Searching for related notes⏰');
     this.displayLinkSidebar();
-    store.setState({ editorContext: editor || this.getEditor(), loadingEmbeds: true });
+    store.setState({
+      editorContext: editor || this.getEditor(),
+      loadingEmbeds: true,
+    });
     this.statusBarItem.render(<StatusBar status="loading" />);
 
     const file = this.app.workspace.getActiveFile();
@@ -456,9 +472,13 @@ export default class AvaPlugin extends Plugin {
         this.app.workspace.openLinkText(n, n);
       });
     });
-    this.addRibbonIcon('link', 'Ava 🧙 Link', () => {
+    this.addRibbonIcon('link', 'Ava - Show Links', () => {
       this.generateLink();
     });
+    this.addRibbonIcon('wand', 'Ava - Open Rewrite Playground', () => {
+      this.displayWriteSidebar();
+    });
+
     await this.loadSettings();
     console.log('Ava version', this.manifest.version);
     posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
@@ -508,7 +528,7 @@ export default class AvaPlugin extends Plugin {
           req,
           this.settings.token,
           this.settings.vaultId,
-          this.manifest.version,
+          this.manifest.version
         );
       this.clearIndex = () =>
         clearIndex(

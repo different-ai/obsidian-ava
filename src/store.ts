@@ -12,6 +12,7 @@ type State = {
   content: string;
   editorContext: Editor;
   appendContentToRewrite: (content: string) => void;
+  replaceContentToRewrite: (content: string) => void;
   setEditorContext: (editor: Editor) => void;
   prompt: string;
   reset: () => void;
@@ -62,6 +63,9 @@ export const store = create<State>((set) => ({
   appendContentToRewrite: (content: string) => {
     console.log(content);
     set((state) => ({ content: state.content + content }));
+  },
+  replaceContentToRewrite: (content: string) => {
+    set(() => ({ content: content }));
   },
   prompt: '',
   setPrompt: (prompt: string) => {

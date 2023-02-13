@@ -3,13 +3,12 @@ import { Notice } from 'obsidian';
 import posthog from 'posthog-js';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
 import { API_HOST, buildHeaders } from './constants';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { InsertButton } from './InsertButton';
 import { Spinner } from './StatusBar';
 import { store } from './store';
+import { Label, TextArea } from './TextArea';
 import { buildRewritePrompt, REWRITE_CHAR_LIMIT } from './utils';
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
@@ -106,61 +105,59 @@ export const WriteComponent = () => {
     posthog.capture('insert-write');
   };
 
+  const handleOnChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    store.getState().replaceContentToRewrite(e.target.value);
+  };
+
   return (
     <div className="select-text">
       <div className="text-xl font-semibold ">🧙 AVA Write</div>
       <form onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col mt-3">
-            <label htmlFor="" className="block text-sm font-medium">
-              Change text to
-            </label>
-            <div className="text-xs text-[var(--text-faint)] mb-1">
-              This will rewrite the text below
-            </div>
-            <input
-              type="text"
-              className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-full"
-              defaultValue={state.prompt}
-              {...register('alteration', { required: true })}
+          <div className="flex gap-3 my-3">
+            <CopyToClipboardButton
+              disabled={disableButtons}
+              text={state.content}
+              extraOnClick={trackCopy}
             />
-            <button
-              className="font-bold py-2 px-4 rounded inline-flex items-center mod-cta mt-1"
-              type="submit"
-            >
-              <span>Rewrite</span>
-            </button>
+            <InsertButton
+              disabled={disableButtons}
+              editorContext={state.editorContext}
+              text={state.content}
+              extraOnClick={trackInsert}
+            />
           </div>
+
+          <Label>Playground</Label>
+          <TextArea
+            placeholder="Some text that you want to alter"
+            // unfortunately we need to use trimStart using `.trim()` makes it impossible to append any text
+            value={state.content?.trimStart()}
+            onChange={handleOnChange}
+          />
+        </div>
+        <div className="flex flex-col mt-3">
+          <Label>Transform playground text</Label>
+          <input
+            type="text"
+            className="block rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm w-full"
+            defaultValue={state.prompt}
+            {...register('alteration', { required: true })}
+          />
+          <button
+            className="font-bold py-2 px-4 rounded inline-flex items-center mod-cta mt-1"
+            type="submit"
+          >
+            {!state.loadingContent && <span>Rewrite</span>}
+            {state.loadingContent && (
+              <div className="flex gap-3">
+                <div>Casting a spell...</div>
+                <Spinner className="h-4 w-4" />
+              </div>
+            )}
+          </button>
         </div>
       </form>
-      <div className="flex gap-3 my-3">
-        <CopyToClipboardButton
-          disabled={disableButtons}
-          text={state.content}
-          extraOnClick={trackCopy}
-        />
-        <InsertButton
-          disabled={disableButtons}
-          editorContext={state.editorContext}
-          text={state.content}
-          extraOnClick={trackInsert}
-        />
-      </div>
-
-      {state.loadingContent && (
-        <div className="flex gap-3">
-          <div>Casting a spell...</div>
-          <Spinner className="h-4 w-4" />
-        </div>
-      )}
-
-      {!state.loadingContent && state.content === '' && (
-        <div className="flex justify-center items-center flex-col gap-3 h-full">
-          <div>Nothing to show. Try cmd + p and type rewrite to see 🧙</div>
-        </div>
-      )}
-
-      <ReactMarkdown remarkPlugins={[remarkGfm]}>{state.content}</ReactMarkdown>
     </div>
   );
 };
