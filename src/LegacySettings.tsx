@@ -1,6 +1,7 @@
 import { Notice, TFolder } from 'obsidian';
 import posthog from 'posthog-js';
 import * as React from 'react';
+import { PrimaryButton, SecondaryButton } from './Button';
 import AvaPlugin from './main';
 import { Spinner } from './StatusBar';
 import { store } from './store';
@@ -32,10 +33,15 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   const [isDebug, setDebug] = React.useState(state.settings.debug);
   const [isLoading, setIsLoading] = React.useState(false);
   const [usage, setUsage] = React.useState<any | undefined>([]);
-  const [isExperimental, setExperimental] = React.useState(state.settings.experimental);
+  const [isExperimental, setExperimental] = React.useState(
+    state.settings.experimental
+  );
   const [folderList, setFolderList] = React.useState<string[]>([]);
-  const [ignoredFolders, setIgnoredFolders] = React.useState<string[]>(state.settings.ignoredFolders);
-  const [ignoredFolderInput, setIgnoredFolderInput] = React.useState<string>('');
+  const [ignoredFolders, setIgnoredFolders] = React.useState<string[]>(
+    state.settings.ignoredFolders
+  );
+  const [ignoredFolderInput, setIgnoredFolderInput] =
+    React.useState<string>('');
   const showAdvancedSettings = isDebug;
 
   React.useEffect(() => {
@@ -52,8 +58,10 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   }, []);
 
   React.useEffect(() => {
-    const f = app.vault.getAllLoadedFiles().filter((i: TFolder) =>
-      i.children).map(folder => folder.path);
+    const f = app.vault
+      .getAllLoadedFiles()
+      .filter((i: TFolder) => i.children)
+      .map((folder) => folder.path);
     setFolderList(f);
   }, []);
 
@@ -126,7 +134,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
     setIgnoredFolderInput('');
   };
   const handleRemoveIgnoredFolder = (folder: string) => {
-    const v = ignoredFolders.filter(i => i !== folder);
+    const v = ignoredFolders.filter((i) => i !== folder);
     plugin.settings.ignoredFolders = v;
     plugin.saveSettings();
     setIgnoredFolders(v);
@@ -141,8 +149,9 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
         {usage &&
           state.settings.token &&
           Object.keys(usage).map((key: string) => {
-            let percentageAsNumber =
-              Math.round((usage[key].split('/')[0] / usage[key].split('/')[1]) * 100);
+            let percentageAsNumber = Math.round(
+              (usage[key].split('/')[0] / usage[key].split('/')[1]) * 100
+            );
             // HACK for admin accounts
             if (percentageAsNumber > 100) percentageAsNumber = 100;
             const percentage = `${percentageAsNumber}%`;
@@ -172,7 +181,7 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
         <div className="flex items-start">
           {/* horizontal list of an input and a button - with spacing between children */}
           <div className="flex flex-col">
-            <div className="flex items-center my-3">
+            <div className="flex items-center mt-3">
               <div className="text-2xl font-bold">🧙 Links</div>
               <div className="ml-3 text-sm">
                 <div className="flex items-center">
@@ -212,36 +221,80 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
               </div>
             </div>
             {/* use caption for feature description */}
-            <p>
+            <p className="">
               Link is a powerful feature that allows to link independent notes
               based on their content.
             </p>
+            <PrimaryButton
+              className="max-w-max mb-3"
+              onClick={() => enableLinks(!useLinks)}
+              disabled={plugin.settings.token === ''}
+            >
+              {useLinks ? 'Disable Links' : 'Enable Links'}
+            </PrimaryButton>
+
+            <div className="flex flex-col gap-3 w-[300px]">
+              <div className="flex flex-col gap-3">
+                <div className="flex gap-3 items-end">
+                  <div>
+                    <label className="block pb-1 text-sm font-medium text-gray-700">
+                      Ignore Folders
+                    </label>
+
+                    <input
+                      type="text"
+                      className="border border-gray-300 rounded-md"
+                      placeholder="Folder name"
+                      value={ignoredFolderInput}
+                      onChange={(e) => setIgnoredFolderInput(e.target.value)}
+                    />
+                  </div>
+                  <SecondaryButton
+                    className={'rounded border-gray-300'}
+                    onClick={handleIgnoredFolderInput}
+                  >
+                    Add
+                  </SecondaryButton>
+                </div>
+                {/* horizontal list with an horizontal list & a right arrow icon at the end */}
+                <div className="flex flex-row gap-3">
+                  {/* horizontal list of ignored folders, scrollable with max 3 items */}
+                  {/* hide scrollbar */}
+                  <div className="flex">
+                    {ignoredFolders.map((folder) => (
+                      // chip like deletable with icon button cursor pointer
+                      <div
+                        key={folder}
+                        className="flex items-center gap-3 justify-between text-xs text-[var(--text-muted)]"
+                      >
+                        <div>
+                          {folder.length > 10
+                            ? folder.substring(0, 10) + '...'
+                            : folder}{' '}
+                        </div>
+                        <div
+                          onClick={() => handleRemoveIgnoredFolder(folder)}
+                          aria-label={`Remove ${folder} from ignored folders`}
+                        >
+                          🗑️
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
             <div className="flex ">
-              <button
-                name="links"
-                className={
-                  'rounded border-gray-300 ' +
-                  // if not logged in (token is empty) change style
-                  (plugin.settings.token === ''
-                    ? 'cursor-not-allowed'
-                    : 'cursor-pointer')
-                }
-                onClick={() => enableLinks(!useLinks)}
-                disabled={plugin.settings.token === ''}
-              >
-                {useLinks ? 'Disable' : 'Enable'}
-              </button>
               {/*
             a green when 'running', yellow when 'loading'
             red when 'error' and grey blinking light when 'disabled'
             showing the status of Links
           */}
               {/* hovering the button show a tooltip */}
-              {/* hovering the button show a cursor pointer */}
               {!isLoading ? (
                 <button
-                  className="ml-3 text-sm cursor-pointer"
+                  className="text-sm cursor-pointer mt-3"
                   onClick={handleClearIndex}
                   aria-label="Clear 🧙 Links' index can be required if you notice some issue with links not working"
                 >
@@ -252,86 +305,12 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
               )}
             </div>
           </div>
-          {/* autocomplete search bar to ignore folders for indexing */}
-          {/* this div maximum size is fixed as it might grow with children */}
-          {/* TODO: a v2 would be a truly autocomplete search bar a la algolia */}
-          <div className="flex flex-col gap-3 w-[300px]">
-            <div className="text-xl font-bold">🔍 Ignore Folders</div>
-            <div className="flex flex-col gap-3">
-              <div className="flex flex-col gap-3">
-                <input
-                  type="text"
-                  className="border border-gray-300 rounded-md"
-                  placeholder="Folder name"
-                  value={ignoredFolderInput}
-                  onChange={(e) => setIgnoredFolderInput(e.target.value)}
-                />
-                <button
-                  className={"rounded border-gray-300" +
-                    // if the input is not a valid folder name
-                    // i.e. not found in folder list
-                    // show a disabled button style
-                    (!folderList.includes(ignoredFolderInput)
-                      ? ' cursor-not-allowed'
-                      : ' cursor-pointer')
-                  }
-                  // TODO: does not work somehow?
-                  aria-label={!folderList.includes(ignoredFolderInput)
-                    ? 'This folder does not exist'
-                    : 'Add folder to ignored folders'}
-                  onClick={handleIgnoredFolderInput}
-                  // disabled if the input is not a valid folder name
-                  // i.e. not found in folder list
-                  disabled={!folderList.includes(ignoredFolderInput)}
-                >
-                  Add
-                </button>
-              </div>
-              {/* horizontal list with an horizontal list & a right arrow icon at the end */}
-              <div className="flex flex-row gap-3">
-                {/* horizontal list of ignored folders, scrollable with max 3 items */}
-                {/* hide scrollbar */}
-                <div className="flex flex-row gap-3 overflow-x-auto max-h-12 no-scrollbar"> 
-                  {ignoredFolders.map((folder) => (
-                    // chip like deletable with icon button cursor pointer
-                    <div key={folder} className="flex items-center gap-3">
-                      <button
-                        className="rounded border-gray-300 cursor-pointer"
-                        aria-label={`Remove ${folder} from ignored folders`}
-                        onClick={() => handleRemoveIgnoredFolder(folder)}
-                      >
-                        {/* overflow ellipsis */}
-                        {folder.length > 10
-                          ? folder.substring(0, 10) + '...'
-                          : folder} 🗑️
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                {/* 
-                  show a right arrow icon ➡️ at the end to indicate that there are more
-                  ignored folders to scroll to
-                */}
-                <div className="flex items-center">
-                  <div className="flex items-center gap-3">
-                    <div className="text-gray-500">➡️</div>
-                  </div>
-                </div>
-              </div>
-                
-              {/* small grey caption indicating the count of ignored folders */}
-              <div className="text-sm text-gray-500">
-                {ignoredFolders.length} ignored folder
-                {ignoredFolders.length > 1 ? 's' : ''}
-              </div>
-            </div>
-          </div>
         </div>
       )}
       <div className="">
-        <div className="text-xl font-bold my-8">Advanced Settings</div>
-        <div className="flex flex-row justify-around">
-          <div className="flex h-5 items-center">
+        <div className="text-xl font-bold mt-8 mb-3">Advanced Settings</div>
+        <div className="flex flex-col gap-3">
+          <div className="flex  items-center">
             <input
               aria-describedby="comments-description"
               name="comments"
@@ -361,7 +340,10 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
               checked={isExperimental}
             />
             <div className="ml-3 text-sm">
-              <label htmlFor="experimental" className="font-medium cursor-pointer">
+              <label
+                htmlFor="experimental"
+                className="font-medium cursor-pointer"
+              >
                 Experimental features
                 <div id="experimental-description" className="text-gray-500">
                   ⚠️ Can break your vault, to be used with caution ⚠️
