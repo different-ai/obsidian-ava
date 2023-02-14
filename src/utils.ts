@@ -348,23 +348,15 @@ export const openApp = async (vaultId: string) => {
 };
 
 export async function getLinkData(vaultId: string) {
-  // TODO: ship for everyone in next release
-  const response = posthog.isFeatureEnabled('new-auth')
-    ? await fetch(
-      `https://auth-c6txy76x2q-uc.a.run.app?token=${vaultId}&service=obsidian`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      }
-    )
-    : await fetch(`${baseURL}/api/auth?token=${vaultId}&service=obsidian`, {
+  const response = await fetch(
+    `https://auth-c6txy76x2q-uc.a.run.app?token=${vaultId}&service=obsidian`,
+    {
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        mode: 'cors',
       },
-    });
+    }
+  );
   const data: LinkData = await response.json();
   return data;
 }
