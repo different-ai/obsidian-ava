@@ -1,9 +1,7 @@
-import { SSE } from 'lib/sse';
 import { Notice } from 'obsidian';
 import posthog from 'posthog-js';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
-import { API_HOST, buildHeaders } from './constants';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { InsertButton } from './InsertButton';
 import { Spinner } from './StatusBar';
@@ -20,6 +18,7 @@ export const WriteComponent = () => {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const { register, handleSubmit, setValue } = useForm();
   const onSubmit = async (data: { content: string; alteration: string }) => {
+    const { content, alteration } = data;
     if (!state.settings.token) {
       new Notice('🧙 You need to login to use this feature', 2000);
       return;
@@ -51,46 +50,45 @@ export const WriteComponent = () => {
     store.setState({ loadingContent: true });
 
     try {
-      const p = buildRewritePrompt(data.content, data.alteration);
-      console.log('prompt', p);
-      const streamingSource = new SSE(`${API_HOST}/v1/text/create`, {
-        headers: buildHeaders(state.settings.token, state.version),
-        method: 'POST',
-        payload: JSON.stringify({
-          prompt: p,
-          max_tokens: 2000,
-          stream: true,
-          temperature: 0.7,
-          model: 'text-davinci-003',
-        }),
-      });
-      const onSSEError = (e: any) => {
-        let m = 'Internal Server Error';
-        try {
-          m = JSON.parse(e.data).message;
-        } catch (e) {
-          console.error(e);
+      const p = buildRewritePrompt(content, alteration);
+      console.log(p);
+      const response = await fetch(
+        'https://use-vercel-gpt-stream.vercel.app/api/generate',
+        {
+          method: 'POST',
+          headers: {},
+          mode: 'cors',
+          body: JSON.stringify({
+            prompt: p,
+          }),
         }
-        new Notice(`️⛔️ AVA ${m}`, 4000);
-        store.setState({ loadingContent: false });
-      };
-      streamingSource.addEventListener('error', onSSEError);
+      );
+      console.log('Edge function returned.');
 
-      streamingSource.addEventListener('message', function (e: any) {
-        // this is bad because it will triger react re-renders
-        // careful if you modify it, it's a bit harder to get the behavior right
-        store.setState({ loadingContent: true });
-        const payload = JSON.parse(e.data);
-        // TODO: do we need this?
-        // store.getState().setPrompt(`Rewrite to ${prompt}`);
-        // store.getState().setEditorContext(editor);
-        store.getState().appendContentToRewrite(payload.choices[0].text);
-        store.setState({ loadingContent: false });
-      });
-      streamingSource.stream();
-      // this.statusBarItem.render(<StatusBar status="success" />);
+      if (!response.ok) {
+        throw new Error(response.statusText);
+      }
+
+      // This data is a ReadableStream
+      const data = response.body;
+      if (!data) {
+        return;
+      }
+
+      const reader = data.getReader();
+      const decoder = new TextDecoder();
+      let done = false;
+
+      while (!done) {
+        const { value, done: doneReading } = await reader.read();
+        done = doneReading;
+        const chunkValue = decoder.decode(value);
+        console.log(chunkValue);
+        store.getState().appendContentToRewrite(chunkValue);
+      }
     } catch (e) {
       console.error(e);
+    } finally {
       store.setState({ loadingContent: false });
     }
   };
