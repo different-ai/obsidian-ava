@@ -13,7 +13,6 @@ export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
   disabled?: boolean;
 }
-
 export const WriteComponent = () => {
   const state = React.useSyncExternalStore(store.subscribe, store.getState);
   const { register, handleSubmit, setValue } = useForm();
@@ -86,11 +85,25 @@ export const WriteComponent = () => {
       let done = false;
 
       while (!done) {
+        // get date time for control flow
+
+        const slowDownValue = 80;
+        const start = Date.now();
+
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
         const chunkValue = decoder.decode(value);
         console.log(chunkValue);
-        store.getState().appendContentToRewrite(chunkValue);
+        store.setState((state) => ({
+          content: state.content + chunkValue,
+        }));
+        const timeTaken = Date.now() - start;
+        // if it's less than 100ms, calculate time between 100ms and 100ms - timeTaken
+        if (timeTaken < slowDownValue) {
+          console.log('before wait');
+          await sleep(slowDownValue - timeTaken);
+          console.log('after wait');
+        }
       }
     } catch (e) {
       console.error(e);
