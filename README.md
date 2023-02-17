@@ -69,6 +69,10 @@ We recommend you to try Ava's tutorial that you can find here:
 
 > Reach out to ben@prologe.io. We'll personally help you install it.
 
+## How does it work?
+
+Ava is powered by [Embedbase, the open-source API to easily create, store, and retrieve embeddings](https://github.com/another-ai/embedbase-ava).
+
 ## Technical Limitations
 
 - [link feature](https://github.com/louis030195/obsidian-ava/blob/main/README.md#connect-the-dots-leverage-your-knowledge) does not index very large notes yet
