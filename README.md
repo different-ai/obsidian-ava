@@ -1,5 +1,5 @@
 
-# AVA - Quickly format your notes with ChatGPT in Obsidian
+# AVA - AI assistant for Obsidian
 
 > Unlock the full potential of Obsidian Notes and take your productivity to the next level.
 
