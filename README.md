@@ -1,17 +1,23 @@
-⛔️ Make sure you're running the latest version we do major updates weekly!⛔️
 
 # AVA - Quickly format your notes with ChatGPT in Obsidian
 
-[![Discord](https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white)](https://discord.gg/DYE6VFTJET)
+> Unlock the full potential of Obsidian Notes and take your productivity to the next level.
 
-Unlock the full potential of Obsidian Notes and take your productivity to the next level.
+### Stack
 
-- [Create blog posts](https://github.com/louis030195/obsidian-ava/blob/main/README.md#generate-meaningful-text-from-your-notes)
-- [Rewrite paragraphs with ease](https://github.com/louis030195/obsidian-ava/blob/main/README.md#write-rewrite)
+- [Embedbase (OpenAI embeddings + Pinecone)](https://github.com/another-ai/embedbase) for linking
+- FastAPI
+
+### What can you do with AVA?
+
+- [Generate blog posts](https://github.com/louis030195/obsidian-ava/blob/main/README.md#generate-meaningful-text-from-your-notes)
+- [Auto-format paragraphs](https://github.com/louis030195/obsidian-ava/blob/main/README.md#write-rewrite)
 - [Link related notes](https://github.com/louis030195/obsidian-ava/blob/main/README.md#connect-the-dots-leverage-your-knowledge)
 - [Generate stunning visualizations](https://github.com/louis030195/obsidian-ava/blob/main/README.md#create-images-from-selected-text)
 
 https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-9c23-7f6d97252edb.mp4
+
+
 
 ### Generate meaningful text from your notes.
 
