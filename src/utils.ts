@@ -107,9 +107,7 @@ export const complete = async (
 ): Promise<any | string> => {
   // TODO: back-end
   prompt = prompt.trim();
-  console.log('Prompt:', prompt);
   const stream = options?.stream !== undefined ? options?.stream : true;
-  console.log('Options:', options, 'Stream:', stream);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = {

@@ -880,6 +880,7 @@ export default class AvaPlugin extends Plugin {
                 this.settings.token,
                 this.settings.vaultId,
                 this.manifest.version,
+                app,
               )
             );
             this.streamingSource.addEventListener(
