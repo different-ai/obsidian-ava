@@ -49,6 +49,7 @@ import { RewriteModal } from './RewriteModal';
 import { store } from './store';
 import { tutorial } from './tutorial';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
+import { generativeSearch } from './prompt';
 
 // e.g. ["Buddhism/Veganism"]
 // path: "Buddhism/Veganism/2021-01-01.md" should be ignored
@@ -125,18 +126,14 @@ export default class AvaPlugin extends Plugin {
    * Semantically search your vault
    * Example:
    ```ts
-    const response = await search({
-      note: {
-        notePath: 'path/to/note.md',
-        noteContent: 'text of the note',
-        noteTags: ['tag1', 'tag2'],
-      },
-    });
+    const response = await search(
+      'the note disccusing the white horse of Henry VIII'
+    );
     console.log(response);
   ```
   */
 
-  public search: (request: ISearchRequest) => Promise<ISearchResponse>;
+  public search: (query: string) => Promise<ISearchResponse>;
   public clearIndex: () => Promise<any>;
   private eventRefRenamed: EventRef;
   private eventRefDeleted: EventRef;
@@ -861,6 +858,60 @@ export default class AvaPlugin extends Plugin {
       // This adds a settings tab so the user
       // can configure various aspects of the plugin
       this.addSettingTab(new AvaSettingTab(this.app, this));
+    });
+
+    this.addCommand({
+      id: 'ava-generative-search',
+      name: 'Ask',
+      editorCallback: (editor: Editor) => {
+        posthog.capture('use-feature', { feature: 'ask' });
+        new Notice('🧙 Asking your vault', 2000);
+        if (!this.settings.token) {
+          new Notice('🧙 You need to login to use this feature', 2000);
+          return;
+        }
+
+        const onSubmit = async (text: string) => {
+          this.statusBarItem.render(<StatusBar status="loading" />);
+          try {
+            this.setStreamingSource(
+              await generativeSearch(
+                text,
+                this.settings.token,
+                this.settings.vaultId,
+                this.manifest.version,
+              )
+            );
+            this.streamingSource.addEventListener(
+              'message',
+              function (e: any) {
+                const payload = JSON.parse(e.data);
+                console.log(payload);
+                const currentLine = editor.getCursor().line;
+                const lastChar = editor.getLine(currentLine).length;
+                editor.setCursor({ line: currentLine, ch: lastChar });
+                editor.replaceRange(
+                  `${payload.choices[0].text}`,
+                  editor.getCursor()
+                );
+              }
+            );
+            this.streamingSource.addEventListener('error', onSSEError);
+            this.streamingSource.stream();
+            this.statusBarItem.render(<StatusBar status="success" />);
+          } catch (e) {
+            onGeneralError(e.message);
+            new Notice(`️⛔️ AVA ${e}`, 4000);
+            this.statusBarItem.render(<StatusBar status="error" />);
+          }
+        };
+
+        new PromptModal(this.app, onSubmit, {
+          heading: 'Ask your vault',
+          subheading: 'What do you want to know?',
+          button: 'Ask',
+        }).open();
+      },
     });
   }
 

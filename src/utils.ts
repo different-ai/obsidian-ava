@@ -1,7 +1,6 @@
 import { SSE } from 'lib/sse';
 import { camelCase, isArray, isObject, transform } from 'lodash';
 import { App } from 'obsidian';
-import posthog from 'posthog-js';
 import { API_HOST, buildHeaders, EMBEDBASE_URL } from './constants';
 import AvaPlugin from './main';
 
@@ -40,11 +39,12 @@ export interface ISearchResponse {
 export const REWRITE_CHAR_LIMIT = 5800;
 export const EMBED_CHAR_LIMIT = 25000;
 export const search = async (
-  request: ISearchRequest,
+  query: string,
   token: string,
   vaultId: string,
   version: string,
 ): Promise<ISearchResponse> => {
+  console.log('Search query:', query);
   const response = await fetch(`${EMBEDBASE_URL}/v1/${vaultId}/search`, {
     method: 'POST',
     headers: {
@@ -53,12 +53,13 @@ export const search = async (
       'X-Client-Version': version,
     },
     body: JSON.stringify({
-      query: request.query,
+      query: query,
     }),
   }).then((res) => res.json());
   if (response.message) {
     throw new Error(`Failed to search: ${response.message}`);
   }
+  console.log('Search response:', response);
   return response;
 };
 
@@ -70,9 +71,7 @@ export const createSemanticLinks = async (
   version: string,
 ) => {
   const response = await search(
-    {
-      query: `File:\n${title}\nContent:\n${text}`,
-    },
+    `File:\n${title}\nContent:\n${text}`,
     token,
     vaultId,
     version,
