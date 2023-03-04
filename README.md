@@ -14,6 +14,7 @@
 - [Auto-format paragraphs](https://github.com/louis030195/obsidian-ava/blob/main/README.md#write-rewrite)
 - [Link related notes](https://github.com/louis030195/obsidian-ava/blob/main/README.md#connect-the-dots-leverage-your-knowledge)
 - [Generate stunning visualizations](https://github.com/louis030195/obsidian-ava/blob/main/README.md#create-images-from-selected-text)
+- [Ask questions to your second brain](https://github.com/louis030195/obsidian-ava/blob/main/README.md#ask-questions)
 
 https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-9c23-7f6d97252edb.mp4
 
@@ -62,6 +63,15 @@ https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-
 2. Type: Generate Image
 
 ![images](https://user-images.githubusercontent.com/25003283/208254052-136f3fac-3ef6-46d5-85eb-73a4d249ffdf.gif)
+
+### Ask questions
+
+> **Ask questions to a ChatGPT that knows you better than you know yourself.**
+
+1. Press: <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P
+2. Type: Ask
+
+> How does it work? We feed ChatGPT the context of your question searched through your vault and ask it to answer.
 
 ## Getting started
 
