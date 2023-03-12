@@ -18,7 +18,6 @@
   "license": "MIT",
   "dependencies": {
     "@heroicons/react": "^2.0.13",
-    "embeddings-splitter": "^0.0.5",
     "lodash": "^4.17.21",
     "posthog-js": "^1.37.0",
     "react": "^18.2.0",

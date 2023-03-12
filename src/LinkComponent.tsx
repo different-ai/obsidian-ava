@@ -5,12 +5,12 @@ import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
 import { PrimaryButton } from './Button';
-import { EMBEDBASE_URL } from './constants';
 import { CopyToClipboardButton } from './CopyToClipboard';
 import { useApp } from './hooks';
 import { InsertButton } from './InsertButton';
 import { store } from './store';
 import { camelize } from './utils';
+import { prepareFilesToEmbed } from './indexing';
 
 export interface ButtonProps extends React.HTMLAttributes<HTMLButtonElement> {
   children: React.ReactNode;
@@ -104,26 +104,40 @@ const ControlForm = () => {
       limit: data.limit,
     });
     state.setEmbedsLoading(true);
+    const query: any = {
+      content: state.currentFileContent,
+    };
+    if (data.useNoteTitle) {
+      query['path'] = state.currentFilePath;
+    }
+    const stringified = prepareFilesToEmbed([
+      query,
+    ])[0];
 
-    const response = await fetch(`${EMBEDBASE_URL}/v1/${state.settings.vaultId}/search`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${state.settings.token}`,
-          'X-Client-Version': state.version,
-        },
-        body: JSON.stringify({
-          // parenthese are needed for the ternary operator to work
-          query:
-            (data.useNoteTitle ? `File:\n${state.currentFilePath}\n` : '') +
-            `Content:\n${state.currentFileContent}`,
-          top_k: Number(data.limit),
-        }),
-      }).then((res) => res.json());
+    console.log('Search query:', stringified);
+
+    const response = await fetch(`${state.settings.embedbaseUrl}/v1/${state.settings.vaultId}/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${state.settings.token}`,
+        'X-Client-Version': state.version,
+      },
+      body: JSON.stringify({
+        query: stringified,
+        top_k: Number(data.limit),
+      }),
+    }).then((res) => res.json());
+
+    response.similarities = response.similarities.map((similarity: any) => ({
+      // parse the JSON data into {path, content}
+      ...JSON.parse(similarity.data),
+      score: similarity.score,
+    }));
 
     const embeds = camelize(response.similarities.filter(
       (similarity: any) =>
-        similarity.id !== state.currentFilePath
+        similarity.path !== state.currentFilePath
     ));
 
     state.setEmbedsLoading(false);
@@ -201,7 +215,7 @@ export function LinkComponent() {
     // get the top value
     const topValue = embeds[0].score;
     const results = embeds.map((embed) => {
-      const [path, similarity] = [embed.id, embed.score];
+      const [path, similarity] = [embed.path, embed.score];
       const opacity = sCurve(similarity, threshold, topValue);
 
       return {

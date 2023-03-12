@@ -1,8 +1,9 @@
 import { SSE } from 'lib/sse';
 import { camelCase, isArray, isObject, transform } from 'lodash';
 import { App } from 'obsidian';
-import { API_HOST, buildHeaders, EMBEDBASE_URL } from './constants';
+import { API_HOST, buildHeaders } from './constants';
 import AvaPlugin from './main';
+import { AvaSettings } from './LegacySettings';
 
 export const camelize = (obj: Record<string, unknown>) =>
   transform(
@@ -19,7 +20,7 @@ export const camelize = (obj: Record<string, unknown>) =>
 const SEMANTIC_SIMILARITY_THRESHOLD = 0.35;
 export interface ISimilarFile {
   score: number;
-  id: string;
+  path: string;
   data: string;
 }
 export interface ISearchRequest {
@@ -29,7 +30,7 @@ export interface ISearchRequest {
 export interface ISearchResponse {
   query: string;
   similarities: {
-    id: string;
+    path: string,
     data: string;
     score: number;
   }[];
@@ -40,16 +41,15 @@ export const REWRITE_CHAR_LIMIT = 5800;
 export const EMBED_CHAR_LIMIT = 25000;
 export const search = async (
   query: string,
-  token: string,
-  vaultId: string,
+  settings: AvaSettings,
   version: string,
 ): Promise<ISearchResponse> => {
   console.log('Search query:', query);
-  const response = await fetch(`${EMBEDBASE_URL}/v1/${vaultId}/search`, {
+  const response = await fetch(`${settings.embedbaseUrl}/v1/${settings.vaultId}/search`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      Authorization: `Bearer ${settings.token}`,
       'X-Client-Version': version,
     },
     body: JSON.stringify({
@@ -60,20 +60,26 @@ export const search = async (
     throw new Error(`Failed to search: ${response.message}`);
   }
   console.log('Search response:', response);
+  response.similarities = response.similarities.map((similarity: any) => ({
+    // parse the JSON data into {path, content}
+    ...JSON.parse(similarity.data),
+    score: similarity.score,
+  }));
   return response;
 };
 
 export const createSemanticLinks = async (
   title: string,
   text: string,
-  token: string,
-  vaultId: string,
+  settings: AvaSettings,
   version: string,
 ) => {
   const response = await search(
-    `File:\n${title}\nContent:\n${text}`,
-    token,
-    vaultId,
+    JSON.stringify({
+      path: title,
+      content: text,
+    }),
+    settings,
     version,
   );
 
@@ -81,10 +87,10 @@ export const createSemanticLinks = async (
     return [];
   }
   const similarities = response.similarities.filter(
-    (similarity) =>
-      similarity.id !== title &&
-      similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
-  );
+      (similarity) =>
+        similarity.path !== title &&
+        similarity.score > SEMANTIC_SIMILARITY_THRESHOLD
+    );
   return similarities;
 };
 
@@ -112,7 +118,7 @@ export const complete = async (
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const body: any = {
     frequency_penalty: options?.frequencyPenalty || 0,
-    max_tokens: options?.maxTokens || 2000,
+    max_tokens: options?.maxTokens,
     model: options?.model || 'text-davinci-003',
     presence_penalty: options?.presencePenalty || 0,
     prompt: prompt,
@@ -163,22 +169,21 @@ export const rewrite = (
 
 export const deleteFromIndex = async (
   ids: string[],
-  token: string,
-  vaultId: string,
-  version: string
+  settings: AvaSettings,
+  version: string,
 ) => {
-  if (!token) {
+  if (!settings.token) {
     console.log('Tried to call delete without a token');
     return;
   }
-  if (!vaultId) {
+  if (!settings.vaultId) {
     console.log('Tried to call delete without a token');
     return;
   }
   console.log('deleting', ids.length, 'notes');
-  const response = await fetch(`${EMBEDBASE_URL}/v1/${vaultId}`, {
+  const response = await fetch(`${settings.embedbaseUrl}/v1/${settings.vaultId}`, {
     method: 'DELETE',
-    headers: buildHeaders(token, version),
+    headers: buildHeaders(settings.token, version),
     body: JSON.stringify({
       ids,
     }),
@@ -189,34 +194,30 @@ export const deleteFromIndex = async (
   return response;
 };
 
-interface SyncIndexRequest {
-  id: string;
-  data: string;
-}
+
 export const syncIndex = async (
-  notes: SyncIndexRequest[],
-  token: string,
-  vaultId: string,
-  version: string
+  notes: string[],
+  settings: AvaSettings,
+  version: string,
 ) => {
   // stop silently not necessiraly need to span the user
-  if (!token) {
+  if (!settings.token) {
     console.log('Tried to call refresh without a token');
     return;
   }
-  if (!vaultId) {
+  if (!settings.vaultId) {
     console.log('Tried to call refresh without a token');
     return;
   }
   console.log('refreshing', notes.length, 'notes');
-  const response = await fetch(`${EMBEDBASE_URL}/v1/${vaultId}`, {
+  const response = await fetch(`${settings.embedbaseUrl}/v1/${settings.vaultId}`, {
     method: 'POST',
-    headers: buildHeaders(token, version),
+    headers: buildHeaders(settings.token, version),
     body: JSON.stringify({
       documents: notes.map((note) => ({
-        id: note.id,
-        data: note.data,
+        data: note,
       })),
+      store_data: settings.storeData,
     }),
   }).then((res) => res.json());
   if (response.message) {
@@ -231,13 +232,12 @@ interface IClearResponse {
   message?: string;
 }
 export const clearIndex = async (
-  token: string,
-  vaultId: string,
-  version: string
+  settings: AvaSettings,
+  version: string,
 ): Promise<IClearResponse> => {
-  const response = await fetch(`${EMBEDBASE_URL}/v1/${vaultId}/clear`, {
-      headers: buildHeaders(token, version),
-    }).then((res) => res.json());
+  const response = await fetch(`${settings.embedbaseUrl}/v1/${settings.vaultId}/clear`, {
+    headers: buildHeaders(settings.token, version),
+  }).then((res) => res.json());
   if (response.message) {
     throw new Error(response.message);
   }

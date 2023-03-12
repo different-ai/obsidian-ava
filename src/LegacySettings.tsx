@@ -6,6 +6,7 @@ import AvaPlugin from './main';
 import { Spinner } from './StatusBar';
 import { store } from './store';
 import { ENDPOINT_NAMES, getUsage } from './utils';
+import { CheckBox } from './CheckBox';
 
 export interface AvaSettings {
   useLinks: boolean;
@@ -15,8 +16,11 @@ export interface AvaSettings {
   userId: string;
   experimental: boolean;
   ignoredFolders: string[];
+  storeData: boolean;
+  embedbaseUrl: string;
 }
 
+export const defaultEmbedbaseUrl = 'https://embedbase-internal-c6txy76x2q-uc.a.run.app';
 export const DEFAULT_SETTINGS: AvaSettings = {
   useLinks: false,
   debug: false,
@@ -25,6 +29,8 @@ export const DEFAULT_SETTINGS: AvaSettings = {
   userId: '',
   experimental: false,
   ignoredFolders: [],
+  storeData: false,
+  embedbaseUrl: defaultEmbedbaseUrl,
 };
 
 export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
@@ -42,6 +48,12 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
   );
   const [ignoredFolderInput, setIgnoredFolderInput] =
     React.useState<string>('');
+  const [storeData, setStoreData] = React.useState<boolean>(
+    state.settings.storeData
+  );
+  const [embedbaseUrl, setEmbedbaseUrl] = React.useState<string>(
+    state.settings.embedbaseUrl
+  );
   const showAdvancedSettings = isDebug;
 
   React.useEffect(() => {
@@ -99,7 +111,18 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
       plugin.unlistenToNoteEvents();
     }
   };
-
+  const handleEmbedbaseUrl = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const value = event.target.value;
+    plugin.settings.embedbaseUrl = value;
+    plugin.saveSettings();
+    setEmbedbaseUrl(value);
+  };
+  const handleStoreData = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const checked = event.target.checked;
+    plugin.settings.storeData = checked;
+    plugin.saveSettings();
+    setStoreData(checked);
+  };
   const handleDebug = (event: React.ChangeEvent<HTMLInputElement>) => {
     const checked = event.target.checked;
     posthog.capture('settings', {
@@ -187,29 +210,27 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
                 <div className="flex items-center">
                   <div className="flex-shrink-0 h-2 w-2">
                     <div
-                      className={`h-2 w-2 rounded-full ${
-                        state.linksStatus === 'running'
-                          ? 'bg-green-400 animate-pulse'
-                          : state.linksStatus === 'loading'
+                      className={`h-2 w-2 rounded-full ${state.linksStatus === 'running'
+                        ? 'bg-green-400 animate-pulse'
+                        : state.linksStatus === 'loading'
                           ? 'bg-yellow-400 animate-pulse'
                           : state.linksStatus === 'error'
-                          ? 'bg-red-400 animate-pulse'
-                          : 'bg-gray-400 animate-pulse'
-                      }`}
+                            ? 'bg-red-400 animate-pulse'
+                            : 'bg-gray-400 animate-pulse'
+                        }`}
                       // tooltip shown when hovering the light
                       // 'running' -> '🧙 Links is running'
                       // 'loading' -> '🧙 Links is loading'
                       // 'error' -> '🧙 Links is in error - please try to restart Obsidian'
                       // 'disabled' -> '🧙 Links is disabled'
-                      aria-label={`${
-                        state.linksStatus === 'running'
-                          ? '🧙 Links is running'
-                          : state.linksStatus === 'loading'
+                      aria-label={`${state.linksStatus === 'running'
+                        ? '🧙 Links is running'
+                        : state.linksStatus === 'loading'
                           ? '🧙 Links is loading'
                           : state.linksStatus === 'error'
-                          ? '🧙 Links is in error - please try to restart Obsidian'
-                          : '🧙 Links is disabled'
-                      }`}
+                            ? '🧙 Links is in error - please try to restart Obsidian'
+                            : '🧙 Links is disabled'
+                        }`}
                     />
                   </div>
                   <div className="ml-3 text-sm">
@@ -310,45 +331,73 @@ export function AdvancedSettings({ plugin }: { plugin: AvaPlugin }) {
       <div className="">
         <div className="text-xl font-bold mt-8 mb-3">Advanced Settings</div>
         <div className="flex flex-col gap-3">
-          <div className="flex  items-center">
-            <input
-              aria-describedby="comments-description"
-              name="comments"
-              id="comments"
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-              onChange={handleDebug}
-              checked={isDebug}
-            />
-            <div className="ml-3 text-sm">
-              <label htmlFor="comments" className="font-medium cursor-pointer">
-                Debug
-                <div id="comments-description" className="text-gray-500">
-                  ⚠️ You probably don't need this ⚠️
-                </div>
-              </label>
+          <CheckBox
+            onChange={handleStoreData}
+            checked={storeData}
+            label="Save Links data"
+            subText="⚠️ You probably don't need this, this is useful if you want to use your Links' data outside Obsidian ⚠️"
+          />
+          <CheckBox
+            onChange={handleDebug}
+            checked={isDebug}
+            label="Debug"
+            subText="⚠️ You probably don't need this ⚠️"
+          />
+          <CheckBox
+            onChange={handleExperimental}
+            checked={isExperimental}
+            label="Experimental features"
+            subText="⚠️ Can break your vault, to be used with caution ⚠️"
+          />
+          {/* an input text for embedbase url */}
+          <div className="flex flex-col gap-3">
+
+            <div className="flex gap-3 items-end">
+              <div className="flex flex-col gap-3 w-full">
+                <label className="font-medium">
+                  Embedbase URL
+                </label>
+                <input
+                  type="text"
+                  className="border border-gray-300 rounded-md"
+                  placeholder="https://embedbase-internal-c6txy76x2q-uc.a.run.app"
+                  value={embedbaseUrl}
+                  onChange={handleEmbedbaseUrl}
+                />
+
+              </div>
+              {/* an icon button to reset the text to default */}
+              <SecondaryButton
+                onClick={() => setEmbedbaseUrl(defaultEmbedbaseUrl)}
+                aria-label="Reset Embedbase URL to default"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5"
+                  viewBox="0 0 20 20"
+                  fill="currentColor"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3.293 3.293a1 1 0 011.414 0L10 8.586l5.293-5.293a1 1 0 111.414 1.414l-5.293 5.293 5.293 5.293a1 1 0 01-1.414 1.414L10 11.414l-5.293 5.293a1 1 0 01-1.414-1.414l5.293-5.293-5.293-5.293a1 1 0 010-1.414z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              </SecondaryButton>
             </div>
           </div>
-          <div className="flex h-5 items-center">
-            <input
-              aria-describedby="experimental-description"
-              name="experimental"
-              id="experimental"
-              type="checkbox"
-              className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-              onChange={handleExperimental}
-              checked={isExperimental}
-            />
-            <div className="ml-3 text-sm">
-              <label
-                htmlFor="experimental"
-                className="font-medium cursor-pointer"
+          <div className="ml-3 text-sm">
+            <div id="comments-description" className="text-gray-500">
+              ⚠️ You probably don't need this,{' '}
+              <a
+                href="https://github.com/different-ai/embedbase"
+                target="_blank"
+                rel="noreferrer"
               >
-                Experimental features
-                <div id="experimental-description" className="text-gray-500">
-                  ⚠️ Can break your vault, to be used with caution ⚠️
-                </div>
-              </label>
+                This is the API powering Links
+              </a>
+              {' '}
+              ⚠️
             </div>
           </div>
         </div>

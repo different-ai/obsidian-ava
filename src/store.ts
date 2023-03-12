@@ -1,6 +1,6 @@
 import { Editor } from 'obsidian';
 import create from 'zustand/vanilla';
-import { AvaSettings } from './LegacySettings';
+import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { ISimilarFile, LinksStatus } from './utils';
 
 type State = {
@@ -28,15 +28,7 @@ type State = {
 
 export const store = create<State>((set) => ({
   version: '',
-  settings: {
-    useLinks: false,
-    debug: false,
-    token: '',
-    vaultId: '',
-    userId: '',
-    experimental: false,
-    ignoredFolders: [],
-  },
+  settings: DEFAULT_SETTINGS,
   // used to dispaly loading state in the sidebar
   loadingEmbeds: false,
   // used to display loading state in the
