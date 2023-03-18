@@ -20,7 +20,7 @@ export interface AvaSettings {
   embedbaseUrl: string;
 }
 
-export const defaultEmbedbaseUrl = 'https://embedbase-internal-c6txy76x2q-uc.a.run.app';
+export const defaultEmbedbaseUrl = 'https://embedbase-ava-c6txy76x2q-uc.a.run.app';
 export const DEFAULT_SETTINGS: AvaSettings = {
   useLinks: false,
   debug: false,

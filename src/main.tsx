@@ -221,8 +221,8 @@ export default class AvaPlugin extends Plugin {
       );
       const preparedFiles = prepareFilesToEmbed(files);
       store.setState({ linksStatus: 'loading' });
-      // 2000 = approx 13s - tune it for optimal user feedback / indexing time
-      const batchSize = 2000;
+      // tune it for optimal user feedback / indexing time
+      const batchSize = 800;
       // execute in parallel batches split of batchSize size
       await Promise.all(
         // split in batches of batchSize
