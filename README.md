@@ -5,7 +5,7 @@
 
 ### Stack
 
-- [Embedbase (OpenAI embeddings + Pinecone)](https://github.com/another-ai/embedbase) for linking
+- [Embedbase (OpenAI embeddings + Supabase)](https://github.com/different-ai/embedbase) for linking
 - FastAPI
 
 ### What can you do with AVA?
@@ -88,6 +88,10 @@ We recommend you to try Ava's tutorial that you can find here:
 ## How does it work?
 
 Ava is powered by [Embedbase, the open-source API to easily create, store, and retrieve embeddings](https://github.com/another-ai/embedbase-ava).
+
+### Data privacy
+
+Your notes content are **not stored in our database**. The code is [open-source](https://github.com/different-ai/embedbase-ava).
 
 ## Technical Limitations
 
