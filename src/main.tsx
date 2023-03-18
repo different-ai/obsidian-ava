@@ -31,25 +31,25 @@ import {
   getLinkData,
   getVaultId,
   ICompletion,
-  ISearchRequest,
   ISearchResponse,
   rewrite,
-  REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT,
   search,
   suggestTags,
   syncIndex,
+  REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT
 } from './utils';
 
 import posthog from 'posthog-js';
 import { iconAva } from './constants';
+import { prepareFilesToEmbed } from './indexing';
 import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
 import { LinkView, VIEW_TYPE_LINK } from './linkView';
+import { generativeSearch } from './prompt';
 import { PromptModal } from './PromptModal';
 import { RewriteModal } from './RewriteModal';
 import { store } from './store';
 import { tutorial } from './tutorial';
 import { VIEW_TYPE_WRITE, WriteView } from './writeView';
-import { generativeSearch } from './prompt';
 
 // e.g. ["Buddhism/Veganism"]
 // path: "Buddhism/Veganism/2021-01-01.md" should be ignored
@@ -158,8 +158,7 @@ export default class AvaPlugin extends Plugin {
       completion = await createSemanticLinks(
         path,
         currentText,
-        this.settings?.token,
-        this.settings.vaultId,
+        this.settings,
         this.manifest.version
       );
 
@@ -213,41 +212,37 @@ export default class AvaPlugin extends Plugin {
       // 10000 notes = 40 seconds
       new Notice(
         'Search - Indexing vault...' +
-          (files.length > 1000
-            ? ' (your vault is large, this may take a while,' +
-              // display in seconds
-              `estimated time: ${Math.round(files.length / 250)}s)`
-            : ''),
+        (files.length > 1000
+          ? ' (your vault is large, this may take a while,' +
+          // display in seconds
+          `estimated time: ${Math.round(files.length / 250)}s)`
+          : ''),
         2000
       );
-
+      const preparedFiles = prepareFilesToEmbed(files);
       store.setState({ linksStatus: 'loading' });
       // 2000 = approx 13s - tune it for optimal user feedback / indexing time
       const batchSize = 2000;
       // execute in parallel batches split of batchSize size
       await Promise.all(
         // split in batches of batchSize
-        files
+        preparedFiles
           .reduce((acc, file, i) => {
             if (i % batchSize === 0) {
-              acc.push(files.slice(i, i + batchSize));
+              acc.push(preparedFiles.slice(i, i + batchSize));
             }
             return acc;
           }, [])
-          .map((batch) =>
+          .map((batch: string[]) =>
             syncIndex(
-              batch.map((file: any) => ({
-                id: file.path,
-                data: `File:\n${file.path}\nContent:\n${file.content}`,
-              })),
-              this.settings?.token,
-              this.settings?.vaultId,
-              this.manifest.version
+              batch,
+              this.settings,
+              this.manifest.version,
             ).then(() => {
               new Notice(
                 'Search - Vault indexing in progress, ' +
-                  batch.length +
-                  ' files indexed',
+                batch.length +
+                ' files indexed',
                 2000
               );
             })
@@ -309,15 +304,12 @@ export default class AvaPlugin extends Plugin {
             this.app.vault.adapter.read(this.lastFile.path).then((data) => {
               if (!this.lastFile) return setLastFile(leaf);
               syncIndex(
-                [
-                  {
-                    id: this.lastFile.path,
-                    data: `File:\n${this.lastFile.path}\nContent:\n${data}`,
-                  },
-                ],
-                this.settings?.token,
-                this.settings?.vaultId,
-                this.manifest.version
+                prepareFilesToEmbed([{
+                  path: this.lastFile.path,
+                  content: data,
+                }]),
+                this.settings,
+                this.manifest.version,
               );
             });
           }
@@ -344,8 +336,7 @@ export default class AvaPlugin extends Plugin {
           if (oldPath) {
             deleteFromIndex(
               [oldPath],
-              this.settings?.token,
-              this.settings?.vaultId,
+              this.settings,
               this.manifest.version
             );
           }
@@ -354,15 +345,12 @@ export default class AvaPlugin extends Plugin {
             return;
           }
           syncIndex(
-            [
-              {
-                id: f.path,
-                data: `File:\n${f.path}\nContent:\n${data}`,
-              },
-            ],
-            this.settings?.token,
-            this.settings?.vaultId,
-            this.manifest.version
+            prepareFilesToEmbed([{
+              path: this.lastFile.path,
+              content: data,
+            }]),
+            this.settings,
+            this.manifest.version,
           );
         } catch (e) {
           onGeneralError(e);
@@ -381,8 +369,7 @@ export default class AvaPlugin extends Plugin {
         if (isIgnored(this.settings?.ignoredFolders, file.path)) return;
         deleteFromIndex(
           [file.path],
-          this.settings?.token,
-          this.settings?.vaultId,
+          this.settings,
           this.manifest.version
         );
       } catch (e) {
@@ -428,7 +415,7 @@ export default class AvaPlugin extends Plugin {
     if (store.getState().linksStatus !== 'running') {
       new Notice(
         '🧙 Link - Links is not running, ' +
-          'please start it first in the setings',
+        'please start it first in the setings',
         3000
       );
       return;
@@ -523,14 +510,12 @@ export default class AvaPlugin extends Plugin {
       this.search = (req) =>
         search(
           req,
-          this.settings.token,
-          this.settings.vaultId,
+          this.settings,
           this.manifest.version
         );
       this.clearIndex = () =>
         clearIndex(
-          this.settings.token,
-          this.settings.vaultId,
+          this.settings,
           this.manifest.version
         );
 
@@ -877,8 +862,7 @@ export default class AvaPlugin extends Plugin {
             this.setStreamingSource(
               await generativeSearch(
                 text,
-                this.settings.token,
-                this.settings.vaultId,
+                this.settings,
                 this.manifest.version,
                 app,
               )
