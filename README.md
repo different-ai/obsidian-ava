@@ -52,8 +52,7 @@ https://user-images.githubusercontent.com/25003283/210828303-793c3331-f9e3-4059-
 1. Press: <img  alt="cmd" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8b/Looped_square_on_white_background.svg/560px-Looped_square_on_white_background.svg.png?20071209071920" width="16" height="16"> + P
 2. Type: Link Notes
 
-![links](https://user-images.githubusercontent.com/25003283/213157399-03c9a557-8105-4ec8-b5c6-2487b636abd7.gif)
-
+![New Recording Mar 19 2023 1003 AM (1)](https://user-images.githubusercontent.com/25003283/226165955-87a59a7c-a8bc-45f9-9e14-c92fec429861.gif)
 
 ### Create images from selected text
 
