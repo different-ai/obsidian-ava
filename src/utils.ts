@@ -62,8 +62,9 @@ export const search = async (
   console.log('Search response:', response);
   response.similarities = response.similarities.map((similarity: any) => ({
     // parse the JSON data into {path, content}
-    ...JSON.parse(similarity.data),
+    ...JSON.parse(similarity.data || '{}'),
     score: similarity.score,
+    path: similarity.metadata.path,
   }));
   return response;
 };
@@ -86,6 +87,7 @@ export const createSemanticLinks = async (
   if (!response.similarities) {
     return [];
   }
+  console.log('Similarities:', response);
   const similarities = response.similarities.filter(
       (similarity) =>
         similarity.path !== title &&
@@ -196,7 +198,7 @@ export const deleteFromIndex = async (
 
 
 export const syncIndex = async (
-  notes: string[],
+  notes: {content: string, path: string}[],
   settings: AvaSettings,
   version: string,
 ) => {
@@ -215,7 +217,10 @@ export const syncIndex = async (
     headers: buildHeaders(settings.token, version),
     body: JSON.stringify({
       documents: notes.map((note) => ({
-        data: note,
+        data: JSON.stringify(note),
+        metadata: {
+          path: note.path,
+        }
       })),
       store_data: settings.storeData,
     }),

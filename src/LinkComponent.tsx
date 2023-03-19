@@ -110,11 +110,11 @@ const ControlForm = () => {
     if (data.useNoteTitle) {
       query['path'] = state.currentFilePath;
     }
-    const stringified = prepareFilesToEmbed([
+    const newQuery = prepareFilesToEmbed([
       query,
     ])[0];
 
-    console.log('Search query:', stringified);
+    console.log('Search query:', newQuery);
 
     const response = await fetch(`${state.settings.embedbaseUrl}/v1/${state.settings.vaultId}/search`, {
       method: 'POST',
@@ -124,15 +124,15 @@ const ControlForm = () => {
         'X-Client-Version': state.version,
       },
       body: JSON.stringify({
-        query: stringified,
+        query: JSON.stringify(newQuery),
         top_k: Number(data.limit),
       }),
     }).then((res) => res.json());
-
     response.similarities = response.similarities.map((similarity: any) => ({
       // parse the JSON data into {path, content}
-      ...JSON.parse(similarity.data),
+      ...JSON.parse(similarity.data || '{}'),
       score: similarity.score,
+      path: similarity.metadata.path,
     }));
 
     const embeds = camelize(response.similarities.filter(

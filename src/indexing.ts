@@ -18,16 +18,16 @@ export const prepareFilesToEmbed = (files: { path?: string, content: string }[])
                 markdownEntriesPerFile.push(`${prefix}${entry.trim()}`);
             }
         }
-        entries.push(...markdownEntriesPerFile.map((entry) => JSON.stringify((
+        entries.push(...markdownEntriesPerFile.map((entry) => (
             markdownFile.path ?
                 { content: entry, path: markdownFile.path } :
                 { content: entry }
-        ))));
+        )));
     }
-    // HACK: atm remove too long entries until we have a better solution
+    // HACK: atm remove too long header entries until we have a better solution
     // to properly index them (either average embeddings or split smartly in the client)
     const maxEntryLength = 2000; // should use tokens once tiktoken works on browser
-    entries = entries.filter((entry) => entry.length < maxEntryLength);
+    entries = entries.filter((entry) => JSON.stringify(entry).length < maxEntryLength);
     // HACK
 
     console.log(`Split ${files.length} files into ${entries.length} entries`);

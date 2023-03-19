@@ -233,7 +233,7 @@ export default class AvaPlugin extends Plugin {
             }
             return acc;
           }, [])
-          .map((batch: string[]) =>
+          .map((batch) =>
             syncIndex(
               batch,
               this.settings,
@@ -304,6 +304,7 @@ export default class AvaPlugin extends Plugin {
             this.app.vault.adapter.read(this.lastFile.path).then((data) => {
               if (!this.lastFile) return setLastFile(leaf);
               syncIndex(
+                // @ts-ignore
                 prepareFilesToEmbed([{
                   path: this.lastFile.path,
                   content: data,
@@ -345,6 +346,7 @@ export default class AvaPlugin extends Plugin {
             return;
           }
           syncIndex(
+            // @ts-ignore
             prepareFilesToEmbed([{
               path: this.lastFile.path,
               content: data,
