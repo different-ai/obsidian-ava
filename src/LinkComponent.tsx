@@ -1,6 +1,5 @@
 import { ChevronDownIcon, ChevronRightIcon } from '@heroicons/react/24/outline';
 import { Notice } from 'obsidian';
-import { posthog } from 'posthog-js';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { ReactMarkdown } from 'react-markdown/lib/react-markdown';
@@ -99,10 +98,6 @@ const ControlForm = () => {
       new Notice('🧙 You need to login to use this feature', 3000);
       return;
     }
-    posthog.capture('use-feature', {
-      feature: 'search',
-      limit: data.limit,
-    });
     state.setEmbedsLoading(true);
     const query: any = {
       content: state.currentFileContent,
@@ -195,12 +190,6 @@ export function LinkComponent() {
   const embeds = state.embeds;
   const threshold = 0.5;
 
-  const trackCopy = () => {
-    posthog.capture('copy-links');
-  };
-  const trackInsert = () => {
-    posthog.capture('insert-links');
-  };
 
   React.useEffect(() => {
     if (!embeds) {
@@ -241,13 +230,11 @@ export function LinkComponent() {
         <CopyToClipboardButton
           disabled={disableButtons}
           text={textToInsert}
-          extraOnClick={trackCopy}
         />
         <InsertButton
           disabled={disableButtons}
           text={textToInsert}
           editorContext={state.editorContext}
-          extraOnClick={trackInsert}
         />
       </div>
       <div className="text-sm text-[var(--text-faint)]">

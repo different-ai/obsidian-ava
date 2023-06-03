@@ -1,5 +1,4 @@
 import { Notice } from 'obsidian';
-import posthog from 'posthog-js';
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 import { CopyToClipboardButton } from './CopyToClipboard';
@@ -27,10 +26,6 @@ export const WriteComponent = () => {
       return;
     }
     if (data.content.length > REWRITE_CHAR_LIMIT) {
-      posthog.capture('too-long-selection', {
-        length: data.content.length,
-        action: 'rewrite',
-      });
       new Notice(
         '🧙 AVA - Text is too long, please reduce to less than 5800 characters ~1200 words'
       );
@@ -45,7 +40,6 @@ export const WriteComponent = () => {
     };
     // only capture short prompt as it's more data privacy wise
     if (prompt.length < 100) d.prompt = prompt;
-    posthog.capture('use-feature', d);
     store.setState({ loadingContent: true });
 
     try {
@@ -115,12 +109,6 @@ export const WriteComponent = () => {
   React.useEffect(() => {
     setValue('content', state.content);
   }, [state.content, setValue]);
-  const trackCopy = () => {
-    posthog.capture('copy-write');
-  };
-  const trackInsert = () => {
-    posthog.capture('insert-write');
-  };
 
   const handleOnChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     store.getState().replaceContentToRewrite(e.target.value);
@@ -135,13 +123,11 @@ export const WriteComponent = () => {
             <CopyToClipboardButton
               disabled={disableButtons}
               text={state.content}
-              extraOnClick={trackCopy}
             />
             <InsertButton
               disabled={disableButtons}
               editorContext={state.editorContext}
               text={state.content}
-              extraOnClick={trackInsert}
             />
           </div>
 

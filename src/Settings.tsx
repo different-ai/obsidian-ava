@@ -1,4 +1,3 @@
-import { posthog } from 'posthog-js';
 import * as React from 'react';
 import { PrimaryButton } from './Button';
 import useRetryUntilResolved from './hooks';
@@ -32,10 +31,6 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
       plugin.settings.token = linkData?.token;
       plugin.settings.userId = linkData?.userId;
 
-      posthog.identify(linkData.userId, {
-        vaultId: vaultId,
-        version: plugin.manifest.version,
-      });
       plugin.saveSettings();
       setAttemptingToConnect(false);
 
@@ -46,14 +41,12 @@ const Connect = ({ plugin }: { plugin: AvaPlugin }) => {
   }, 2000);
 
   const handleConnect = async () => {
-    posthog.capture('ava-connect');
     const vaultId = getVaultId(plugin);
     setAttemptingToConnect(true);
     openApp(vaultId);
   };
 
   const handleDisconnect = () => {
-    posthog.capture('ava-disconnect');
     plugin.settings.token = '';
     plugin.unlistenToNoteEvents();
     setAttemptingToConnect(false);

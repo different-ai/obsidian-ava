@@ -39,7 +39,6 @@ import {
   REWRITE_CHAR_LIMIT as TEXT_CREATE_CHAR_LIMIT
 } from './utils';
 
-import posthog from 'posthog-js';
 import { iconAva } from './constants';
 import { prepareFilesToEmbed } from './indexing';
 import { AvaSettings, DEFAULT_SETTINGS } from './LegacySettings';
@@ -467,10 +466,6 @@ export default class AvaPlugin extends Plugin {
 
     await this.loadSettings();
     console.log('Ava version', this.manifest.version);
-    posthog.init('phc_8Up1eqqTpl4m2rMXePkHXouFXzihTCswZ27QPgmhjmM', {
-      api_host: 'https://app.posthog.com',
-      autocapture: false,
-    });
 
     try {
       if (this.settings.token && !this.settings.userId) {
@@ -480,14 +475,9 @@ export default class AvaPlugin extends Plugin {
         this.settings.token = linkData.token;
         this.saveSettings();
       }
-      posthog.identify(this.settings.userId, {
-        vaultId: this.settings.vaultId,
-        version: this.manifest.version,
-      });
     } catch (e) {
       console.log('Ava - Error identifying user', e);
     }
-    posthog.opt_in_capturing();
 
     const statusBarItemHtml = this.addStatusBarItem();
     this.statusBarItem = createRoot(statusBarItemHtml);
@@ -525,7 +515,6 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-add-prompt',
         name: 'Write Paragraph',
         editorCallback: (editor: Editor) => {
-          posthog.capture('use-feature', { feature: 'write paragraph' });
           new Notice('🧙 Writing Paragraph', 2000);
           if (!this.settings.token) {
             new Notice('🧙 You need to login to use this feature', 2000);
@@ -574,10 +563,6 @@ export default class AvaPlugin extends Plugin {
         name: 'Generate Image',
         editorCallback: async (editor: Editor) => {
           const selection = editor.getSelection();
-          posthog.capture('use-feature', {
-            feature: 'generate image',
-            promptLength: selection.length,
-          });
 
           if (!this.settings.token) {
             new Notice('🧙 You need to login to use this feature', 2000);
@@ -640,7 +625,6 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-rewrite-prompt',
         name: 'Rewrite Selection',
         editorCallback: (editor: Editor) => {
-          posthog.capture('use-feature', { feature: 'rewrite selection' });
           if (!this.settings.token) {
             new Notice('🧙 You need to login to use this feature', 2000);
             return;
@@ -650,10 +634,6 @@ export default class AvaPlugin extends Plugin {
             return;
           }
           if (editor.getSelection().length > TEXT_CREATE_CHAR_LIMIT) {
-            posthog.capture('too-long-selection', {
-              length: editor.getSelection().length,
-              action: 'rewrite',
-            });
             new Notice(
               '🧙 AVA - Selection is too long, please select less than 5800 characters ~1200 words'
             );
@@ -671,7 +651,6 @@ export default class AvaPlugin extends Plugin {
             };
             // only capture short prompt as it's more data privacy wise
             if (prompt.length < 100) d.prompt = prompt;
-            posthog.capture('use-feature', d);
             store.setState({ loadingContent: true });
             this.statusBarItem.render(<StatusBar status="loading" />);
             const text = editor.getSelection();
@@ -720,7 +699,6 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-load-semantic',
         name: 'Load vault',
         callback: async () => {
-          posthog.capture('ava-load-semantic');
           if (!this.settings.token) {
             new Notice('Link - You need to login to use this feature');
             return;
@@ -740,7 +718,6 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-complete',
         name: 'Complete Selection',
         editorCallback: async (editor: Editor) => {
-          posthog.capture('use-feature', { feature: 'complete selection' });
           if (!this.settings.token) {
             new Notice('Link - You need to login to use this feature');
             return;
@@ -791,7 +768,6 @@ export default class AvaPlugin extends Plugin {
         id: 'ava-tags',
         name: 'Suggest tags',
         editorCallback: async (editor: Editor) => {
-          posthog.capture('use-feature', { feature: 'suggest tags' });
           if (!this.settings.token) {
             new Notice('🧙 AVA Tags - You need to login to use this feature');
             return;
@@ -851,7 +827,6 @@ export default class AvaPlugin extends Plugin {
       id: 'ava-generative-search',
       name: 'Ask',
       editorCallback: (editor: Editor) => {
-        posthog.capture('use-feature', { feature: 'ask' });
         new Notice('🧙 Asking your vault', 2000);
         if (!this.settings.token) {
           new Notice('🧙 You need to login to use this feature', 2000);
