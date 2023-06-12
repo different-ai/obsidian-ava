@@ -1,4 +1,6 @@
 
+❗️ not maintained anymore
+
 # AVA - AI assistant for Obsidian
 
 > Unlock the full potential of Obsidian Notes and take your productivity to the next level.
